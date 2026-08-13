@@ -1,0 +1,109 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Bảng Vàng Thành Tích{% endblock %}
+
+{% block content %}
+<div class="container max-w-lg mx-auto mt-4">
+    <div class="text-center mb-4">
+        <h2 class="text-custom-red fw-bold display-6">🏆 Bảng Vàng Thành Tích</h2>
+        <p class="text-muted">Theo dõi tiến độ học tập và so tài cùng các học viên khác!</p>
+    </div>
+
+    <!-- Thanh chuyển đổi Tab (Đã tích hợp giữ trạng thái active) -->
+    <ul class="nav nav-pills justify-content-center mb-4 gap-3" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'history' %}active{% endif %} rounded-pill px-4 fw-bold" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button" role="tab">👤 Lịch Sử Cá Nhân</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'leaderboard' %}active bg-danger text-white border-0{% else %}text-danger bg-light border border-danger{% endif %} rounded-pill px-4 fw-bold" id="leaderboard-tab" data-bs-toggle="pill" data-bs-target="#leaderboard" type="button" role="tab">🌍 Bảng Xếp Hạng</button>
+        </li>
+    </ul>
+
+    <!-- Nội dung Tabs -->
+    <div class="tab-content" id="pills-tabContent">
+        
+        <!-- TAB 1: LỊCH SỬ CÁ NHÂN -->
+        <div class="tab-pane fade {% if active_tab == 'history' %}show active{% endif %}" id="history" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thời gian chơi</th>
+                                <th>Bài học</th>
+                                <th>Trò chơi</th>
+                                <th>Thành tích</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in history %}
+                            <tr>
+                                <td class="text-muted small">{{ item.created_at|date:"d/m/Y H:i" }}</td>
+                                <td class="fw-medium">{{ item.lesson.title }}</td>
+                                <td>
+                                    {% if item.game_type == 'quiz_1' %}<span class="badge bg-primary">🔗 Nối từ</span>{% endif %}
+                                    {% if item.game_type == 'quiz_2' %}<span class="badge bg-success">🃏 Lật thẻ</span>{% endif %}
+                                    {% if item.game_type == 'quiz_3' %}<span class="badge bg-warning text-dark">✍️ Viết chữ</span>{% endif %}
+                                    {% if item.game_type == 'quiz_4' %}<span class="badge bg-info text-dark">🎙️ Phát âm</span>{% endif %}
+                                </td>
+                                <td class="text-danger fw-bold">{{ item.time_taken }} giây</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="py-4 text-muted">Bạn chưa chơi game nào. Hãy bắt đầu học thôi!</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: BẢNG XẾP HẠNG CHUNG -->
+        <div class="tab-pane fade {% if active_tab == 'leaderboard' %}show active{% endif %}" id="leaderboard" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="bg-danger text-white text-center py-3">
+                    <h5 class="mb-0 fw-bold">🔥 TOP 10 TỐC ĐỘ: {{ selected_game_name|upper }}</h5>
+                </div>
+                
+                <!-- BỘ LỌC CHỌN GAME -->
+                <div class="bg-light p-3 border-bottom d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="?tab=leaderboard&game=quiz_1" class="btn btn-sm {% if selected_game == 'quiz_1' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 fw-medium shadow-sm">🔗 Nối từ</a>
+                    <a href="?tab=leaderboard&game=quiz_2" class="btn btn-sm {% if selected_game == 'quiz_2' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 fw-medium shadow-sm">🃏 Lật thẻ</a>
+                    <a href="?tab=leaderboard&game=quiz_3" class="btn btn-sm {% if selected_game == 'quiz_3' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 fw-medium shadow-sm">✍️ Viết chữ</a>
+                    <a href="?tab=leaderboard&game=quiz_4" class="btn btn-sm {% if selected_game == 'quiz_4' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 fw-medium shadow-sm">🎙️ Phát âm</a>
+                </div>
+
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0 text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>Hạng</th>
+                                <th>Học viên</th>
+                                <th>Bài học</th>
+                                <th>Kỷ lục (Giây)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player in leaderboard %}
+                            <tr>
+                                <td>
+                                    {% if forloop.counter == 1 %}🥇
+                                    {% elif forloop.counter == 2 %}🥈
+                                    {% elif forloop.counter == 3 %}🥉
+                                    {% else %}<span class="badge bg-secondary">{{ forloop.counter }}</span>{% endif %}
+                                </td>
+                                <td class="fw-bold text-dark">{{ player.user__username }}</td>
+                                <td class="text-muted">{{ player.lesson__title }}</td>
+                                <td class="text-danger fw-bold fs-5">{{ player.best_time }}s</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="py-5 text-muted">Chưa có ai ghi danh lên bảng vàng ở Game này.<br>Hãy là người đầu tiên!</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

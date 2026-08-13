@@ -1,0 +1,207 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Kiểm tra Viết - {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<style>
+    .drawing-board {
+        width: 300px;
+        height: 300px;
+        background-color: #fdfdfd;
+        border: 2px dashed #ccc;
+        border-radius: 15px;
+        margin: 0 auto;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        touch-action: none; /* Tránh cuộn trang khi vẽ trên điện thoại */
+    }
+    
+    .hint-text {
+        font-size: 1.5rem;
+        color: #007bff;
+        font-weight: 500;
+    }
+    
+    .meaning-text {
+        font-size: 1.2rem;
+        color: #555;
+    }
+
+    .word-progress {
+        font-size: 2rem;
+        letter-spacing: 5px;
+        font-weight: bold;
+        color: #ddd;
+    }
+    .word-progress .active { color: var(--primary-red); text-shadow: 0 0 5px rgba(198, 40, 40, 0.3); }
+    .word-progress .done { color: #28a745; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại danh sách bài</a>
+    <h2 class="text-custom-red fw-bold">Game 3: Viết chữ Hán</h2>
+    <p class="text-muted">Viết theo nét mờ trên bảng. Sai thứ tự nét hoặc sai chiều sẽ phải viết lại!</p>
+</div>
+
+<!-- Giao diện khi đang chơi -->
+<div id="game-container" class="text-center max-w-md mx-auto">
+    <div class="badge bg-danger rounded-pill px-3 py-2 fs-6 mb-3">
+        Từ vựng: <span id="current-word-num">1</span> / {{ vocabularies|length }}
+    </div>
+
+    <!-- Hiển thị các chữ Hán trong từ (để biết đang viết chữ nào) -->
+    <div id="word-display" class="word-progress mb-3"></div>
+
+    <!-- Bảng vẽ -->
+    <div id="character-target-div" class="drawing-board mb-4"></div>
+
+    <!-- Gợi ý Pinyin và Nghĩa -->
+    <div class="mb-4">
+        <div class="hint-text" id="pinyin-hint"></div>
+        <div class="meaning-text" id="meaning-hint"></div>
+    </div>
+
+    <!-- Nút điều khiển -->
+    <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-outline-danger" onclick="writer.quiz({forceCorrectStroke: true})">🔄 Xóa vẽ lại</button>
+        <button class="btn btn-outline-secondary" onclick="writer.animateCharacter()">👀 Xem gợi ý nét</button>
+    </div>
+</div>
+
+<!-- Màn hình chúc mừng -->
+<div id="success-screen" class="text-center mt-5" style="display: none;">
+    <h1 style="font-size: 4rem;">🎓</h1>
+    <h3 class="text-success fw-bold">Tuyệt vời! Bạn đã viết đúng toàn bộ!</h3>
+    <button class="btn btn-custom-red mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Luyện tập lại</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const vocabList = [
+        {% for vocab in vocabularies %}
+        { word: "{{ vocab.hanzi }}".replace(/\s+/g, ''), pinyin: "{{ vocab.pinyin }}", meaning: "{{ vocab.meaning }}" },
+        {% endfor %}
+    ];
+
+    let currentWordIndex = 0;
+    let currentCharIndex = 0;
+    let writer;
+
+    // --- BIẾN ĐỒNG HỒ ---
+    let startTime, timerInterval;
+    let timeTaken = 0; 
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            let m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+            let s = String(timeTaken % 60).padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+    // --------------------
+
+    function initGame() {
+        if (vocabList.length === 0) {
+            document.getElementById('game-container').innerHTML = '<p class="text-muted mt-5">Chưa có từ vựng nào.</p>';
+            return;
+        }
+        startWord(0);
+        startTimer(); // Chạy đồng hồ
+    }
+
+    function startWord(wIndex) {
+        currentWordIndex = wIndex;
+        currentCharIndex = 0;
+        
+        const vocab = vocabList[currentWordIndex];
+        document.getElementById('current-word-num').innerText = currentWordIndex + 1;
+        document.getElementById('pinyin-hint').innerText = vocab.pinyin;
+        document.getElementById('meaning-hint').innerText = vocab.meaning;
+
+        updateWordDisplay();
+        startQuizChar();
+    }
+
+    function updateWordDisplay() {
+        const vocab = vocabList[currentWordIndex];
+        let html = '';
+        for (let i = 0; i < vocab.word.length; i++) {
+            if (i < currentCharIndex) {
+                html += `<span class="done">${vocab.word[i]}</span>`; 
+            } else if (i === currentCharIndex) {
+                html += `<span class="active">${vocab.word[i]}</span>`; 
+            } else {
+                html += `<span>${vocab.word[i]}</span>`; 
+            }
+        }
+        document.getElementById('word-display').innerHTML = html;
+    }
+
+    function startQuizChar() {
+        const container = document.getElementById('character-target-div');
+        container.innerHTML = ''; 
+        
+        const currentWord = vocabList[currentWordIndex].word;
+        const charToDraw = currentWord[currentCharIndex];
+
+        writer = HanziWriter.create('character-target-div', charToDraw, {
+            width: 300,
+            height: 300,
+            showCharacter: false, 
+            showOutline: true,    
+            padding: 15,
+            strokeColor: '#C62828',
+            highlightColor: '#ffc107',
+            drawingWidth: 15
+        });
+
+        writer.quiz({
+            onComplete: function() {
+                setTimeout(handleCharComplete, 500);
+            }
+        });
+    }
+
+    function handleCharComplete() {
+        currentCharIndex++;
+        const currentWord = vocabList[currentWordIndex].word;
+        
+        if (currentCharIndex < currentWord.length) {
+            updateWordDisplay();
+            startQuizChar();
+        } else {
+            if (currentWordIndex < vocabList.length - 1) {
+                startWord(currentWordIndex + 1);
+            } else {
+                // Hoàn thành tất cả
+                clearInterval(timerInterval); // Dừng đồng hồ
+                saveGameScore('quiz_3', timeTaken);
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('success-screen').style.display = 'block';
+            }
+        }
+    }
+
+    window.onload = initGame;
+    // Hàm gửi điểm lên máy chủ
+    function saveGameScore(gameType, timeSeconds) {
+        fetch("{% url 'save_score' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                lesson_id: "{{ lesson.id }}",
+                game_type: gameType,
+                time_taken: timeSeconds
+            })
+        }).then(response => response.json())
+          .then(data => console.log("Lưu điểm thành công!"));
+    }
+</script>
+{% endblock %}

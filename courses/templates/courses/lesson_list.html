@@ -1,0 +1,62 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Danh sách bài học - {{ curriculum.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-5 text-center">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm mb-3 rounded-pill px-3">⬅ Quay lại Trang chủ</a>
+    <h2 class="text-custom-red fw-bold display-6">Giáo trình: {{ curriculum.name }}</h2>
+    <p class="text-muted">{{ curriculum.description }}</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        {% for lesson in lessons %}
+        <div class="card mb-4 border-0 shadow-sm transition-hover" style="border-radius: 15px;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0 text-dark fw-bold"><span class="badge bg-danger me-2">Bài {{ lesson.order }}</span>{{ lesson.title }}</h4>
+                </div>
+                
+                <div class="row g-3">
+                    <!-- Khu vực Ôn tập -->
+                    <div class="col-md-5 border-end border-2">
+                        <h6 class="text-success fw-bold mb-3">📚 KHU VỰC ÔN TẬP</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'vocab_list' lesson.id %}" class="btn btn-outline-success rounded-pill px-3 fw-medium">
+                                📖 Từ vựng
+                            </a>
+                            <a href="{% url 'flashcard_view' lesson.id %}" class="btn btn-outline-success rounded-pill px-3 fw-medium">
+                                🗂️ Flashcard
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Khu vực Kiểm tra (Game) -->
+                    <div class="col-md-7 text-md-start text-center">
+                        <h6 class="text-custom-red fw-bold mb-3">🎯 KHU VỰC KIỂM TRA (TÍNH GIỜ)</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'quiz_1' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🔗 Nối từ</a>
+                            <a href="{% url 'quiz_2' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🃏 Lật thẻ</a>
+                            <a href="{% url 'quiz_3' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">✍️ Viết chữ</a>
+                            <a href="{% url 'quiz_4' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🎙️ Phát âm</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <h1 class="text-muted" style="font-size: 4rem;">📭</h1>
+            <p class="text-muted mt-3">Giáo trình này hiện chưa có bài học nào.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+    @media (max-width: 768px) { .border-end { border-right: none !important; border-bottom: 2px solid #dee2e6 !important; padding-bottom: 1rem; } }
+</style>
+{% endblock %}

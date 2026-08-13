@@ -1,0 +1,249 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Kiểm tra Dạng 2 - {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .game-board {
+        display: grid;
+        /* Tự động chia cột tùy theo màn hình, kích thước thẻ tối thiểu 100px */
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 15px;
+        max-width: 800px;
+        margin: 0 auto;
+        perspective: 1000px;
+    }
+    
+    .memory-card {
+        aspect-ratio: 1 / 1; /* Đảm bảo thẻ luôn hình vuông */
+        cursor: pointer;
+        position: relative;
+    }
+
+    .memory-inner {
+        width: 100%; height: 100%;
+        position: relative;
+        transition: transform 0.5s;
+        transform-style: preserve-3d;
+    }
+
+    /* Hiệu ứng lật thẻ */
+    .memory-card.flipped .memory-inner, 
+    .memory-card.matched .memory-inner {
+        transform: rotateY(180deg);
+    }
+
+    /* Định dạng mặt trước và mặt sau */
+    .memory-front, .memory-back {
+        position: absolute;
+        width: 100%; height: 100%;
+        backface-visibility: hidden;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        user-select: none;
+    }
+
+    /* Mặt trước (Khi đang úp thẻ) */
+    .memory-front {
+        background: linear-gradient(135deg, var(--primary-red), #B71C1C);
+        color: white; font-size: 2.5rem;
+        border: 2px solid #fff;
+    }
+
+    /* Mặt sau (Khi lật lên) */
+    .memory-back {
+        background-color: white;
+        transform: rotateY(180deg);
+        border: 2px solid var(--primary-red);
+        text-align: center;
+        padding: 5px;
+    }
+
+    .memory-back.hanzi-type {
+        font-size: 2.5rem; color: var(--primary-red); font-weight: bold;
+    }
+    .memory-back.pinyin-type {
+        font-size: 1.4rem; color: #007bff; font-weight: 500;
+    }
+
+    /* Hiệu ứng khi thẻ đã được ghép đúng (Tàng hình dần) */
+    .memory-card.matched {
+        animation: matchAnim 0.5s forwards;
+        pointer-events: none;
+    }
+    
+    @keyframes matchAnim {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(0.9); opacity: 0.3; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <a href="{% url 'game_zone' lesson.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại</a>
+    <h2 class="text-custom-red fw-bold">Game 2: Lật thẻ nhớ</h2>
+    <p class="text-muted">Tìm và ghép các cặp thẻ <strong>Chữ Hán</strong> và <strong>Pinyin</strong>.</p>
+    <!-- Đồng hồ bấm giờ -->
+    <div class="fs-4 fw-bold text-dark mt-2">
+        ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+    </div>
+</div>
+
+<!-- Khu vực chứa lưới thẻ -->
+<div class="game-board" id="game-board"></div>
+
+<!-- Màn hình chúc mừng (Ẩn mặc định) -->
+<div id="success-screen" class="text-center mt-5" style="display: none;">
+    <h1 style="font-size: 4rem;">🏆</h1>
+    <h3 class="text-success fw-bold">Xuất sắc! Bạn có trí nhớ tuyệt vời!</h3>
+    <p class="text-muted">Tổng số lần lật thẻ: <span id="flip-count" class="fw-bold">0</span></p>
+    <button class="btn btn-custom-red mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let cardsData = [];
+    {% for vocab in vocabularies %}
+        cardsData.push({ id: "{{ vocab.id }}", type: "hanzi", content: "{{ vocab.hanzi }}" });
+        cardsData.push({ id: "{{ vocab.id }}", type: "pinyin", content: "{{ vocab.pinyin }}" });
+    {% endfor %}
+
+    let hasFlippedCard = false;
+    let lockBoard = false;
+    let firstCard, secondCard;
+    let matchedPairs = 0;
+    let moves = 0;
+    const totalPairs = {{ vocabularies|length }};
+
+    // --- BIẾN ĐỒNG HỒ ---
+    let startTime, timerInterval;
+    let timeTaken = 0; 
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            let m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+            let s = String(timeTaken % 60).padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+    // --------------------
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initGame() {
+        const board = document.getElementById('game-board');
+        const shuffledCards = shuffleArray([...cardsData]);
+
+        shuffledCards.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('memory-card');
+            cardElement.dataset.id = card.id;
+
+            cardElement.innerHTML = `
+                <div class="memory-inner">
+                    <div class="memory-front">🏮</div>
+                    <div class="memory-back ${card.type}-type">
+                        ${card.content}
+                    </div>
+                </div>
+            `;
+            
+            cardElement.addEventListener('click', flipCard);
+            board.appendChild(cardElement);
+        });
+        startTimer(); // Chạy đồng hồ
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === firstCard) return;
+
+        this.classList.add('flipped');
+
+        if (!hasFlippedCard) {
+            hasFlippedCard = true;
+            firstCard = this;
+            return;
+        }
+
+        secondCard = this;
+        moves++;
+        checkForMatch();
+    }
+
+    function checkForMatch() {
+        let isMatch = firstCard.dataset.id === secondCard.dataset.id;
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        
+        firstCard.classList.add('matched');
+        secondCard.classList.add('matched');
+
+        matchedPairs++;
+        if (matchedPairs === totalPairs) {
+            clearInterval(timerInterval); // Dừng đồng hồ
+            saveGameScore('quiz_2', timeTaken);
+            setTimeout(() => {
+                document.getElementById('game-board').style.display = 'none';
+                if(document.getElementById('flip-count')) {
+                    document.getElementById('flip-count').innerText = moves * 2;
+                }
+                document.getElementById('success-screen').style.display = 'block';
+            }, 800);
+        }
+
+        resetBoard();
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            firstCard.classList.remove('flipped');
+            secondCard.classList.remove('flipped');
+            resetBoard();
+        }, 1000);
+    }
+
+    function resetBoard() {
+        [hasFlippedCard, lockBoard] = [false, false];
+        [firstCard, secondCard] = [null, null];
+    }
+
+    window.onload = initGame;
+    // Hàm gửi điểm lên máy chủ
+    function saveGameScore(gameType, timeSeconds) {
+        fetch("{% url 'save_score' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                lesson_id: "{{ lesson.id }}",
+                game_type: gameType,
+                time_taken: timeSeconds
+            })
+        }).then(response => response.json())
+          .then(data => console.log("Lưu điểm thành công!"));
+    }
+</script>
+{% endblock %}

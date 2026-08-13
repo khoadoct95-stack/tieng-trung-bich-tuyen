@@ -1,0 +1,149 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Flashcard - {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .scene {
+        width: 100%; max-width: 500px; height: 350px;
+        margin: 40px auto; perspective: 1000px; 
+    }
+    .flashcard {
+        width: 100%; height: 100%; position: relative;
+        transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        transform-style: preserve-3d; cursor: pointer;
+    }
+    .flashcard.is-flipped { transform: rotateY(180deg); }
+    
+    .card-face {
+        position: absolute; width: 100%; height: 100%;
+        backface-visibility: hidden; 
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+        border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 20px; text-align: center;
+    }
+    .card-face-front { background-color: white; border: 2px solid #eaeaea; }
+    .hanzi-text { 
+        color: var(--primary-red); 
+        font-weight: bold; 
+        line-height: 1.2;
+    }
+    
+    .card-face-back {
+        background-color: var(--primary-red); color: white;
+        transform: rotateY(180deg);
+        padding: 30px;
+    }
+    .pinyin-text { 
+        font-size: 3.5rem; 
+        margin-bottom: 20px; 
+        font-weight: 500; 
+        letter-spacing: 2px; 
+    }
+    .meaning-text { 
+        font-size: 2.2rem; 
+        line-height: 1.4;
+    }
+    
+    .flashcard-wrapper { display: none; }
+    .flashcard-wrapper.active { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-3">
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại danh sách bài</a>
+    <h2 class="text-custom-red fw-bold">Ôn tập Flashcard</h2>
+    <p class="text-muted">Bài: {{ lesson.title }}</p>
+    <div class="badge bg-danger rounded-pill px-3 py-2 fs-6 mb-2">
+        Thẻ <span id="current-card-num">1</span> / {{ vocabularies|length }}
+    </div>
+</div>
+
+<div id="flashcard-container" data-total="{{ vocabularies|length }}">
+    {% for vocab in vocabularies %}
+    <div class="flashcard-wrapper {% if forloop.first %}active{% endif %}" id="card-{{ forloop.counter0 }}">
+        <div class="scene">
+            <div class="flashcard" onclick="flipCard(this)">
+                
+                <!-- Khu vực mặt trước -->
+                <div class="card-face card-face-front">
+                    <!-- Tăng size chữ Hán lên mức tối đa -->
+                    <div class="hanzi-text" style="font-size: 
+                        {% if vocab.hanzi|length == 1 %}10rem
+                        {% elif vocab.hanzi|length == 2 %}7.5rem
+                        {% elif vocab.hanzi|length == 3 %}5.5rem
+                        {% elif vocab.hanzi|length == 4 %}4.5rem
+                        {% else %}3.5rem{% endif %};">
+                        {{ vocab.hanzi }}
+                    </div>
+                    
+                    <!-- Cho dòng chữ hướng dẫn lơ lửng ở đáy để không đẩy chữ Hán lên -->
+                    <small class="text-muted position-absolute bottom-0 mb-3">👆 Chạm để lật</small>
+                </div>
+                
+                <!-- Khu vực mặt sau -->
+                <div class="card-face card-face-back">
+                    <div class="pinyin-text">{{ vocab.pinyin }}</div>
+                    <div class="meaning-text">{{ vocab.meaning }}</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center text-muted py-5">Chưa có từ vựng nào trong bài học này.</div>
+    {% endfor %}
+</div>
+
+{% if vocabularies %}
+<div class="d-flex justify-content-center gap-3 mt-4">
+    <button class="btn btn-secondary px-4 rounded-pill shadow-sm" id="btn-prev" onclick="prevCard()" disabled>⬅ Thẻ trước</button>
+    <button class="btn btn-custom-red px-4 rounded-pill shadow-sm" id="btn-next" onclick="nextCard()">Thẻ tiếp theo ➡</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const container = document.getElementById('flashcard-container');
+    const totalCards = parseInt(container.getAttribute('data-total')) || 0;
+    let currentIndex = 0;
+
+    function flipCard(cardElement) {
+        cardElement.classList.toggle('is-flipped');
+    }
+
+    function updateView() {
+        document.querySelectorAll('.flashcard-wrapper').forEach((el, index) => {
+            el.classList.remove('active');
+            if (index !== currentIndex) {
+                const card = el.querySelector('.flashcard');
+                if (card) card.classList.remove('is-flipped');
+            }
+        });
+        
+        const activeCard = document.getElementById(`card-${currentIndex}`);
+        if (activeCard) activeCard.classList.add('active');
+        
+        document.getElementById('current-card-num').innerText = currentIndex + 1;
+        document.getElementById('btn-prev').disabled = (currentIndex === 0);
+        document.getElementById('btn-next').disabled = (currentIndex === totalCards - 1);
+    }
+
+    function nextCard() {
+        if (currentIndex < totalCards - 1) {
+            currentIndex++;
+            updateView();
+        }
+    }
+
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateView();
+        }
+    }
+</script>
+{% endblock %}

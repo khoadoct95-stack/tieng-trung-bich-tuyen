@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tiếng Trung Bích Tuyền{% endblock %}</title>
+    <!-- Giao diện Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Tùy chỉnh màu sắc chủ đạo */
+        :root {
+            --primary-red: #C62828; /* Đỏ trầm, sang trọng */
+            --light-bg: #FAF9F6;    /* Trắng ngà, dịu mắt */
+        }
+        body { 
+            background-color: var(--light-bg); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .bg-custom-red { background-color: var(--primary-red) !important; }
+        .text-custom-red { color: var(--primary-red) !important; }
+        .btn-custom-red { 
+            background-color: var(--primary-red); 
+            color: white; 
+            border: none; 
+        }
+        .btn-custom-red:hover { background-color: #B71C1C; color: white; }
+        
+        /* Hiệu ứng thanh điều hướng */
+        .navbar { border-bottom: 3px solid #B71C1C; }
+        .brand-text { font-weight: 700; letter-spacing: 1px; font-size: 1.4rem; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Thanh Menu -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-custom-red shadow-sm">
+        <div class="container">
+            <a class="navbar-brand brand-text" href="{% url 'home' %}">🏮 Tiếng Trung Bích Tuyền</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-3">
+                        <a class="nav-link active fw-medium" href="{% url 'home' %}">Trang chủ</a>
+                    </li>
+                    
+                    <!-- Kiểm tra nếu user đã đăng nhập -->
+                    {% if user.is_authenticated %}
+                        
+                        <!-- Nút Bảng Xếp Hạng -->
+                        <li class="nav-item me-3">
+                            <a class="nav-link fw-bold text-warning" href="{% url 'dashboard' %}">🏆 Bảng Xếp Hạng</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{% url 'profile' %}" class="text-white me-3 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                👋 Chào, <strong>{{ user.username }}</strong>!
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{% url 'logout' %}">Đăng xuất</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{% url 'login' %}">Đăng nhập</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-light btn-sm rounded-pill px-3 text-custom-red fw-bold" href="{% url 'register' %}">Đăng ký</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Khu vực nội dung chính -->
+    <div class="container my-5" style="min-height: 65vh;">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Chân trang chứa Slogan -->
+    <footer class="text-center py-4 text-muted border-top" style="background-color: #fff;">
+        <h6 class="text-custom-red fw-bold mb-2">Tiếng Trung Bích Tuyền</h6>
+        <p class="mb-1 fst-italic">"Đồng hành cùng bạn trên con đường chinh phục Hán ngữ"</p>
+        <small>© 2026. Nền tảng học tập thông minh.</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

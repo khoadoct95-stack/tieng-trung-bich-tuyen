@@ -1,0 +1,215 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Kiểm tra Phát âm - {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .vocab-display {
+        font-size: 6rem;
+        color: var(--primary-red);
+        font-weight: bold;
+        line-height: 1.2;
+    }
+    
+    .mic-btn {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        background-color: var(--primary-red);
+        color: white; font-size: 3rem;
+        border: none;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto; cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(198, 40, 40, 0.3);
+    }
+    
+    .mic-btn:hover { transform: scale(1.05); }
+    
+    /* Hiệu ứng nhịp đập khi đang thu âm */
+    .mic-btn.recording {
+        background-color: #dc3545;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { box-shadow: 0 0 0 25px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+
+    .result-text { font-size: 1.5rem; min-height: 40px; margin-top: 20px;}
+    .correct-text { color: #28a745; font-weight: bold; }
+    .wrong-text { color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại danh sách bài</a>
+    <h2 class="text-custom-red fw-bold">Game 4: Luyện Phát Âm</h2>
+    <p class="text-muted">Nhấn vào Micro và đọc to từ vựng tiếng Trung trên màn hình.</p>
+</div>
+
+<!-- Cảnh báo nếu trình duyệt không hỗ trợ -->
+<div id="unsupported-msg" class="alert alert-warning text-center mx-auto" style="display: none; max-width: 500px;">
+    ⚠️ Trình duyệt của bạn không hỗ trợ tính năng nhận diện giọng nói. Vui lòng sử dụng <strong>Google Chrome</strong> hoặc <strong>Microsoft Edge</strong>.
+</div>
+
+<div id="game-container" class="text-center bg-white p-5 rounded-4 shadow-sm max-w-md mx-auto border">
+    <div class="badge bg-danger rounded-pill px-3 py-2 fs-6 mb-4">
+        Từ vựng: <span id="current-word-num">1</span> / {{ vocabularies|length }}
+    </div>
+
+    <!-- Hiển thị Từ vựng cần đọc -->
+    <div class="vocab-display mb-2" id="hanzi-display"></div>
+    <div class="fs-3 text-primary mb-1" id="pinyin-display"></div>
+    <div class="fs-5 text-muted mb-5" id="meaning-display"></div>
+
+    <!-- Nút Micro -->
+    <button class="mic-btn" id="mic-btn" onclick="toggleRecording()">
+        🎤
+    </button>
+    <p class="mt-3 text-muted" id="instruction-text">Nhấn để nói</p>
+
+    <!-- Hiển thị kết quả AI nghe được -->
+    <div class="result-text" id="result-text"></div>
+</div>
+
+<div id="success-screen" class="text-center mt-5" style="display: none;">
+    <h1 style="font-size: 5rem;">🥇</h1>
+    <h3 class="text-success fw-bold">Hoàn hảo! Bạn phát âm chuẩn như người bản xứ!</h3>
+    <button class="btn btn-custom-red mt-4 rounded-pill px-5" onclick="location.reload()">🔄 Luyện tập lại</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const vocabList = [
+        {% for vocab in vocabularies %}
+        { hanzi: "{{ vocab.hanzi }}", pinyin: "{{ vocab.pinyin }}", meaning: "{{ vocab.meaning }}" },
+        {% endfor %}
+    ];
+
+    let currentIndex = 0;
+    let isRecording = false;
+    let recognition = null;
+
+    // --- BIẾN ĐỒNG HỒ ---
+    let startTime, timerInterval;
+    let timeTaken = 0; 
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            let m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+            let s = String(timeTaken % 60).padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+    // --------------------
+
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!window.SpeechRecognition) {
+        document.getElementById('unsupported-msg').style.display = 'block';
+        document.getElementById('mic-btn').disabled = true;
+    } else {
+        recognition = new window.SpeechRecognition();
+        recognition.lang = 'zh-CN'; 
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            document.getElementById('mic-btn').classList.add('recording');
+            document.getElementById('instruction-text').innerText = 'Đang nghe...';
+            document.getElementById('result-text').innerHTML = '';
+        };
+
+        recognition.onresult = function(event) {
+            let transcript = event.results[0][0].transcript;
+            transcript = transcript.replace(/[.,!?。，！？]/g, '').trim(); 
+            
+            let expectedHanzi = vocabList[currentIndex].hanzi.replace(/\s+/g, '');
+
+            if (transcript === expectedHanzi || transcript.includes(expectedHanzi)) {
+                document.getElementById('result-text').innerHTML = `<span class="correct-text">✅ Tuyệt vời! Bạn vừa đọc: "${transcript}"</span>`;
+                setTimeout(() => nextWord(), 1500);
+            } else {
+                document.getElementById('result-text').innerHTML = `<span class="wrong-text">❌ AI nghe thành: "${transcript}". Thử lại nhé!</span>`;
+            }
+        };
+
+        recognition.onerror = function(event) {
+            document.getElementById('result-text').innerHTML = `<span class="text-warning">⚠️ Lỗi micro hoặc không nghe rõ. Hãy nói lại!</span>`;
+            stopRecordingUI();
+        };
+
+        recognition.onend = function() {
+            stopRecordingUI();
+        };
+    }
+
+    function toggleRecording() {
+        if (!recognition) return;
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    }
+
+    function stopRecordingUI() {
+        isRecording = false;
+        document.getElementById('mic-btn').classList.remove('recording');
+        document.getElementById('instruction-text').innerText = 'Nhấn để nói';
+    }
+
+    function loadWord() {
+        if (currentIndex >= vocabList.length) {
+            clearInterval(timerInterval); // Dừng đồng hồ
+            saveGameScore('quiz_4', timeTaken);
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('current-word-num').innerText = currentIndex + 1;
+        document.getElementById('hanzi-display').innerText = vocabList[currentIndex].hanzi;
+        document.getElementById('pinyin-display').innerText = vocabList[currentIndex].pinyin;
+        document.getElementById('meaning-display').innerText = vocabList[currentIndex].meaning;
+        document.getElementById('result-text').innerHTML = '';
+    }
+
+    function nextWord() {
+        currentIndex++;
+        loadWord();
+    }
+
+    window.onload = function() {
+        if (vocabList.length > 0) {
+            loadWord();
+            startTimer(); // Bắt đầu đếm giờ
+        }
+        else {
+            document.getElementById('game-container').innerHTML = '<p class="text-muted">Chưa có từ vựng nào.</p>';
+        }
+    };
+    // Hàm gửi điểm lên máy chủ
+    function saveGameScore(gameType, timeSeconds) {
+        fetch("{% url 'save_score' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                lesson_id: "{{ lesson.id }}",
+                game_type: gameType,
+                time_taken: timeSeconds
+            })
+        }).then(response => response.json())
+          .then(data => console.log("Lưu điểm thành công!"));
+    }
+</script>
+{% endblock %}

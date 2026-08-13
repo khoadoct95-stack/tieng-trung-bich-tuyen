@@ -1,0 +1,67 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Khu vực Game - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3 rounded-pill px-3">⬅ Quay lại danh sách bài</a>
+    <h2 class="text-custom-red fw-bold">Khu vực Trò chơi</h2>
+    <p class="text-muted">Bài: <span class="fw-bold">{{ lesson.title }}</span></p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 g-4 max-w-lg mx-auto">
+    <!-- Game 1 -->
+    <div class="col">
+        <a href="{% url 'quiz_1' lesson.id %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm game-card" style="border-radius: 20px;">
+                <div class="card-body text-center p-4">
+                    <div class="display-3 mb-3">🔗</div>
+                    <h4 class="text-dark fw-bold">Nối từ</h4>
+                    <p class="text-muted mb-0">Ghép chữ Hán và Nghĩa Tiếng Việt tương ứng.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!-- Game 2 -->
+    <div class="col">
+        <a href="{% url 'quiz_2' lesson.id %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm game-card" style="border-radius: 20px;">
+                <div class="card-body text-center p-4">
+                    <div class="display-3 mb-3">🃏</div>
+                    <h4 class="text-dark fw-bold">Lật thẻ nhớ</h4>
+                    <p class="text-muted mb-0">Luyện trí nhớ không gian với Chữ Hán và Pinyin.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!-- Game 3 -->
+    <div class="col">
+        <a href="{% url 'quiz_3' lesson.id %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm game-card" style="border-radius: 20px;">
+                <div class="card-body text-center p-4">
+                    <div class="display-3 mb-3">✍️</div>
+                    <h4 class="text-dark fw-bold">Kiểm tra Viết</h4>
+                    <p class="text-muted mb-0">Luyện viết chuẩn xác từng nét chữ Hán.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!-- Game 4 -->
+    <div class="col">
+        <a href="{% url 'quiz_4' lesson.id %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm game-card" style="border-radius: 20px; background: linear-gradient(135deg, #e0f7fa, #ffffff);">
+                <div class="card-body text-center p-4">
+                    <div class="display-3 mb-3">🎙️</div>
+                    <h4 class="text-primary fw-bold">AI Phát âm</h4>
+                    <p class="text-muted mb-0">Đọc tiếng Trung để máy chấm điểm chuẩn xác.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .game-card { transition: all 0.3s ease; border: 2px solid transparent !important; }
+    .game-card:hover { transform: translateY(-5px) scale(1.02); border-color: var(--primary-red) !important; box-shadow: 0 15px 25px rgba(198,40,40,0.15) !important;}
+</style>
+{% endblock %}

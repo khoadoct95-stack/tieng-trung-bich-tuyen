@@ -1,0 +1,199 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Từ vựng: {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<style>
+    /* Bảng từ vựng tinh tế hơn */
+    .vocab-card { border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea; }
+    .table-hover tbody tr:hover { background-color: #fff9f9; }
+    
+    .hanzi-btn { 
+        font-size: 2rem; 
+        cursor: pointer; 
+        color: var(--primary-red); 
+        transition: all 0.2s ease-in-out; 
+    }
+    .hanzi-btn:hover { 
+        text-shadow: 0px 4px 10px rgba(198, 40, 40, 0.2); 
+        transform: scale(1.1); 
+        display: inline-block;
+    }
+
+    #character-target-div {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px; 
+        padding: 20px;
+    }
+    .hanzi-char-box {
+        width: 140px; 
+        height: 140px; 
+        background-color: #fff; 
+        border: 2px dashed #ddd; 
+        border-radius: 10px;
+    }
+    .speaker-btn { transition: 0.2s; } .speaker-btn:hover { background-color: #f0f0f0; transform: scale(1.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Thanh điều hướng (Breadcrumb) -->
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb bg-white p-3 shadow-sm rounded-pill border px-4">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-custom-red">🏠 Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'lesson_list' lesson.curriculum.id %}" class="text-decoration-none text-custom-red">{{ lesson.curriculum.name }}</a></li>
+    <li class="breadcrumb-item active text-muted" aria-current="page">{{ lesson.title }}</li>
+  </ol>
+</nav>
+
+<!-- Tiêu đề trang -->
+<div class="text-center mb-4">
+    <h2 class="fw-bold text-dark">{{ lesson.title }}</h2>
+    <p class="text-muted bg-white d-inline-block px-3 py-1 rounded-pill border">💡 Nhấn vào chữ Hán để xem chi tiết thứ tự từng nét viết.</p>
+</div>
+
+<!-- Bảng từ vựng -->
+<div class="card vocab-card shadow-sm mb-5">
+    <div class="card-body p-0 table-responsive">
+        <table class="table table-hover align-middle text-center mb-0">
+            <thead class="text-dark" style="background-color: #f1f3f5;">
+                <tr>
+                    <th class="py-3 text-muted" width="10%">STT</th>
+                    <th class="py-3" width="30%">Chữ Hán</th>
+                    <th class="py-3" width="30%">Pinyin (Phiên âm)</th>
+                    <th class="py-3" width="30%">Nghĩa Tiếng Việt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vocab in vocabularies %}
+                <tr>
+                    <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                    <td class="py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <!-- Nút nhấn để xem viết nét -->
+                            <span class="hanzi-btn fw-bold" onclick="showStroke('{{ vocab.hanzi }}')">
+                                {{ vocab.hanzi }}
+                            </span>
+                            <!-- Nút phát âm mới thêm vào -->
+                            <button class="btn btn-sm btn-light rounded-circle shadow-sm border speaker-btn" 
+                                    onclick="speakHanzi('{{ vocab.hanzi }}')" title="Nghe phát âm">
+                                🔊
+                            </button>
+                        </div>
+                    </td>
+                    <td class="text-primary fs-5">{{ vocab.pinyin }}</td>
+                    <td class="fs-5 text-dark fw-medium">{{ vocab.meaning }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Popup hiển thị nét viết -->
+<div class="modal fade" id="strokeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-custom-red text-white">
+        <h5 class="modal-title fw-bold">✍️ Hướng dẫn viết chữ Hán</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" style="background-color: #fafafa;">
+        <div id="character-target-div"></div>
+      </div>
+      <div class="modal-footer justify-content-center bg-white">
+        <button type="button" class="btn btn-custom-red px-4 rounded-pill shadow-sm" id="animate-btn">
+            🔄 Viết lại từ đầu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let writers = []; 
+    let startTimer = null; 
+    const strokeModal = new bootstrap.Modal(document.getElementById('strokeModal'));
+
+    // Hàm dọn dẹp: Hủy toàn bộ lệnh vẽ nếu người dùng bấm tắt hoặc bấm viết lại
+    function resetWriters() {
+        if (startTimer) clearTimeout(startTimer);
+        writers.forEach(w => {
+            if (w.cancelAnimations) w.cancelAnimations(); // Dừng cưỡng chế chuyển động cũ
+        });
+    }
+
+    function showStroke(hanziWord) {
+        const container = document.getElementById('character-target-div');
+        container.innerHTML = ''; 
+        resetWriters(); // Dọn dẹp trước khi xử lý từ mới
+        writers = []; 
+        
+        hanziWord = hanziWord.replace(/\s+/g, '');
+
+        for (let i = 0; i < hanziWord.length; i++) {
+            let char = hanziWord[i];
+            let charBox = document.createElement('div');
+            charBox.className = 'hanzi-char-box';
+            container.appendChild(charBox);
+
+            let writer = HanziWriter.create(charBox, char, {
+                width: 140, 
+                height: 140,
+                padding: 8,
+                strokeAnimationSpeed: 1, // Giữ nguyên tốc độ gốc an toàn
+                delayBetweenStrokes: 150,  
+                showOutline: true,
+                strokeColor: '#C62828'
+            });
+            writers.push(writer);
+        }
+
+        strokeModal.show(); 
+        
+        // Ẩn tất cả các chữ ngay từ đầu
+        writers.forEach(w => w.hideCharacter());
+
+        // Đợi 0.5s cho popup mở hẳn rồi VẼ ĐỒNG LOẠT
+        startTimer = setTimeout(() => animateAllSimultaneously(), 500);
+    }
+
+    // Hàm ra lệnh vẽ tất cả cùng lúc
+    function animateAllSimultaneously() {
+        writers.forEach(w => {
+            w.hideCharacter(); // Reset lại bảng trắng cho chắc chắn
+            w.animateCharacter(); // Tất cả cùng bắt đầu vẽ
+        });
+    }
+
+    // Xử lý khi bấm nút "Viết lại từ đầu"
+    document.getElementById('animate-btn').addEventListener('click', function() {
+        resetWriters(); 
+        animateAllSimultaneously(); 
+    });
+
+    // Thông minh: Hủy chạy ngầm khi người dùng bấm tắt Popup
+    document.getElementById('strokeModal').addEventListener('hidden.bs.modal', function () {
+        resetWriters();
+    });
+
+    // Hàm phát âm tiếng Trung sử dụng AI của trình duyệt
+    function speakHanzi(text) {
+        if ('speechSynthesis' in window) {
+            // Hủy giọng đọc cũ nếu đang đọc dở
+            window.speechSynthesis.cancel();
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN'; // Giọng Trung Quốc đại lục
+            utterance.rate = 0.8; // Tốc độ hơi chậm một chút để dễ nghe (1 là bình thường)
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Trình duyệt của bạn không hỗ trợ tính năng phát âm!");
+        }
+    }
+</script>
+{% endblock %}

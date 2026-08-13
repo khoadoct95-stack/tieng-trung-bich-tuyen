@@ -1,0 +1,211 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Kiểm tra Dạng 1 - {{ lesson.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .game-board {
+        display: flex; gap: 20px; justify-content: center;
+    }
+    .col-game {
+        display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px;
+    }
+    
+    .match-btn {
+        background-color: white; border: 2px solid #e0e0e0;
+        border-radius: 12px; padding: 15px 20px;
+        cursor: pointer; text-align: center;
+        transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        user-select: none;
+        display: flex; align-items: center; justify-content: center;
+        min-height: 80px; /* Đảm bảo 2 cột cao bằng nhau */
+    }
+    .match-btn:hover { border-color: var(--primary-red); transform: translateY(-2px); }
+    
+    /* Chỉnh lại font chữ cho 2 bên cân đối khi không có Pinyin */
+    .hanzi-side { font-size: 2.5rem; color: var(--primary-red); font-weight: bold; }
+    .meaning-side { font-size: 1.4rem; color: #333; font-weight: 500;}
+
+    .match-btn.selected {
+        background-color: #fff3f3; border-color: var(--primary-red);
+        box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.2);
+    }
+    .match-btn.correct {
+        background-color: #d4edda; border-color: #28a745; color: #155724;
+        pointer-events: none; opacity: 0.7; transform: scale(0.95);
+    }
+    .match-btn.wrong {
+        background-color: #f8d7da; border-color: #dc3545; color: #721c24;
+        animation: shake 0.4s;
+    }
+
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-5px); }
+        100% { transform: translateX(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại</a>
+    <h2 class="text-custom-red fw-bold">Game 1: Nối từ</h2>
+    <!-- Đồng hồ bấm giờ -->
+    <div class="fs-4 fw-bold text-dark mt-2">
+        ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+    </div>
+</div>
+
+<div class="game-board" id="game-board">
+    <div class="col-game" id="col-hanzi"></div>
+    <div class="col-game" id="col-meaning"></div>
+</div>
+
+<div id="success-screen" class="text-center mt-5" style="display: none;">
+    <h1 style="font-size: 4rem;">🎉</h1>
+    <h3 class="text-success fw-bold">Tuyệt vời! Bạn đã vượt qua bài kiểm tra!</h3>
+    <button class="btn btn-custom-red mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const vocabData = [
+        {% for vocab in vocabularies %}
+        { id: "{{ vocab.id }}", hanzi: "{{ vocab.hanzi }}", meaning: "{{ vocab.meaning }}" },
+        {% endfor %}
+    ];
+
+    let selectedHanzi = null;
+    let selectedMeaning = null;
+    let correctCount = 0;
+    
+    // --- BIẾN ĐỒNG HỒ ---
+    let startTime, timerInterval;
+    let timeTaken = 0; 
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            let m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+            let s = String(timeTaken % 60).padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+    // --------------------
+
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function initGame() {
+        const colHanzi = document.getElementById('col-hanzi');
+        const colMeaning = document.getElementById('col-meaning');
+        
+        const hanziList = shuffleArray([...vocabData]);
+        const meaningList = shuffleArray([...vocabData]);
+
+        hanziList.forEach(item => {
+            let btn = document.createElement('div');
+            btn.className = 'match-btn hanzi-side';
+            btn.innerText = item.hanzi;
+            btn.dataset.id = item.id;
+            btn.onclick = () => handleSelect(btn, 'hanzi');
+            colHanzi.appendChild(btn);
+        });
+
+        meaningList.forEach(item => {
+            let btn = document.createElement('div');
+            btn.className = 'match-btn meaning-side';
+            btn.innerText = item.meaning; 
+            btn.dataset.id = item.id;
+            btn.onclick = () => handleSelect(btn, 'meaning');
+            colMeaning.appendChild(btn);
+        });
+
+        startTimer(); // Chạy đồng hồ
+    }
+
+    function handleSelect(btn, type) {
+        if (btn.classList.contains('correct')) return;
+        if (btn.classList.contains('selected')) {
+            btn.classList.remove('selected');
+            if (type === 'hanzi') selectedHanzi = null;
+            else selectedMeaning = null;
+            return;
+        }
+
+        if (type === 'hanzi') {
+            if (selectedHanzi) selectedHanzi.classList.remove('selected');
+            selectedHanzi = btn;
+        } else {
+            if (selectedMeaning) selectedMeaning.classList.remove('selected');
+            selectedMeaning = btn;
+        }
+        btn.classList.add('selected');
+
+        if (selectedHanzi && selectedMeaning) {
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const id1 = selectedHanzi.dataset.id;
+        const id2 = selectedMeaning.dataset.id;
+
+        if (id1 === id2) {
+            selectedHanzi.classList.replace('selected', 'correct');
+            selectedMeaning.classList.replace('selected', 'correct');
+            correctCount++;
+            
+            if (correctCount === vocabData.length) {
+                clearInterval(timerInterval); // Dừng đồng hồ
+                saveGameScore('quiz_1', timeTaken);
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('success-screen').style.display = 'block';
+            }
+        } else {
+            let tempHanzi = selectedHanzi;
+            let tempMeaning = selectedMeaning;
+            tempHanzi.classList.replace('selected', 'wrong');
+            tempMeaning.classList.replace('selected', 'wrong');
+            
+            setTimeout(() => {
+                tempHanzi.classList.remove('wrong');
+                tempMeaning.classList.remove('wrong');
+            }, 500);
+        }
+
+        selectedHanzi = null;
+        selectedMeaning = null;
+    }
+
+    window.onload = initGame;
+    // Hàm gửi điểm lên máy chủ
+    function saveGameScore(gameType, timeSeconds) {
+        fetch("{% url 'save_score' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                lesson_id: "{{ lesson.id }}",
+                game_type: gameType,
+                time_taken: timeSeconds
+            })
+        }).then(response => response.json())
+          .then(data => console.log("Lưu điểm thành công!"));
+    }
+</script>
+{% endblock %}

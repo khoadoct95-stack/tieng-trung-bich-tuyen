@@ -166,7 +166,7 @@ def github_webhook(request):
             subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, check=True)
             
             # 2. Cập nhật cấu trúc Cơ sở dữ liệu (Nếu bạn có thêm/bớt trường dữ liệu trong models.py)
-            subprocess.run([venv_python, 'manage.py', 'migrate', '--noinput'], cwd=project_dir, check=True)
+            #
             
             # 3. Gom tất cả file tĩnh mới (CSS, JS, ảnh giao diện)
             subprocess.run([venv_python, 'manage.py', 'collectstatic', '--noinput'], cwd=project_dir, check=True)

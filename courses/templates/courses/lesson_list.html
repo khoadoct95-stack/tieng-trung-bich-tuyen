@@ -1,62 +1,163 @@
 {% extends 'courses/base.html' %}
+{% load static %}
 
-{% block title %}Danh sách bài học - {{ curriculum.name }}{% endblock %}
+{% block title %}Danh sách bài học - {{ curriculum.title }}{% endblock %}
 
 {% block content %}
-<div class="mb-5 text-center">
-    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm mb-3 rounded-pill px-3">⬅ Quay lại Trang chủ</a>
-    <h2 class="text-custom-red fw-bold display-6">Giáo trình: {{ curriculum.name }}</h2>
-    <p class="text-muted">{{ curriculum.description }}</p>
-</div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        {% for lesson in lessons %}
-        <div class="card mb-4 border-0 shadow-sm transition-hover" style="border-radius: 15px;">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="mb-0 text-dark fw-bold"><span class="badge bg-danger me-2">Bài {{ lesson.order }}</span>{{ lesson.title }}</h4>
-                </div>
+<!-- Bổ sung CSS cho thanh trượt và hiệu ứng di chuột -->
+<style>
+    /* Ẩn thanh cuộn cho mượt mà */
+    .quick-nav-scroll::-webkit-scrollbar { display: none; }
+    .quick-nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Hiệu ứng khi di chuột vào mục lục */
+    .nav-lesson-item:hover {
+        background-color: var(--primary-red) !important;
+        color: white !important;
+        transform: translateX(5px);
+    }
+    .nav-lesson-item:hover .badge {
+        background-color: white !important;
+        color: var(--primary-red) !important;
+    }
+</style>
+
+<!-- GIAO DIỆN CHIA 2 CỘT -->
+<div class="row g-4 mt-2 mb-5">
+    
+    <!-- ==========================================
+         CỘT TRÁI: MỤC LỤC TRƯỢT DỌC (SIDEBAR) 
+         ========================================== -->
+    <div class="col-lg-4 col-xl-3">
+        <!-- position-sticky ghim mục lục đứng im khi cuộn chuột -->
+        <div class="position-sticky shadow-sm p-3" style="top: 20px; background-color: var(--card-bg); border-radius: 12px; border-top: 4px solid var(--primary-red);">
+            
+            <div class="d-flex align-items-center mb-3 d-none d-lg-flex pb-2 border-bottom">
+                <span class="fs-5 me-2">📍</span>
+                <h5 class="fw-bold m-0" style="color: var(--primary-red); font-family: 'Playfair Display', serif;">Mục lục bài học</h5>
+            </div>
+            
+            <!-- Danh sách bài học có Số bài + Tên bài -->
+            <!-- Dùng flex-column trên PC, tự chuyển thành flex-row vuốt ngang trên Mobile -->
+            <div class="d-flex flex-row flex-lg-column gap-2 overflow-auto quick-nav-scroll" style="max-height: calc(100vh - 80px);">
                 
-                <div class="row g-3">
-                    <!-- Khu vực Ôn tập -->
-                    <div class="col-md-5 border-end border-2">
-                        <h6 class="text-success fw-bold mb-3">📚 KHU VỰC ÔN TẬP</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="{% url 'vocab_list' lesson.id %}" class="btn btn-outline-success rounded-pill px-3 fw-medium">
-                                📖 Từ vựng
-                            </a>
-                            <a href="{% url 'flashcard_view' lesson.id %}" class="btn btn-outline-success rounded-pill px-3 fw-medium">
-                                🗂️ Flashcard
-                            </a>
-                        </div>
-                    </div>
+                {% for lesson in lessons %}
+                <a href="#lesson-{{ lesson.id }}" class="nav-lesson-item btn text-start fw-bold border-0 rounded-3 px-3 py-2 d-flex align-items-center flex-shrink-0" style="transition: all 0.2s; background-color: #f8f9fa; color: var(--ink-text);">
+                    <span class="badge shadow-sm me-3" style="background-color: var(--primary-red);">
+                        Bài {{ lesson.order|default:forloop.counter }}
+                    </span>
+                    <!-- text-truncate giúp tên bài quá dài sẽ tự có dấu ... để không vỡ khung -->
+                    <span class="text-truncate" style="max-width: 160px;" title="{{ lesson.title_hanzi|default:'Đang cập nhật...' }} - {{ lesson.title_vietnamese|default:'' }}">
+                        {{ lesson.title_hanzi|default:"Đang cập nhật..." }}
+                    </span>
+                </a>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
 
-                    <!-- Khu vực Kiểm tra (Game) -->
-                    <div class="col-md-7 text-md-start text-center">
-                        <h6 class="text-custom-red fw-bold mb-3">🎯 KHU VỰC KIỂM TRA (TÍNH GIỜ)</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="{% url 'quiz_1' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🔗 Nối từ</a>
-                            <a href="{% url 'quiz_2' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🃏 Lật thẻ</a>
-                            <a href="{% url 'quiz_3' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">✍️ Viết chữ</a>
-                            <a href="{% url 'quiz_4' lesson.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-medium">🎙️ Phát âm</a>
+
+    <!-- ==========================================
+         CỘT PHẢI: NỘI DUNG CHÍNH (HEADER & THẺ BÀI) 
+         ========================================== -->
+    <div class="col-lg-8 col-xl-9">
+        
+        <!-- HEADER: TIÊU ĐỀ GIÁO TRÌNH -->
+        <div class="position-relative p-4 p-md-5 text-center mb-5 shadow-sm" style="background-color: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--primary-red); overflow: hidden;">
+            
+            <div class="position-absolute" style="font-size: 15rem; color: var(--gold-accent); opacity: 0.03; top: -60px; left: 50%; transform: translateX(-50%); font-family: 'Noto Serif', serif; font-weight: bold; pointer-events: none; user-select: none;">漢</div>
+            <div class="position-absolute" style="border: 1px solid rgba(212, 175, 55, 0.4); width: calc(100% - 24px); height: calc(100% - 24px); top: 12px; left: 12px; pointer-events: none;"></div>
+
+            <div class="position-absolute" style="top: 24px; left: 24px; z-index: 2;">
+                <a href="{% url 'home' %}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" style="border-radius: 6px;">← Trang chủ</a>
+            </div>
+
+            <!-- Biểu tượng Ấn Chương -->
+            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm position-relative" 
+                 style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-red), var(--dark-red)); border-radius: 14px; transform: rotate(45deg); z-index: 1;">
+                <span style="font-size: 1.8rem; color: #FDFBF7; transform: rotate(-45deg); font-family: 'Noto Serif', serif; font-weight: bold;">
+                    {{ curriculum.icon_character }}
+                </span>
+            </div>
+
+            <h1 class="position-relative mt-3 mb-2" style="font-family: 'Playfair Display', serif; font-weight: 900; color: var(--primary-red); letter-spacing: 1px; z-index: 1;">
+                {{ curriculum.title }}
+            </h1>
+            
+            <span class="badge position-relative" style="background-color: var(--gold-accent); color: #fff; font-size: 0.85rem; letter-spacing: 1px; z-index: 1;">
+                {{ curriculum.subtitle }}
+            </span>
+        </div>
+
+        <!-- DANH SÁCH CÁC BÀI HỌC -->
+        <div class="row g-4 justify-content-center">
+            {% for lesson in lessons %}
+            
+            <!-- scroll-margin-top: 30px giúp khi click từ mục lục, thẻ bài học không bị dính sát mép màn hình -->
+            <div class="col-12" id="lesson-{{ lesson.id }}" style="scroll-margin-top: 30px;">
+                
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; overflow: hidden; background-color: var(--card-bg); transition: transform 0.2s;">
+                    
+                    <div style="height: 5px; background: linear-gradient(90deg, var(--primary-red), var(--gold-accent));"></div>
+                    
+                    <div class="card-body p-4 p-md-5 d-flex flex-column">
+                        
+                        <div class="mb-3">
+                            <span class="badge shadow-sm" style="background-color: var(--primary-red); font-size: 1.1rem; padding: 8px 16px; border-radius: 8px;">
+                                Bài {{ lesson.order|default:forloop.counter }}
+                            </span>
                         </div>
+
+                        <!-- KHU VỰC TIÊU ĐỀ 3 LỚP -->
+                        <div class="title-section mb-4 pb-4 border-bottom">
+                            <h2 class="mb-2" style="font-family: 'Noto Serif SC', 'Noto Serif', serif; font-weight: 700; font-size: 2.2rem; color: var(--ink-text);">
+                                {{ lesson.title_hanzi|default:"Đang cập nhật..." }}
+                            </h2>
+                            <p class="mb-2" style="font-family: Arial, sans-serif; font-size: 1.25rem; color: #6c757d; letter-spacing: 0.5px;">
+                                {{ lesson.title_pinyin|default:"..." }}
+                            </p>
+                            <p class="mb-0 fw-bold" style="font-size: 1.2rem; color: var(--primary-red);">
+                                {{ lesson.title_vietnamese|default:"..." }}
+                            </p>
+                        </div>
+                        
+                        <!-- KHU VỰC NÚT BẤM CHỨC NĂNG -->
+                        <div class="row mt-auto">
+                            <div class="col-sm-5 mb-4 mb-sm-0 border-end">
+                                <small class="fw-bold d-block mb-3" style="color: #218838; letter-spacing: 0.5px;">
+                                    📚 KHU VỰC ÔN TẬP
+                                </small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{% url 'vocab_list' lesson.id %}" class="btn btn-outline-success px-3" style="border-radius: 8px; font-weight: 600;">📖 Từ vựng</a>
+                                    <a href="{% url 'flashcard_view' lesson.id %}" class="btn btn-outline-success px-3" style="border-radius: 8px; font-weight: 600;">🗂️ Flashcard</a>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-7">
+                                <small class="fw-bold d-block mb-3" style="color: var(--primary-red); letter-spacing: 0.5px;">
+                                    🎯 KHU VỰC KIỂM TRA
+                                </small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{% url 'quiz_1' lesson.id %}" class="btn btn-outline-danger px-3" style="border-radius: 8px; font-weight: 600;">🔗 Nối từ</a>
+                                    <a href="{% url 'quiz_2' lesson.id %}" class="btn btn-outline-danger px-3" style="border-radius: 8px; font-weight: 600;">🎴 Lật thẻ</a>
+                                    <a href="{% url 'quiz_3' lesson.id %}" class="btn btn-outline-danger px-3" style="border-radius: 8px; font-weight: 600;">✍️ Viết chữ</a>
+                                    <a href="{% url 'quiz_4' lesson.id %}" class="btn btn-outline-danger px-3" style="border-radius: 8px; font-weight: 600;">🎙️ Phát âm</a>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="mb-3" style="font-size: 3rem; opacity: 0.3;">📭</div>
+                <h4 class="text-muted" style="font-family: 'Playfair Display', serif;">Chưa có bài học nào được cập nhật.</h4>
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-5">
-            <h1 class="text-muted" style="font-size: 4rem;">📭</h1>
-            <p class="text-muted mt-3">Giáo trình này hiện chưa có bài học nào.</p>
-        </div>
-        {% endfor %}
     </div>
 </div>
-
-<style>
-    .transition-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .transition-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
-    @media (max-width: 768px) { .border-end { border-right: none !important; border-bottom: 2px solid #dee2e6 !important; padding-bottom: 1rem; } }
-</style>
 {% endblock %}

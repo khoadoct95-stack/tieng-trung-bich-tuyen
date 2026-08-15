@@ -1,19 +1,39 @@
 from django.db import models
 
 class Curriculum(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Tên giáo trình (VD: HSK 1, Msutong)")
-    description = models.TextField(blank=True, verbose_name="Mô tả")
+    title = models.CharField(max_length=200, verbose_name="Tên giáo trình")
+    description = models.TextField(blank=True, null=True, verbose_name="Mô tả")
+    image = models.ImageField(upload_to='curriculum_images/', blank=True, null=True, verbose_name="Ảnh bìa")
+    
+    icon_character = models.CharField(
+        max_length=5, 
+        default='學', 
+        verbose_name='Ký tự Ấn chương', 
+        help_text='Nhập 1 chữ Hán (VD: 啓, 練, 達)'
+    )
+    subtitle = models.CharField(
+        max_length=100, 
+        default='GIÁO TRÌNH TIÊU CHUẨN', 
+        verbose_name='Mục tiêu học tập',
+        help_text='VD: NHẬP MÔN CƠ BẢN'
+    )
 
     def __str__(self):
-        return self.name
+        return self.title
 
 class Lesson(models.Model):
     curriculum = models.ForeignKey(Curriculum, on_delete=models.CASCADE, related_name='lessons')
-    title = models.CharField(max_length=100, verbose_name="Tên bài học (VD: Bài 1: Xin chào)")
-    order = models.IntegerField(verbose_name="Thứ tự bài học", default=1)
+    order = models.PositiveIntegerField(verbose_name="Số thứ tự bài")
+    
+    # --- TÁCH 3 TRƯỜNG TIÊU ĐỀ ---
+    title_hanzi = models.CharField(max_length=200, verbose_name="Tiêu đề (Chữ Hán)", help_text="VD: AI小语,你好!")
+    title_pinyin = models.CharField(max_length=200, verbose_name="Tiêu đề (Pinyin)", help_text="VD: AI Xiǎoyǔ, nǐ hǎo!", blank=True, null=True)
+    title_vietnamese = models.CharField(max_length=200, verbose_name="Tiêu đề (Tiếng Việt)", help_text="VD: Xin chào AI Tiểu Ngữ!")
+    
+    description = models.TextField(blank=True, null=True, verbose_name="Mô tả ngắn")
 
     def __str__(self):
-        return f"{self.curriculum.name} - {self.title}"
+        return f"Bài {self.order}: {self.title_hanzi}"
 
 class Vocabulary(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='vocabularies')

@@ -1,50 +1,60 @@
 {% extends 'courses/base.html' %}
-
-{% block title %}Trang chủ - Tiếng Trung Bích Tuyền{% endblock %}
+{% load static %}
 
 {% block content %}
-<!-- Khu vực giới thiệu (Hero Section) -->
-<div class="row align-items-center mb-5 bg-white p-5 rounded-4 shadow-sm border text-center text-md-start">
-    <div class="col-md-8">
-        <h1 class="display-5 fw-bold text-custom-red mb-3">Học Tiếng Trung Dễ Dàng</h1>
-        <p class="lead text-secondary">
-            Nền tảng học từ vựng thông minh kết hợp hệ thống hướng dẫn viết nét chuẩn xác. 
-            Giúp bạn ghi nhớ chữ Hán nhanh hơn, sâu hơn và phát âm chuẩn xác ngay từ những bài học đầu tiên.
-        </p>
-        <p class="text-muted"><em>Hãy chọn một giáo trình bên dưới để bắt đầu hành trình của bạn!</em></p>
-    </div>
-    <div class="col-md-4 text-center d-none d-md-block">
-        <!-- Chữ Hán minh họa (Chữ Học - Xué) -->
-        <h1 style="font-size: 7rem; color: #f2d2d2; user-select: none;">學</h1>
-    </div>
-</div>
+<div class="row g-4 justify-content-center mt-3">
+    {% for curriculum in curriculums %} 
+    <div class="col-lg-4 col-md-6">
+        <!-- Bấm vào thẻ để chuyển sang trang danh sách bài học -->
+        <a href="{% url 'lesson_list' curriculum.id %}" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; transition: transform 0.2s;">
+                
+                <!-- BÌA SÁCH THIẾT KẾ MỚI -->
+                {% if curriculum.image %}
+                    <img src="{{ curriculum.image.url }}" class="card-img-top" alt="{{ curriculum.title }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top position-relative d-flex flex-column align-items-center justify-content-center p-3" 
+                         style="height: 220px; background-color: var(--paper-bg); border-bottom: 3px solid var(--primary-red); overflow: hidden;">
+                        
+                        <!-- Họa tiết chìm (Watermark) -->
+                        <div class="position-absolute" style="font-size: 10rem; color: var(--gold-accent); opacity: 0.05; right: -20px; bottom: -40px; font-family: 'Noto Serif', serif; font-weight: bold; line-height: 1; user-select: none;">
+                            漢
+                        </div>
 
-<!-- Danh sách Giáo trình -->
-<div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center">
-    {% for curriculum in curriculums %}
-    <div class="col">
-        <div class="card h-100 shadow-sm border-0 transition-hover">
-            <div class="card-body d-flex flex-column text-center mt-3 p-4">
-                <div class="mb-3">
-                    <span class="fs-1">📚</span>
+                        <!-- Khung viền chỉ vàng -->
+                        <div class="position-absolute" style="border: 1px solid rgba(212, 175, 55, 0.4); width: calc(100% - 24px); height: calc(100% - 24px); top: 12px; left: 12px; pointer-events: none;"></div>
+
+                        <!-- Ấn Chương (Tự động) -->
+                        <div class="mb-3 d-flex align-items-center justify-content-center shadow-sm" 
+                             style="width: 55px; height: 55px; background: linear-gradient(135deg, var(--primary-red), var(--dark-red)); border-radius: 12px; transform: rotate(45deg);">
+                            <span style="font-size: 1.6rem; color: #FDFBF7; transform: rotate(-45deg); font-family: 'Noto Serif', serif; font-weight: bold;">
+                                {{ curriculum.icon_character }}
+                            </span>
+                        </div>
+
+                        <!-- Tên Giáo Trình -->
+                        <h4 class="position-relative" style="color: var(--primary-red); font-family: 'Playfair Display', serif; font-weight: 900; margin: 0; font-size: 1.6rem; letter-spacing: 1px; z-index: 1;">
+                            {{ curriculum.title }}
+                        </h4>
+                        
+                        <!-- Phụ đề mục tiêu (Tự động) -->
+                        <span class="mt-2 text-muted position-relative" style="font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; z-index: 1; color: #8d6e63 !important;">
+                            {{ curriculum.subtitle }}
+                        </span>
+                    </div>
+                {% endif %}
+                
+                <!-- Phần thân thẻ -->
+                <div class="card-body text-center p-4">
+                    <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                        {{ curriculum.description|truncatewords:20|default:"Giáo trình chuẩn giúp học viên làm quen với Hán ngữ một cách hệ thống." }}
+                    </p>
+                    <span class="btn btn-custom-primary fw-bold px-4">BẮT ĐẦU HỌC</span>
                 </div>
-                <h4 class="card-title text-dark fw-bold mb-3">{{ curriculum.name }}</h4>
-                <p class="card-text text-muted flex-grow-1">{{ curriculum.description|default:"Chương trình học tiêu chuẩn giúp bạn nắm vững kiến thức nền tảng." }}</p>
-                <a href="{% url 'lesson_list' curriculum.id %}" class="btn btn-custom-red mt-3 px-4 rounded-pill">
-                    Vào học ngay 🚀
-                </a>
+
             </div>
-        </div>
-    </div>
-    {% empty %}
-    <div class="col-12 text-center">
-        <p class="text-muted">Chưa có giáo trình nào. Vui lòng thêm trong trang Admin.</p>
+        </a>
     </div>
     {% endfor %}
 </div>
-
-<style>
-    .transition-hover { transition: 0.3s ease-in-out; border-bottom: 4px solid transparent !important; }
-    .transition-hover:hover { transform: translateY(-8px); border-bottom: 4px solid var(--primary-red) !important; box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;}
-</style>
 {% endblock %}

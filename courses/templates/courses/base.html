@@ -1,73 +1,128 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tiếng Trung Bích Tuyền{% endblock %}</title>
-    <!-- Giao diện Bootstrap 5 -->
+    <title>{% block title %}XueHanYu - Học Tiếng Trung Dễ Dàng{% endblock %}</title>
+    
+    <!-- Favicon hiển thị trên tab trình duyệt -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo_full.png' %}">
+    
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Noto Serif (Thân bài) & Playfair Display (Tiêu đề) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        /* Tùy chỉnh màu sắc chủ đạo */
         :root {
-            --primary-red: #C62828; /* Đỏ trầm, sang trọng */
-            --light-bg: #FAF9F6;    /* Trắng ngà, dịu mắt */
+            --primary-red: #9B1C1C;    /* Đỏ trầm, sang trọng */
+            --dark-red: #771212;       /* Đỏ sậm cho hiệu ứng hover */
+            --gold-accent: #D4AF37;    /* Vàng kim */
+            --paper-bg: #FDFBF7;       /* Trắng ngà nhẹ nhàng, màu giấy xuyến chỉ */
+            --ink-text: #212529;       /* Đen xám đậm giúp chữ cực kỳ rõ nét */
+            --card-bg: #FFFFFF;        /* Nền thẻ màu trắng tinh */
         }
+
         body { 
-            background-color: var(--light-bg); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--paper-bg); 
+            font-family: 'Noto Serif', serif; 
+            color: var(--ink-text);
         }
-        .bg-custom-red { background-color: var(--primary-red) !important; }
-        .text-custom-red { color: var(--primary-red) !important; }
-        .btn-custom-red { 
+        
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-red);
+        }
+
+        /* Thanh Menu Nền Sáng Tôn Logo */
+        .navbar { 
+            background-color: var(--paper-bg) !important; 
+            border-bottom: 3px solid var(--primary-red); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        }
+        
+        .nav-link { 
+            color: var(--ink-text) !important; 
+            font-size: 1.05rem; 
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover { 
+            color: var(--primary-red) !important; 
+        }
+
+        /* Nút bấm thiết kế vuông vức bo góc nhẹ */
+        .btn-custom-primary { 
             background-color: var(--primary-red); 
             color: white; 
-            border: none; 
+            border: 2px solid var(--primary-red); 
+            border-radius: 6px; 
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
-        .btn-custom-red:hover { background-color: #B71C1C; color: white; }
         
-        /* Hiệu ứng thanh điều hướng */
-        .navbar { border-bottom: 3px solid #B71C1C; }
-        .brand-text { font-weight: 700; letter-spacing: 1px; font-size: 1.4rem; }
+        .btn-custom-primary:hover { 
+            background-color: var(--dark-red); 
+            color: white; 
+            border-color: var(--dark-red);
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 8px rgba(155, 28, 28, 0.3);
+        }
+
+        /* Form dáng thẻ (Card) sạch sẽ, đổ bóng nhẹ */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+        }
+        
+        .rounded-pill { border-radius: 6px !important; }
     </style>
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 
     <!-- Thanh Menu -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-custom-red shadow-sm">
+    <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
-            <a class="navbar-brand brand-text" href="{% url 'home' %}">🏮 Tiếng Trung Bích Tuyền</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            
+            <!-- HIỂN THỊ LOGO Ở ĐÂY -->
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img src="{% static 'images/logo_full.png' %}" alt="XueHanYu Logo" style="height: 90px; object-fit: contain;">
+            </a>
+
+            <button class="navbar-toggler shadow-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item me-3">
-                        <a class="nav-link active fw-medium" href="{% url 'home' %}">Trang chủ</a>
+                        <a class="nav-link fw-bold" href="{% url 'home' %}">Trang chủ</a>
                     </li>
                     
-                    <!-- Kiểm tra nếu user đã đăng nhập -->
                     {% if user.is_authenticated %}
-                        
-                        <!-- Nút Bảng Xếp Hạng -->
                         <li class="nav-item me-3">
-                            <a class="nav-link fw-bold text-warning" href="{% url 'dashboard' %}">🏆 Bảng Xếp Hạng</a>
+                            <a class="nav-link fw-bold" style="color: var(--primary-red) !important;" href="{% url 'dashboard' %}">🏆 Bảng Xếp Hạng</a>
                         </li>
-
                         <li class="nav-item">
-                            <a href="{% url 'profile' %}" class="text-white me-3 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                                👋 Chào, <strong>{{ user.username }}</strong>!
+                            <a href="{% url 'profile' %}" class="nav-link me-3 text-decoration-none fw-semibold">
+                                👋 Chào, {{ user.username }}!
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{% url 'logout' %}">Đăng xuất</a>
+                            <a class="btn btn-outline-danger btn-sm px-4 fw-bold" href="{% url 'logout' %}" style="border-radius: 6px;">Đăng xuất</a>
                         </li>
                     {% else %}
-                        <li class="nav-item me-2">
-                            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{% url 'login' %}">Đăng nhập</a>
+                        <li class="nav-item me-3">
+                            <a class="nav-link fw-bold" href="{% url 'login' %}">Đăng nhập</a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-light btn-sm rounded-pill px-3 text-custom-red fw-bold" href="{% url 'register' %}">Đăng ký</a>
+                            <a class="btn btn-custom-primary btn-sm px-4 shadow-sm" href="{% url 'register' %}">Đăng ký</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -81,13 +136,28 @@
         {% endblock %}
     </div>
 
-    <!-- Chân trang chứa Slogan -->
-    <footer class="text-center py-4 text-muted border-top" style="background-color: #fff;">
-        <h6 class="text-custom-red fw-bold mb-2">Tiếng Trung Bích Tuyền</h6>
-        <p class="mb-1 fst-italic">"Đồng hành cùng bạn trên con đường chinh phục Hán ngữ"</p>
-        <small>© 2026. Nền tảng học tập thông minh.</small>
-    </footer>
+    <!-- KHU VỰC CHÂN TRANG (FOOTER) -->
+<footer class="mt-5 py-4 border-top" style="background-color: #fdfbf7;">
+    <div class="container text-center">
+        <!-- Tên nền tảng -->
+        <h4 class="mb-2" style="color: var(--primary-red, #B22222); font-family: 'Playfair Display', serif; font-weight: 900; letter-spacing: 1px;">
+            XueHanYu
+        </h4>
+        
+        <!-- Slogan -->
+        <p class="text-muted mb-2" style="font-size: 1.05rem;">
+            Đồng hành cùng bạn trên con đường chinh phục Hán ngữ
+        </p>
+        
+        <!-- Bản quyền & Tên tác giả -->
+        <div class="text-muted" style="font-size: 0.9rem;">
+            &copy; 2026. Nền tảng học tập thông minh.<br>
+            Sáng lập và phát triển bởi <span style="color: var(--primary-red, #B22222); font-weight: 700; font-family: 'Playfair Display', serif; font-size: 1.1rem;">Tuyền Trương</span>
+        </div>
+    </div>
+</footer>
 
+    <!-- Script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>

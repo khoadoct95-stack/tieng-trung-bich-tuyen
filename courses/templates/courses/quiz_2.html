@@ -83,7 +83,9 @@
 
 {% block content %}
 <div class="text-center mb-4">
-    <a href="{% url 'game_zone' lesson.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại</a>
+    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary fw-bold">
+    ← Quay lại
+</a>
     <h2 class="text-custom-red fw-bold">Game 2: Lật thẻ nhớ</h2>
     <p class="text-muted">Tìm và ghép các cặp thẻ <strong>Chữ Hán</strong> và <strong>Pinyin</strong>.</p>
     <!-- Đồng hồ bấm giờ -->

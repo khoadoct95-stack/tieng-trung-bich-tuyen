@@ -29,9 +29,9 @@ class VocabularyInline(admin.TabularInline):
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
     form = LessonForm  # Sử dụng Form tùy chỉnh vừa tạo
-    list_display = ('title', 'curriculum', 'order')
+    list_display = ('order', 'title_hanzi', 'title_vietnamese', 'curriculum')
     list_filter = ('curriculum',)
-    search_fields = ('title',)
+    search_fields = ('title_hanzi', 'title_pinyin', 'title_vietnamese')
     inlines = [VocabularyInline]
 
     # Hàm can thiệp quá trình Lưu để tách từ vựng từ ô "Nhập nhanh"
@@ -67,8 +67,8 @@ class LessonAdmin(admin.ModelAdmin):
 
 @admin.register(Curriculum)
 class CurriculumAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
-    search_fields = ('name',)
+    list_display = ('title', 'icon_character', 'subtitle')
+    search_fields = ('title',)
 
 @admin.register(Vocabulary)
 class VocabularyAdmin(admin.ModelAdmin):

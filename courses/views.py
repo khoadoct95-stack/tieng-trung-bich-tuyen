@@ -145,3 +145,40 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+import os
+import subprocess
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def github_webhook(request):
+    # Chỉ xử lý khi GitHub gửi tín hiệu (POST request)
+    if request.method == 'POST':
+        # Đường dẫn tuyệt đối trên máy chủ PythonAnywhere của bạn
+        project_dir = '/home/xuehanyu/tieng-trung-bich-tuyen'
+        venv_python = '/home/xuehanyu/tieng-trung-bich-tuyen/venv/bin/python'
+        wsgi_file = '/var/www/xuehanyu_pythonanywhere_com_wsgi.py'
+        
+        try:
+            # 1. Kéo code mới nhất từ nhánh main trên GitHub về
+            subprocess.run(['git', 'fetch', '--all'], cwd=project_dir, check=True)
+            subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, check=True)
+            
+            # 2. Cập nhật cấu trúc Cơ sở dữ liệu (Nếu bạn có thêm/bớt trường dữ liệu trong models.py)
+            subprocess.run([venv_python, 'manage.py', 'migrate', '--noinput'], cwd=project_dir, check=True)
+            
+            # 3. Gom tất cả file tĩnh mới (CSS, JS, ảnh giao diện)
+            subprocess.run([venv_python, 'manage.py', 'collectstatic', '--noinput'], cwd=project_dir, check=True)
+            
+            # 4. Chạm (touch) vào file WSGI để báo máy chủ PythonAnywhere khởi động lại web
+            subprocess.run(['touch', wsgi_file], check=True)
+            
+            return HttpResponse("✅ Webhook chạy thành công: Code, Database và Giao diện đã được làm mới!")
+            
+        except subprocess.CalledProcessError as e:
+            # Báo lỗi nếu có lệnh nào đó chạy thất bại
+            return HttpResponse(f"❌ Có lỗi xảy ra trong quá trình chạy lệnh tự động: {e}", status=500)
+            
+    # Nếu truy cập bằng trình duyệt thông thường (GET request)
+    return HttpResponse("Trang này chỉ dành cho Webhook của GitHub.", status=400)

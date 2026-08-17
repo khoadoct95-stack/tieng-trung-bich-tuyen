@@ -79,61 +79,121 @@
 
 <!-- ================= MODAL (POPUP) HIỂN THỊ VIẾT CHỮ ================= -->
 <div class="modal fade" id="hanziModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content text-center">
-      <div class="modal-header border-0 pb-0">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body pb-4">
-        <h3 id="hanziTitle" class="mb-3" style="font-family: 'Noto Serif SC', serif; color: #B22222;"></h3>
-        <div id="character-target-div" style="width: 150px; height: 150px; margin: 0 auto; border: 2px dashed #e0e0e0; border-radius: 8px;"></div>
-        <button class="btn btn-outline-danger mt-4 fw-bold" onclick="writer.animateCharacter()">
-            ▶ Viết lại
-        </button>
-      </div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pb-4">
+                <h3 id="hanziTitle" class="mb-3" style="font-family: 'Noto Serif SC', serif; color: #B22222;"></h3>
+                
+                <!-- Vùng chứa các chữ Hán sẽ được tạo động (Tự dàn hàng ngang nếu có nhiều chữ) -->
+                <div id="character-target-container" class="d-flex flex-wrap justify-content-center gap-2"></div>
+                
+                <!-- Nút Viết lại sẽ gọi hàm replayAnimation -->
+                <button class="btn btn-outline-danger mt-4 fw-bold" onclick="replayAnimation()">
+                    ▶ Viết lại
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- ================= JAVASCRIPT ================= -->
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
 <script>
-    // 1. PHÁT ÂM (Hỗ trợ đọc chuẩn tiếng Quan Thoại)
+    // ============== TÍNH NĂNG ĐIỀU KHIỂN FLASHCARD (Chỉ áp dụng cho file flashcard.html) ==============
+    const container = document.getElementById('flashcard-container');
+    if (container) {
+        const totalCards = parseInt(container.getAttribute('data-total')) || 0;
+        let currentIndex = 0;
+
+        function flipCard(cardElement) { cardElement.classList.toggle('is-flipped'); }
+
+        function updateView() {
+            document.querySelectorAll('.flashcard-wrapper').forEach((el, index) => {
+                el.classList.remove('active');
+                if (index !== currentIndex) {
+                    const card = el.querySelector('.flashcard');
+                    if (card) card.classList.remove('is-flipped');
+                }
+            });
+            const activeCard = document.getElementById(`card-${currentIndex}`);
+            if (activeCard) activeCard.classList.add('active');
+            
+            document.getElementById('current-card-num').innerText = currentIndex + 1;
+            document.getElementById('btn-prev').disabled = (currentIndex === 0);
+            document.getElementById('btn-next').disabled = (currentIndex === totalCards - 1);
+        }
+
+        function nextCard() { if (currentIndex < totalCards - 1) { currentIndex++; updateView(); } }
+        function prevCard() { if (currentIndex > 0) { currentIndex--; updateView(); } }
+    }
+
+    // ============== 1. PHÁT ÂM (Chuẩn Quan Thoại) ==============
     function playAudio(text) {
         let url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=" + encodeURIComponent(text);
         let audio = new Audio(url);
         audio.play();
     }
 
-    // 2. VẼ CHỮ (Tự động nhận diện Giản thể / Phồn thể)
-    var writer;
-    function showHanziPopup(character) {
+    // ============== 2. VẼ CHỮ (Hỗ trợ Từ ghép nhiều chữ & Tự động nhận diện Giản/Phồn) ==============
+    var writers = []; // Mảng lưu trữ các nét chữ đang vẽ
+
+    function showHanziPopup(word) {
         var myModal = new bootstrap.Modal(document.getElementById('hanziModal'));
         myModal.show();
         
-        document.getElementById('hanziTitle').innerText = character;
-        document.getElementById('character-target-div').innerHTML = '';
+        document.getElementById('hanziTitle').innerText = word;
         
-        writer = HanziWriter.create('character-target-div', character, {
-            width: 150, height: 150, padding: 5, showOutline: true,
-            strokeAnimationSpeed: 1, delayBetweenStrokes: 100,
+        var targetContainer = document.getElementById('character-target-container');
+        targetContainer.innerHTML = ''; // Xoá sạch các khung vuông cũ
+        writers = []; // Làm mới bộ nhớ
+        
+        // Vòng lặp: Tách từ "你好" thành "你" và "好" để tạo ô vẽ riêng
+        for (let i = 0; i < word.length; i++) {
+            let char = word[i];
             
-            charDataLoader: function(char, onComplete) {
-                // Thử tải Giản Thể trước
-                fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + char + '.json')
-                    .then(res => { if (!res.ok) throw new Error('Not Simplified'); return res.json(); })
-                    .then(onComplete)
-                    .catch(() => {
-                        // Nếu thất bại, tự động tải Phồn Thể
-                        fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data-tc@latest/' + char + '.json')
-                            .then(res => { if (!res.ok) throw new Error('Not Found'); return res.json(); })
-                            .then(onComplete)
-                            .catch(err => console.error('Không tìm thấy dữ liệu nét viết cho chữ này:', char));
-                    });
-            }
-        });
+            // Bỏ qua nếu là dấu câu hoặc khoảng trắng
+            if (/[a-zA-Z0-9\s\.,\?!]/.test(char)) continue;
+
+            // Tạo khung vuông chứa 1 chữ
+            let charDiv = document.createElement('div');
+            charDiv.id = 'hanzi-char-' + i;
+            charDiv.style.width = '120px';
+            charDiv.style.height = '120px';
+            charDiv.style.border = '2px dashed #e0e0e0';
+            charDiv.style.borderRadius = '8px';
+            charDiv.style.backgroundColor = '#fafafa';
+            targetContainer.appendChild(charDiv);
+            
+            // Gọi thư viện vẽ vào khung vừa tạo
+            let writer = HanziWriter.create(charDiv.id, char, {
+                width: 120, height: 120, padding: 5, showOutline: true,
+                strokeAnimationSpeed: 1.5, delayBetweenStrokes: 50,
+                
+                charDataLoader: function(c, onComplete) {
+                    fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + c + '.json')
+                        .then(res => { if (!res.ok) throw new Error('Not Simplified'); return res.json(); })
+                        .then(onComplete)
+                        .catch(() => {
+                            fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data-tc@latest/' + c + '.json')
+                                .then(res => { if (!res.ok) throw new Error('Not Found'); return res.json(); })
+                                .then(onComplete)
+                                .catch(err => console.error('Không tìm thấy dữ liệu chữ:', c));
+                        });
+                }
+            });
+            writers.push(writer);
+        }
         
-        setTimeout(() => { writer.animateCharacter(); }, 500);
+        // Đợi 0.5s cho popup mở hẳn rồi ra lệnh cho TẤT CẢ các chữ cùng vẽ
+        setTimeout(() => { replayAnimation(); }, 500);
+    }
+
+    // Hàm gọi lại khi người dùng bấm nút "Viết lại"
+    function replayAnimation() {
+        writers.forEach(w => w.animateCharacter());
     }
 </script>
 {% endblock %}

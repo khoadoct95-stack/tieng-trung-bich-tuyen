@@ -1,0 +1,45 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Xác nhận đăng nhập Google" %}{% trans "Sign In Via Google" %}{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="card shadow-lg border-0 text-center p-5" style="max-width: 450px; width: 100%; border-radius: 20px;">
+        
+        <!-- Spinner xoay xoay báo hiệu đang kết nối -->
+        <div class="spinner-border text-danger mb-4 mx-auto" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+
+        <h4 class="fw-bold mb-3" style="color: #B22222; font-family: 'Playfair Display', serif;">
+            Đang chuyển hướng đến Google...
+        </h4>
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+            Vui lòng đợi trong giây lát, hệ thống đang kết nối an toàn với tài khoản Google của bạn.
+        </p>
+
+        <!-- Form ẩn chứa nút Continue mặc định của allauth, sẽ được script tự động bấm -->
+        <form id="auto-login-form" method="post" action="{% url 'google_login' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100 py-2 fw-bold rounded-pill shadow-sm" style="display: none;">
+                {% trans "Continue" %}
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<!-- JavaScript tự động submit form ngay lập tức -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Tự động bấm nút Continue sau 0.3 giây để học viên không kịp thấy màn hình trung gian
+        setTimeout(function() {
+            var form = document.getElementById('auto-login-form');
+            if (form) {
+                form.submit();
+            }
+        }, 300);
+    });
+</script>
+{% endblock %}

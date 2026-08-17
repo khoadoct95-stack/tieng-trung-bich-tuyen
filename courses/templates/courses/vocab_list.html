@@ -8,11 +8,9 @@
     
     <!-- THANH ĐIỀU HƯỚNG VÀ TIÊU ĐỀ TỪ VỰNG -->
     <div class="d-flex align-items-center mb-4 p-3 shadow-sm bg-white" style="border-radius: 12px; border-left: 5px solid var(--primary-red);">
-        <!-- Nút Quay lại Danh sách bài học -->
         <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-sm btn-outline-secondary fw-bold me-3 shadow-sm" style="border-radius: 8px;">
             ← Quay lại
         </a>
-        <!-- Tiêu đề bài học -->
         <div class="d-flex flex-column">
             <h4 class="m-0 fw-bold" style="color: var(--ink-text); font-family: 'Playfair Display', serif;">
                 Từ vựng Bài {{ lesson.order|default:"..." }}
@@ -26,7 +24,7 @@
     <!-- MẸO HƯỚNG DẪN -->
     <div class="text-center mb-4">
         <span class="badge bg-white text-dark border p-2 fw-normal shadow-sm" style="font-size: 0.95rem; border-radius: 8px;">
-            💡 Nhấn vào chữ Hán để xem chi tiết thứ tự từng nét viết.
+            💡 Nhấn vào chữ Hán để xem chi tiết thứ tự từng nét viết (Hỗ trợ cả Giản & Phồn thể).
         </span>
     </div>
 
@@ -48,22 +46,20 @@
                         <td class="text-muted fw-bold">{{ forloop.counter }}</td>
                         
                         <td class="py-3">
-                            <!-- CHỮ HÁN: Đã sửa từ vocab.word thành vocab.hanzi -->
-                            <a href="#" class="text-decoration-none" style="font-family: 'Noto Serif SC', serif; font-size: 1.8rem; font-weight: 700; color: #B22222;">
+                            <!-- CHỮ HÁN -->
+                            <a href="javascript:void(0);" onclick="showHanziPopup('{{ vocab.hanzi }}')" class="text-decoration-none" style="font-family: 'Noto Serif SC', serif; font-size: 1.8rem; font-weight: 700; color: #B22222;">
                                 {{ vocab.hanzi }}
                             </a>
-                            <!-- Icon Loa -->
-                            <button class="btn btn-sm btn-light border ms-2 rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0;" title="Nghe phát âm">
+                            <!-- ICON LOA -->
+                            <button onclick="playAudio('{{ vocab.hanzi }}')" class="btn btn-sm btn-light border ms-2 rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0;" title="Nghe phát âm">
                                 🔊
                             </button>
                         </td>
                         
-                        <!-- PINYIN: Trùng khớp -->
                         <td class="py-3" style="font-family: Arial, sans-serif; font-size: 1.15rem; color: #0056b3;">
                             {{ vocab.pinyin }}
                         </td>
                         
-                        <!-- NGHĨA TIẾNG VIỆT: Trùng khớp -->
                         <td class="py-3" style="font-size: 1.05rem; color: #333;">
                             {{ vocab.meaning }}
                         </td>
@@ -80,4 +76,64 @@
         </div>
     </div>
 </div>
+
+<!-- ================= MODAL (POPUP) HIỂN THỊ VIẾT CHỮ ================= -->
+<div class="modal fade" id="hanziModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pb-4">
+        <h3 id="hanziTitle" class="mb-3" style="font-family: 'Noto Serif SC', serif; color: #B22222;"></h3>
+        <div id="character-target-div" style="width: 150px; height: 150px; margin: 0 auto; border: 2px dashed #e0e0e0; border-radius: 8px;"></div>
+        <button class="btn btn-outline-danger mt-4 fw-bold" onclick="writer.animateCharacter()">
+            ▶ Viết lại
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<script>
+    // 1. PHÁT ÂM (Hỗ trợ đọc chuẩn tiếng Quan Thoại)
+    function playAudio(text) {
+        let url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=" + encodeURIComponent(text);
+        let audio = new Audio(url);
+        audio.play();
+    }
+
+    // 2. VẼ CHỮ (Tự động nhận diện Giản thể / Phồn thể)
+    var writer;
+    function showHanziPopup(character) {
+        var myModal = new bootstrap.Modal(document.getElementById('hanziModal'));
+        myModal.show();
+        
+        document.getElementById('hanziTitle').innerText = character;
+        document.getElementById('character-target-div').innerHTML = '';
+        
+        writer = HanziWriter.create('character-target-div', character, {
+            width: 150, height: 150, padding: 5, showOutline: true,
+            strokeAnimationSpeed: 1, delayBetweenStrokes: 100,
+            
+            charDataLoader: function(char, onComplete) {
+                // Thử tải Giản Thể trước
+                fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/' + char + '.json')
+                    .then(res => { if (!res.ok) throw new Error('Not Simplified'); return res.json(); })
+                    .then(onComplete)
+                    .catch(() => {
+                        // Nếu thất bại, tự động tải Phồn Thể
+                        fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data-tc@latest/' + char + '.json')
+                            .then(res => { if (!res.ok) throw new Error('Not Found'); return res.json(); })
+                            .then(onComplete)
+                            .catch(err => console.error('Không tìm thấy dữ liệu nét viết cho chữ này:', char));
+                    });
+            }
+        });
+        
+        setTimeout(() => { writer.animateCharacter(); }, 500);
+    }
+</script>
 {% endblock %}

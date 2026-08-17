@@ -54,7 +54,7 @@
                             {% else %}{{ item.game_type }}
                             {% endif %}
                         </td>
-                        <td class="fw-semibold text-dark">{{ item.lesson.title }}</td>
+                        <td class="fw-semibold text-dark">{{ item.lesson.title_vietnamese }}</td>
                         <td class="text-center text-danger fw-bold">{{ item.time_taken }} giây</td>
                         <td class="text-end text-muted small">{{ item.created_at|date:"d/m/Y H:i" }}</td>
                     </tr>
@@ -109,7 +109,7 @@
                             {{ record.user__username }}
                             {% if request.user.username == record.user__username %} <span class="badge bg-danger ms-1">Bạn</span> {% endif %}
                         </td>
-                        <td class="text-secondary">{{ record.lesson__title }}</td>
+                        <td class="text-secondary">{{ record.lesson.title_vietnamese }}</td>
                         <td class="text-center text-danger fw-bold fs-5">{{ record.best_time }}s</td>
                     </tr>
                     {% empty %}

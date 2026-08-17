@@ -105,7 +105,7 @@ def dashboard_view(request):
     selected_game_name = game_names[selected_game]
     
     leaderboard = GameHistory.objects.filter(game_type=selected_game)\
-        .values('user__username', 'lesson__title')\
+        .values('user__username', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
         .order_by('best_time')[:10]
         

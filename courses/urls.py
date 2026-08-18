@@ -22,4 +22,5 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
     # Thêm 2 dòng này cho Hồ sơ cá nhân:
     path('profile/', views.profile_view, name='profile'),
+    path('github_webhook/', views.github_webhook, name='github_webhook'),
 ]

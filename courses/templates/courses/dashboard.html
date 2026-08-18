@@ -6,14 +6,22 @@
 <style>
     .rank-card { transition: all 0.3s ease; border-radius: 20px; border: none; }
     .rank-card:hover { transform: translateY(-5px); }
-    /* Màu Vàng (Top 1) */
-    .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); color: #fff; transform: scale(1.1); z-index: 3; box-shadow: 0 15px 30px rgba(253, 185, 49, 0.4); }
-    /* Màu Bạc (Top 2) */
-    .rank-2 { background: linear-gradient(135deg, #E0E0E0 0%, #9E9E9E 100%); color: #fff; box-shadow: 0 10px 20px rgba(158, 158, 158, 0.3); }
-    /* Màu Đồng (Top 3) */
-    .rank-3 { background: linear-gradient(135deg, #E6A171 0%, #C06014 100%); color: #fff; box-shadow: 0 10px 20px rgba(192, 96, 20, 0.3); }
     
-    .badge-time { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); font-size: 1rem; }
+    /* Top 1 (Vàng) - Chữ Nâu đậm để dễ đọc */
+    .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); color: #6b4c00 !important; transform: scale(1.1); z-index: 3; box-shadow: 0 15px 30px rgba(253, 185, 49, 0.4); }
+    
+    /* Top 2 (Bạc) - Chữ Xám đậm */
+    .rank-2 { background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%); color: #333333 !important; box-shadow: 0 10px 20px rgba(158, 158, 158, 0.3); }
+    
+    /* Top 3 (Đồng) - Chữ Trắng */
+    .rank-3 { background: linear-gradient(135deg, #E6A171 0%, #C06014 100%); color: #ffffff !important; box-shadow: 0 10px 20px rgba(192, 96, 20, 0.3); }
+    
+    /* Badge thời gian cho nền sáng (Vàng, Bạc) */
+    .badge-time-dark { background-color: rgba(0,0,0,0.1); color: inherit; border: 1px solid rgba(0,0,0,0.15); font-size: 1rem; }
+    
+    /* Badge thời gian cho nền tối (Đồng) */
+    .badge-time-light { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); font-size: 1rem; }
+    
     .current-user-row { background-color: #fff0f0 !important; border-left: 5px solid #B22222; }
 </style>
 
@@ -31,16 +39,20 @@
     
     <div class="row justify-content-center align-items-end text-center mb-5 d-flex">
         {% for top in top_3 %}
-        <!-- Dùng thuộc tính order để đẩy Top 1 vào giữa (2), Top 2 sang trái (1), Top 3 sang phải (3) -->
         <div class="col-4 col-md-3 px-1 px-md-3" style="order: {% if forloop.counter == 1 %}2{% elif forloop.counter == 2 %}1{% else %}3{% endif %};">
             <div class="card rank-card rank-{{ forloop.counter }} h-100 py-3">
                 <div class="card-body p-2 p-md-4">
-                    <h1 class="display-3 mb-1" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                    <h1 class="display-3 mb-1" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
                         {% if forloop.counter == 1 %}👑{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
                     </h1>
-                    <h5 class="fw-bold mt-2 text-truncate text-white">{{ top.user__first_name|default:top.user__username }}</h5>
-                    <p class="small text-white-50 mb-3 d-none d-md-block">{{ top.lesson__title_vietnamese }}</p>
-                    <span class="badge badge-time rounded-pill px-3 py-2">{{ top.best_time }} giây</span>
+                    <!-- Đã bỏ class text-white để màu chữ tự động đổi theo thẻ -->
+                    <h5 class="fw-bold mt-2 text-truncate">{{ top.user__first_name|default:top.user__username }}</h5>
+                    <!-- Đã thay text-white-50 bằng opacity-75 -->
+                    <p class="small mb-3 d-none d-md-block opacity-75">{{ top.lesson__title_vietnamese }}</p>
+                    
+                    <span class="badge rounded-pill px-3 py-2 {% if forloop.counter == 3 %}badge-time-light{% else %}badge-time-dark{% endif %}">
+                        {{ top.best_time }} giây
+                    </span>
                 </div>
             </div>
         </div>
@@ -54,11 +66,12 @@
                 #{{ user_rank|default:"-" }}
             </div>
             <div>
-                <h5 class="fw-bold mb-0">Thành tích của bạn</h5>
+                <!-- Đã thêm class text-white để ép chữ tiêu đề luôn trắng -->
+                <h5 class="fw-bold mb-0 text-white">Thành tích của bạn</h5>
                 {% if personal_best %}
-                    <span class="opacity-75 small">Kỷ lục hiện tại: <strong>{{ personal_best }} giây</strong></span>
+                    <span class="opacity-75 small text-white">Kỷ lục hiện tại: <strong>{{ personal_best }} giây</strong></span>
                 {% else %}
-                    <span class="opacity-75 small">Bạn chưa tham gia trò chơi này</span>
+                    <span class="opacity-75 small text-white">Bạn chưa tham gia trò chơi này</span>
                 {% endif %}
             </div>
         </div>

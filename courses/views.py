@@ -89,10 +89,10 @@ def save_score(request):
 # Bảng xếp hạng và Lịch sử cá nhân
 @login_required
 def dashboard_view(request):
-    # 1. LẤY LỊCH SỬ HỌC TẬP (Dòng này lúc nãy bị vô tình xóa mất)
+    # 1. Lịch sử học tập (đã sửa date_played thành created_at)
     history_records = GameHistory.objects.filter(user=request.user).order_by('-created_at')
 
-    # 2. XỬ LÝ BẢNG XẾP HẠNG
+    # 2. Xử lý phần Bảng xếp hạng
     selected_game = request.GET.get('game', 'quiz_1')
     game_names = {
         'quiz_1': 'Nối từ',
@@ -102,22 +102,21 @@ def dashboard_view(request):
     }
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    # Lấy Top 100
+    # Bảng xếp hạng Top 100 (đã sửa title thành title_vietnamese)
     leaderboard = GameHistory.objects.filter(game_type=selected_game)\
         .values('user__username', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
         .order_by('best_time')[:100]
         
-    # 3. LẤY THÀNH TÍCH CÁ NHÂN
+    # Kỷ lục cá nhân của user đang đăng nhập
     personal_best = GameHistory.objects.filter(
         user=request.user, 
         game_type=selected_game
     ).aggregate(best=Min('time_taken'))['best']
 
-    # Xác định đang mở Tab nào
+    # Xác định tab đang mở
     active_tab = request.GET.get('tab', 'history')
 
-    # 4. GÓI DỮ LIỆU ĐƯA RA GIAO DIỆN
     context = {
         'history_records': history_records,
         'leaderboard': leaderboard,

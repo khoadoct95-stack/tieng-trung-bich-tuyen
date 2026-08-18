@@ -111,7 +111,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="{% url 'profile' %}" class="nav-link me-3 text-decoration-none fw-semibold">
-                                👋 Chào, {{ user.username }}!
+                                👋 Chào, {{ user.first_name|default:user.username }}!
                             </a>
                         </li>
                         <li class="nav-item">
@@ -150,10 +150,10 @@
         </p>
         
         <!-- Bản quyền & Tên tác giả -->
-        <div class="text-muted" style="font-size: 0.9rem;">
-            &copy; 2026. Nền tảng học tập thông minh.<br>
-            Sáng lập và phát triển bởi <span style="color: var(--primary-red, #B22222); font-weight: 700; font-family: 'Playfair Display', serif; font-size: 1.1rem;">Tuyền Trương</span>
-        </div>
+<div class="text-muted" style="font-size: 0.9rem;">
+    &copy; 2026. Nền tảng học tập thông minh.<br>
+    Made with ❤️ by <span style="color: var(--primary-red, #B22222); font-weight: 700; font-family: 'Playfair Display', serif; font-size: 1.1rem;">Tuyền Trương</span>
+</div>
     </div>
 </footer>
 

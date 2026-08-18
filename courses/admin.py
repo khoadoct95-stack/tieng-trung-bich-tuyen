@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
+from .models import Exam, ExamQuestion, ExamResult
 
 # --- TẠO FORM TÙY CHỈNH CHO BÀI HỌC ---
 class LessonForm(forms.ModelForm):
@@ -81,3 +82,27 @@ class GameHistoryAdmin(admin.ModelAdmin):
     list_display = ('user', 'lesson', 'game_type', 'time_taken', 'created_at')
     list_filter = ('game_type', 'created_at')
     search_fields = ('user__username', 'lesson__title')
+
+    # Import thêm các model mới ở trên cùng của file (nếu chưa có)
+# from .models import Exam, ExamQuestion, ExamResult
+
+# ==========================================
+# QUẢN LÝ ĐỀ THI HSK
+# ==========================================
+@admin.register(Exam)
+class ExamAdmin(admin.ModelAdmin):
+    list_display = ('title', 'hsk_level', 'duration_minutes', 'created_at')
+    list_filter = ('hsk_level',)
+    search_fields = ('title',)
+
+@admin.register(ExamQuestion)
+class ExamQuestionAdmin(admin.ModelAdmin):
+    list_display = ('exam', 'question_number', 'section_type', 'question_group')
+    list_filter = ('exam', 'section_type', 'question_group')
+    ordering = ('exam', 'question_number')
+
+@admin.register(ExamResult)
+class ExamResultAdmin(admin.ModelAdmin):
+    list_display = ('user', 'exam', 'score', 'total_correct', 'completed_at')
+    list_filter = ('exam', 'completed_at')
+    search_fields = ('user__username', 'exam__title')

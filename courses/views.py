@@ -12,6 +12,7 @@ from django.db.models import Min
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
+from .models import Exam, ExamQuestion, ExamResult
 
 # ==========================================
 # 1. CÁC HÀM CƠ BẢN CỦA WEB
@@ -195,3 +196,15 @@ def github_webhook(request):
         except subprocess.CalledProcessError as e:
             return HttpResponse(f"Error: {str(e)}", status=500)
     return HttpResponse("Invalid request", status=400)
+
+# Hàm hiển thị trang làm bài thi HSK
+@login_required
+def take_exam(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+    # Lấy tất cả câu hỏi của đề này, sắp xếp theo số thứ tự (1 đến 40)
+    questions = exam.questions.all().order_by('question_number')
+    
+    return render(request, 'courses/take_exam.html', {
+        'exam': exam,
+        'questions': questions
+    })

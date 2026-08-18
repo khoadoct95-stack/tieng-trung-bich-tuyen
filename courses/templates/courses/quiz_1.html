@@ -4,31 +4,71 @@
 
 {% block extra_head %}
 <style>
-    .game-board {
-        display: flex; gap: 20px; justify-content: center;
+    /* Mở rộng không gian tối đa, tận dụng 2 bên màn hình */
+    .game-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
     }
-    .col-game {
-        display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px;
+
+    /* Chia bảng thành 2 khu vực ngang nhau, linh hoạt rớt dòng trên mobile */
+    .matching-board {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
     }
-    
+
+    /* Khung chứa từ vựng 2 bên */
+    .word-column {
+        flex: 1;
+        min-width: 320px;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        
+        /* Tự động dàn hàng ngang thành nhiều cột để chống cuộn dọc */
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        align-content: start;
+    }
+
+    /* Nút bấm nối từ */
     .match-btn {
         background-color: white; border: 2px solid #e0e0e0;
-        border-radius: 12px; padding: 15px 20px;
+        border-radius: 12px; padding: 15px 10px;
         cursor: pointer; text-align: center;
         transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         user-select: none;
         display: flex; align-items: center; justify-content: center;
-        min-height: 80px; /* Đảm bảo 2 cột cao bằng nhau */
+        min-height: 80px; 
+        
+        /* Chống rớt dòng, tự động thu nhỏ nếu chữ dài */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .match-btn:hover { border-color: var(--primary-red); transform: translateY(-2px); }
     
-    /* Chỉnh lại font chữ cho 2 bên cân đối khi không có Pinyin */
-    .hanzi-side { font-size: 2.5rem; color: var(--primary-red); font-weight: bold; }
-    .meaning-side { font-size: 1.4rem; color: #333; font-weight: 500;}
+    .match-btn:hover { border-color: #B22222; transform: translateY(-2px); }
+    
+    /* Co giãn font chữ thông minh (clamp): Nhỏ nhất -> Linh hoạt -> Lớn nhất */
+    .hanzi-side { 
+        font-size: clamp(1.5rem, 2.5vw, 2.5rem); 
+        color: #B22222; 
+        font-weight: bold; 
+    }
+    .meaning-side { 
+        font-size: clamp(1rem, 1.5vw, 1.4rem); 
+        color: #333; 
+        font-weight: 500;
+    }
 
+    /* Hiệu ứng trạng thái nút */
     .match-btn.selected {
-        background-color: #fff3f3; border-color: var(--primary-red);
-        box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.2);
+        background-color: #fff3f3; border-color: #B22222;
+        box-shadow: 0 0 0 4px rgba(178, 34, 34, 0.2);
     }
     .match-btn.correct {
         background-color: #d4edda; border-color: #28a745; color: #155724;
@@ -50,24 +90,31 @@
 {% endblock %}
 
 {% block content %}
-<div class="text-center mb-4">
-    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại</a>
-    <h2 class="text-custom-red fw-bold">Game 1: Nối từ</h2>
-    <!-- Đồng hồ bấm giờ -->
-    <div class="fs-4 fw-bold text-dark mt-2">
-        ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+<div class="game-wrapper mt-4 mb-5">
+    <!-- Khu vực tiêu đề -->
+    <div class="text-center mb-4">
+        <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary btn-sm mb-3">⬅ Quay lại</a>
+        <h2 class="fw-bold" style="color: #B22222;">Game 1: Nối từ</h2>
+        <!-- Đồng hồ bấm giờ -->
+        <div class="fs-4 fw-bold text-dark mt-2">
+            ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+        </div>
     </div>
-</div>
 
-<div class="game-board" id="game-board">
-    <div class="col-game" id="col-hanzi"></div>
-    <div class="col-game" id="col-meaning"></div>
-</div>
+    <!-- Bảng nối từ 2 bên (Tự động dàn lưới) -->
+    <div class="matching-board" id="game-board">
+        <!-- Cột chứa Tiếng Trung -->
+        <div class="word-column" id="col-hanzi"></div>
+        <!-- Cột chứa Tiếng Việt -->
+        <div class="word-column" id="col-meaning"></div>
+    </div>
 
-<div id="success-screen" class="text-center mt-5" style="display: none;">
-    <h1 style="font-size: 4rem;">🎉</h1>
-    <h3 class="text-success fw-bold">Tuyệt vời! Bạn đã vượt qua bài kiểm tra!</h3>
-    <button class="btn btn-custom-red mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+    <!-- Màn hình hoàn thành -->
+    <div id="success-screen" class="text-center mt-5" style="display: none;">
+        <h1 style="font-size: 4rem;">🎉</h1>
+        <h3 class="text-success fw-bold">Tuyệt vời! Bạn đã vượt qua bài kiểm tra!</h3>
+        <button class="btn btn-danger mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+    </div>
 </div>
 {% endblock %}
 

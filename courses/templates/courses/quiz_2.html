@@ -4,13 +4,19 @@
 
 {% block extra_head %}
 <style>
+    /* Mở rộng tối đa giao diện, lấp đầy khoảng trống 2 bên */
+    .game-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
     .game-board {
         display: grid;
-        /* Tự động chia cột tùy theo màn hình, kích thước thẻ tối thiểu 100px */
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        /* Tự động chia cột dàn đều, mỗi thẻ nhỏ nhất 120px, lan rộng hết cỡ */
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 15px;
-        max-width: 800px;
-        margin: 0 auto;
+        margin-top: 30px;
         perspective: 1000px;
     }
     
@@ -46,7 +52,7 @@
 
     /* Mặt trước (Khi đang úp thẻ) */
     .memory-front {
-        background: linear-gradient(135deg, var(--primary-red), #B71C1C);
+        background: linear-gradient(135deg, #B22222, #8b0000);
         color: white; font-size: 2.5rem;
         border: 2px solid #fff;
     }
@@ -55,16 +61,25 @@
     .memory-back {
         background-color: white;
         transform: rotateY(180deg);
-        border: 2px solid var(--primary-red);
+        border: 2px solid #B22222;
         text-align: center;
         padding: 5px;
+        
+        /* CÔNG THỨC CHỐNG RỚT DÒNG */
+        white-space: nowrap; /* Tuyệt đối không xuống hàng */
+        overflow: hidden;    /* Ẩn phần bị dư ra (nếu quá dài) */
     }
 
+    /* Co giãn chữ thông minh: Nhỏ nhất -> Thay đổi theo thẻ -> Lớn nhất */
     .memory-back.hanzi-type {
-        font-size: 2.5rem; color: var(--primary-red); font-weight: bold;
+        font-size: clamp(1.2rem, 3vw, 2.5rem); 
+        color: #B22222; 
+        font-weight: bold;
     }
     .memory-back.pinyin-type {
-        font-size: 1.4rem; color: #007bff; font-weight: 500;
+        font-size: clamp(0.9rem, 2vw, 1.4rem); 
+        color: #007bff; 
+        font-weight: 500;
     }
 
     /* Hiệu ứng khi thẻ đã được ghép đúng (Tàng hình dần) */
@@ -82,27 +97,29 @@
 {% endblock %}
 
 {% block content %}
-<div class="text-center mb-4">
-    <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary fw-bold">
-    ← Quay lại
-</a>
-    <h2 class="text-custom-red fw-bold">Game 2: Lật thẻ nhớ</h2>
-    <p class="text-muted">Tìm và ghép các cặp thẻ <strong>Chữ Hán</strong> và <strong>Pinyin</strong>.</p>
-    <!-- Đồng hồ bấm giờ -->
-    <div class="fs-4 fw-bold text-dark mt-2">
-        ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+<div class="game-wrapper mt-4 mb-5">
+    <div class="text-center mb-4">
+        <a href="{% url 'lesson_list' lesson.curriculum.id %}" class="btn btn-outline-secondary fw-bold mb-3">
+            ⬅ Quay lại
+        </a>
+        <h2 class="fw-bold" style="color: #B22222;">Game 2: Lật thẻ nhớ</h2>
+        <p class="text-muted">Tìm và ghép các cặp thẻ <strong>Chữ Hán</strong> và <strong>Pinyin</strong>.</p>
+        <!-- Đồng hồ bấm giờ -->
+        <div class="fs-4 fw-bold text-dark mt-2">
+            ⏱️ Thời gian: <span id="game-timer" class="text-danger">00:00</span>
+        </div>
     </div>
-</div>
 
-<!-- Khu vực chứa lưới thẻ -->
-<div class="game-board" id="game-board"></div>
+    <!-- Khu vực chứa lưới thẻ đã được mở rộng -->
+    <div class="game-board" id="game-board"></div>
 
-<!-- Màn hình chúc mừng (Ẩn mặc định) -->
-<div id="success-screen" class="text-center mt-5" style="display: none;">
-    <h1 style="font-size: 4rem;">🏆</h1>
-    <h3 class="text-success fw-bold">Xuất sắc! Bạn có trí nhớ tuyệt vời!</h3>
-    <p class="text-muted">Tổng số lần lật thẻ: <span id="flip-count" class="fw-bold">0</span></p>
-    <button class="btn btn-custom-red mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+    <!-- Màn hình chúc mừng (Ẩn mặc định) -->
+    <div id="success-screen" class="text-center mt-5" style="display: none;">
+        <h1 style="font-size: 4rem;">🏆</h1>
+        <h3 class="text-success fw-bold">Xuất sắc! Bạn có trí nhớ tuyệt vời!</h3>
+        <p class="text-muted">Tổng số lần lật thẻ: <span id="flip-count" class="fw-bold">0</span></p>
+        <button class="btn btn-danger mt-3 rounded-pill px-4" onclick="location.reload()">🔄 Chơi lại</button>
+    </div>
 </div>
 {% endblock %}
 
@@ -231,6 +248,7 @@
     }
 
     window.onload = initGame;
+    
     // Hàm gửi điểm lên máy chủ
     function saveGameScore(gameType, timeSeconds) {
         fetch("{% url 'save_score' %}", {

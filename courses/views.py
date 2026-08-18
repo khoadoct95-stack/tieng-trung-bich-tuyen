@@ -89,13 +89,11 @@ def save_score(request):
 # Bảng xếp hạng và Lịch sử cá nhân
 @login_required
 def dashboard_view(request):
-    history = GameHistory.objects.filter(user=request.user).order_by('-created_at')[:15]
-    
+    # 1. LẤY LỊCH SỬ HỌC TẬP (Dòng này lúc nãy bị vô tình xóa mất)
+    history_records = GameHistory.objects.filter(user=request.user).order_by('-date_played')
+
+    # 2. XỬ LÝ BẢNG XẾP HẠNG
     selected_game = request.GET.get('game', 'quiz_1')
-    valid_games = ['quiz_1', 'quiz_2', 'quiz_3', 'quiz_4']
-    if selected_game not in valid_games:
-        selected_game = 'quiz_1'
-        
     game_names = {
         'quiz_1': 'Nối từ',
         'quiz_2': 'Lật thẻ',
@@ -104,29 +102,28 @@ def dashboard_view(request):
     }
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    # 1. ĐIỀU CHỈNH: Lấy Top 100 thay vì Top 10
+    # Lấy Top 100
     leaderboard = GameHistory.objects.filter(game_type=selected_game)\
         .values('user__username', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
-        .order_by('best_time')[:100]  # Đổi thành [:100]
+        .order_by('best_time')[:100]
         
-    # 2. THÊM MỚI: Lấy thành tích cao nhất của chính user đang đăng nhập
-    personal_best = None
-    if request.user.is_authenticated:
-        personal_best = GameHistory.objects.filter(
-            user=request.user, 
-            game_type=selected_game
-        ).aggregate(best=Min('time_taken'))['best']
+    # 3. LẤY THÀNH TÍCH CÁ NHÂN
+    personal_best = GameHistory.objects.filter(
+        user=request.user, 
+        game_type=selected_game
+    ).aggregate(best=Min('time_taken'))['best']
 
+    # Xác định đang mở Tab nào
     active_tab = request.GET.get('tab', 'history')
 
-    # Đừng quên truyền biến personal_best vào context để giao diện sử dụng được nhé
+    # 4. GÓI DỮ LIỆU ĐƯA RA GIAO DIỆN
     context = {
         'history_records': history_records,
         'leaderboard': leaderboard,
         'selected_game': selected_game,
         'selected_game_name': selected_game_name,
-        'personal_best': personal_best, # Biến mới thêm
+        'personal_best': personal_best,
         'active_tab': active_tab,
     }
     return render(request, 'courses/dashboard.html', context)

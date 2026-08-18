@@ -90,7 +90,7 @@ def save_score(request):
 @login_required
 def dashboard_view(request):
     # 1. LẤY LỊCH SỬ HỌC TẬP (Dòng này lúc nãy bị vô tình xóa mất)
-    history_records = GameHistory.objects.filter(user=request.user).order_by('-date_played')
+    history_records = GameHistory.objects.filter(user=request.user).order_by('-created_at')
 
     # 2. XỬ LÝ BẢNG XẾP HẠNG
     selected_game = request.GET.get('game', 'quiz_1')

@@ -47,7 +47,7 @@
                     <tbody>
                         {% for item in history_records %}
                         <tr>
-                            <td class="px-4 text-muted small">{{ item.date_played|date:"d/m/Y H:i" }}</td>
+                            <td class="px-4 text-muted small">{{ item.created_at|date:"d/m/Y H:i" }}</td>
                             <td class="fw-bold text-dark">{{ item.lesson.title_vietnamese }}</td>
                             <td class="text-center">
                                 {% if item.game_type == 'quiz_1' %}<span class="badge bg-info text-dark rounded-pill px-3">Nối từ</span>

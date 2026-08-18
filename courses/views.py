@@ -102,22 +102,34 @@ def dashboard_view(request):
         'quiz_3': 'Viết chữ',
         'quiz_4': 'Phát âm'
     }
-    selected_game_name = game_names[selected_game]
+    selected_game_name = game_names.get(selected_game, 'Nối từ')
     
+    # 1. ĐIỀU CHỈNH: Lấy Top 100 thay vì Top 10
     leaderboard = GameHistory.objects.filter(game_type=selected_game)\
         .values('user__username', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
-        .order_by('best_time')[:10]
+        .order_by('best_time')[:100]  # Đổi thành [:100]
         
+    # 2. THÊM MỚI: Lấy thành tích cao nhất của chính user đang đăng nhập
+    personal_best = None
+    if request.user.is_authenticated:
+        personal_best = GameHistory.objects.filter(
+            user=request.user, 
+            game_type=selected_game
+        ).aggregate(best=Min('time_taken'))['best']
+
     active_tab = request.GET.get('tab', 'history')
-    
-    return render(request, 'courses/dashboard.html', {
-        'history': history,
+
+    # Đừng quên truyền biến personal_best vào context để giao diện sử dụng được nhé
+    context = {
+        'history_records': history_records,
         'leaderboard': leaderboard,
         'selected_game': selected_game,
         'selected_game_name': selected_game_name,
-        'active_tab': active_tab
-    })
+        'personal_best': personal_best, # Biến mới thêm
+        'active_tab': active_tab,
+    }
+    return render(request, 'courses/dashboard.html', context)
 
 # Trang Hồ sơ cá nhân
 @login_required

@@ -44,23 +44,25 @@
         user-select: none;
         display: flex; align-items: center; justify-content: center;
         min-height: 80px; 
+        height: 100%; /* Giúp các ô trên cùng 1 hàng tự động cao bằng nhau */
         
-        /* Chống rớt dòng, tự động thu nhỏ nếu chữ dài */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        /* ĐÃ SỬA LỖI: Cho phép chữ dài tự động xuống dòng gọn gàng trong ô */
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.3;
     }
     
     .match-btn:hover { border-color: #B22222; transform: translateY(-2px); }
     
-    /* Co giãn font chữ thông minh (clamp): Nhỏ nhất -> Linh hoạt -> Lớn nhất */
+    /* Co giãn font chữ thông minh */
     .hanzi-side { 
         font-size: clamp(1.5rem, 2.5vw, 2.5rem); 
         color: #B22222; 
         font-weight: bold; 
     }
     .meaning-side { 
-        font-size: clamp(1rem, 1.5vw, 1.4rem); 
+        /* Cỡ chữ được tinh chỉnh lại cho phần nghĩa tiếng Việt dài */
+        font-size: clamp(0.9rem, 1.2vw, 1.05rem); 
         color: #333; 
         font-weight: 500;
     }

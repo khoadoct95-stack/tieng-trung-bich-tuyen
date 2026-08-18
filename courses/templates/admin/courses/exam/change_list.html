@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <!-- Nút Upload Excel của chúng ta -->
+    <li>
+        <a href="import-excel/" class="addlink" style="background-color: #28a745; color: white;">
+            📥 Import Đề thi (Excel)
+        </a>
+    </li>
+    
+    <!-- Giữ lại nút Add Exam mặc định của Django -->
+    {{ block.super }}
+{% endblock %}

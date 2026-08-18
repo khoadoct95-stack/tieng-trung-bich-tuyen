@@ -176,7 +176,7 @@ def profile_view(request):
     })
 
 # ==========================================
-# 5. WEBHOOK GITHUB
+# 5. WEBHOOK GITHUB (BẢN CHỐNG KẸT LỖI)
 # ==========================================
 @csrf_exempt
 def github_webhook(request):
@@ -184,7 +184,12 @@ def github_webhook(request):
         project_dir = '/home/xuehanyu/tieng-trung-bich-tuyen'
         wsgi_file = '/var/www/xuehanyu_pythonanywhere_com_wsgi.py'
         try:
-            subprocess.run(['git', 'pull'], cwd=project_dir, check=True)
+            # Tải toàn bộ bản cập nhật mới nhất từ GitHub
+            subprocess.run(['git', 'fetch', '--all'], cwd=project_dir, check=True)
+            # Ép máy chủ xóa bỏ các chỉnh sửa thủ công, đồng bộ 100% theo nhánh main
+            subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, check=True)
+            
+            # Khởi động lại web
             subprocess.run(['touch', wsgi_file], check=True)
             return HttpResponse("Updated code successfully")
         except subprocess.CalledProcessError as e:

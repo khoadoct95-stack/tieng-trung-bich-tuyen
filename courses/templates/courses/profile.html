@@ -2,7 +2,7 @@
 {% block title %}Trang cá nhân{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
     <div class="row">
         <!-- Cột Trái: Thông tin & Đổi tên -->
         <div class="col-md-4 mb-4">
@@ -54,12 +54,12 @@
                 </div>
                 <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light" style="position: sticky; top: 0;">
+                        <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th class="ps-4">Thời gian</th>
                                 <th>Bài học</th>
                                 <th>Trò chơi</th>
-                                <th>Kết quả</th>
+                                <th class="text-center">Kết quả</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,6 +68,7 @@
                                 <td class="ps-4 small text-muted">{{ record.created_at|date:"d/m/Y H:i" }}</td>
                                 <td class="fw-bold">{{ record.lesson.title_vietnamese }}</td>
                                 <td>
+                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI TIẾNG VIỆT KÈM MÀU SẮC -->
                                     {% if record.game_type == 'quiz_1' %}
                                         <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nối từ</span>
                                     {% elif record.game_type == 'quiz_2' %}
@@ -80,7 +81,7 @@
                                         <span class="badge bg-secondary rounded-pill px-3">{{ record.game_type }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="fw-bold text-danger">{{ record.time_taken }}s</td>
+                                <td class="fw-bold text-danger text-center">{{ record.time_taken }}s</td>
                             </tr>
                             {% empty %}
                             <tr>

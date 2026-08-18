@@ -2,16 +2,31 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Exam, ExamQuestion, ExamResult
 import openpyxl
 
+# 1. IMPORT TOÀN BỘ MODEL (Cả cũ và mới)
+# Lưu ý: Hãy kiểm tra file models.py của bạn có những model nào (Curriculum, Lesson, Vocabulary...) thì khai báo hết vào đây:
+from .models import Exam, ExamQuestion, ExamResult, Curriculum, Lesson, Vocabulary
+
+# ==========================================
+# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH, BÀI HỌC (PHẦN CŨ CỦA BẠN)
+# ==========================================
+# Bạn hãy chép lại các đoạn code đăng ký admin.site.register() cũ của bạn vào đây. 
+# Nếu không nhớ code cũ, bạn có thể dùng tạm các dòng đăng ký mặc định này:
+admin.site.register(Curriculum)
+admin.site.register(Lesson)
+admin.site.register(Vocabulary)
+
+
+# ==========================================
+# KHU VỰC 2: QUẢN LÝ ĐỀ THI HSK (PHẦN MỚI CẬP NHẬT)
+# ==========================================
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('title', 'hsk_level', 'duration_minutes', 'created_at')
     list_filter = ('hsk_level',)
     search_fields = ('title',)
     
-    # Thêm đường dẫn tùy chỉnh để làm nút Import Excel trong trang Admin
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -31,28 +46,27 @@ class ExamAdmin(admin.ModelAdmin):
                 return redirect('.')
 
             try:
-                # Đọc file Excel bằng openpyxl
                 wb = openpyxl.load_workbook(excel_file)
                 sheet = wb.active
 
-                # Tạo Đề thi mới
                 exam = Exam.objects.create(
                     title=exam_title,
                     hsk_level=int(hsk_level),
                     duration_minutes=int(duration)
                 )
 
-                # Duyệt qua từng dòng trong Excel (bỏ qua dòng tiêu đề đầu tiên)
                 for row in sheet.iter_rows(min_row=2, values_only=True):
-                    if not row[0]: continue # Nếu cột số thứ tự trống thì dừng
+                    if not row[0]: continue
                     
-                    q_num, section, group, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:12]
+                    q_num, section, group, p_text, p_pinyin, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:14]
                     
                     ExamQuestion.objects.create(
                         exam=exam,
                         question_number=int(q_num),
-                        section_type=section, # 'listening' hoặc 'reading'
+                        section_type=section,
                         question_group=group,
+                        passage_text=p_text,
+                        passage_pinyin=p_pinyin,
                         content=content,
                         content_pinyin=c_pinyin,
                         option_a=opt_a,

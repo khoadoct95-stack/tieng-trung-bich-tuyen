@@ -1,0 +1,37 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2>📥 Nhập Đề thi HSK tự động bằng Excel</h2>
+    <p class="text-muted">Tải lên file Excel chứa danh sách câu hỏi theo đúng cấu trúc HSK 3.0.</p>
+    
+    <form method="POST" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="fw-bold">Tên đề thi:</label>
+            <input type="text" name="exam_title" class="form-control" required placeholder="VD: Đề thi thử HSK 1 - Số 1">
+        </div>
+        
+        <div class="mb-3">
+            <label class="fw-bold">Cấp độ HSK:</label>
+            <select name="hsk_level" class="form-control">
+                <option value="1">HSK 1</option>
+                <option value="2">HSK 2</option>
+                <option value="3">HSK 3</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="fw-bold">Thời gian làm bài (phút):</label>
+            <input type="number" name="duration" class="form-control" value="60">
+        </div>
+
+        <div class="mb-3">
+            <label class="fw-bold">Chọn file Excel (.xlsx):</label>
+            <input type="file" name="excel_file" class="form-control" accept=".xlsx" required>
+        </div>
+
+        <button type="submit" class="btn btn-success fw-bold px-4 py-2">🚀 Tải lên & Tạo đề thi</button>
+    </form>
+</div>
+{% endblock %}

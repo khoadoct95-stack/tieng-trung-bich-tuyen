@@ -1,99 +1,77 @@
-from django import forms
 from django.contrib import admin
-from .models import Curriculum, Lesson, Vocabulary, GameHistory
+from django.urls import path
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from .models import Exam, ExamQuestion, ExamResult
+import openpyxl
 
-# --- TẠO FORM TÙY CHỈNH CHO BÀI HỌC ---
-class LessonForm(forms.ModelForm):
-    # Thêm một ô nhập Text khổng lồ (Không lưu trực tiếp vào CSDL, chỉ dùng để xử lý)
-    bulk_vocab = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'rows': 8, 
-            'placeholder': 'Dán danh sách từ vựng từ Excel/Word vào đây...\nVí dụ:\n你好    nǐ hǎo    xin chào\n谢谢    xièxiè    cảm ơn'
-        }),
-        required=False,
-        label="🚀 NHẬP NHANH TỪ VỰNG (TỪ EXCEL)",
-        help_text="Copy từ Excel/Sheets dán thẳng vào đây. Hoặc tự gõ theo định dạng: Chữ Hán | Pinyin | Nghĩa (cách nhau bằng phẩy, tab, hoặc gạch ngang)."
-    )
-
-    class Meta:
-        model = Lesson
-        fields = '__all__'
-
-# --- CẤU HÌNH ADMIN ---
-
-class VocabularyInline(admin.TabularInline):
-    model = Vocabulary
-    extra = 3  # Giảm xuống 3 dòng cho gọn
-    fields = ('hanzi', 'pinyin', 'meaning')
-
-@admin.register(Lesson)
-class LessonAdmin(admin.ModelAdmin):
-    form = LessonForm  # Sử dụng Form tùy chỉnh vừa tạo
-    list_display = ('order', 'title_hanzi', 'title_vietnamese', 'curriculum')
-    list_filter = ('curriculum',)
-    search_fields = ('title_hanzi', 'title_pinyin', 'title_vietnamese')
-    inlines = [VocabularyInline]
-
-    # Hàm can thiệp quá trình Lưu để tách từ vựng từ ô "Nhập nhanh"
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change) # Lưu Bài học trước
-        
-        bulk_text = form.cleaned_data.get('bulk_vocab')
-        if bulk_text:
-            lines = bulk_text.strip().split('\n')
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                
-                # Tự động nhận diện dấu phân cách (Tab của Excel, dấu phẩy, gạch đứng, gạch ngang)
-                if '\t' in line:
-                    parts = line.split('\t')
-                elif '|' in line:
-                    parts = line.split('|')
-                elif ',' in line:
-                    parts = line.split(',')
-                else:
-                    parts = line.split('-')
-                
-                # Nếu đủ 3 thành phần thì tạo Từ vựng mới
-                if len(parts) >= 3:
-                    Vocabulary.objects.create(
-                        lesson=obj,
-                        hanzi=parts[0].strip(),
-                        pinyin=parts[1].strip(),
-                        meaning=parts[2].strip()
-                    )
-
-@admin.register(Curriculum)
-class CurriculumAdmin(admin.ModelAdmin):
-    list_display = ('title', 'icon_character', 'subtitle')
-    search_fields = ('title',)
-
-@admin.register(Vocabulary)
-class VocabularyAdmin(admin.ModelAdmin):
-    list_display = ('hanzi', 'pinyin', 'meaning', 'lesson')
-    list_filter = ('lesson__curriculum', 'lesson')
-    search_fields = ('hanzi', 'pinyin', 'meaning')
-
-@admin.register(GameHistory)
-class GameHistoryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'lesson', 'game_type', 'time_taken', 'created_at')
-    list_filter = ('game_type', 'created_at')
-    search_fields = ('user__username', 'lesson__title')
-
-    # Import thêm các model mới ở trên cùng của file (nếu chưa có)
-# from .models import Exam, ExamQuestion, ExamResult
-
-# ==========================================
-# QUẢN LÝ ĐỀ THI HSK
-# ==========================================
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('title', 'hsk_level', 'duration_minutes', 'created_at')
     list_filter = ('hsk_level',)
     search_fields = ('title',)
+    
+    # Thêm đường dẫn tùy chỉnh để làm nút Import Excel trong trang Admin
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('import-excel/', self.admin_site.admin_view(self.import_excel_view), name='import_exam_excel'),
+        ]
+        return custom_urls + urls
+
+    def import_excel_view(self, request):
+        if request.method == 'POST':
+            excel_file = request.FILES.get('excel_file')
+            exam_title = request.POST.get('exam_title')
+            hsk_level = request.POST.get('hsk_level')
+            duration = request.POST.get('duration', 60)
+
+            if not excel_file:
+                messages.error(request, "Vui lòng chọn file Excel!")
+                return redirect('.')
+
+            try:
+                # Đọc file Excel bằng openpyxl
+                wb = openpyxl.load_workbook(excel_file)
+                sheet = wb.active
+
+                # Tạo Đề thi mới
+                exam = Exam.objects.create(
+                    title=exam_title,
+                    hsk_level=int(hsk_level),
+                    duration_minutes=int(duration)
+                )
+
+                # Duyệt qua từng dòng trong Excel (bỏ qua dòng tiêu đề đầu tiên)
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    if not row[0]: continue # Nếu cột số thứ tự trống thì dừng
+                    
+                    q_num, section, group, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:12]
+                    
+                    ExamQuestion.objects.create(
+                        exam=exam,
+                        question_number=int(q_num),
+                        section_type=section, # 'listening' hoặc 'reading'
+                        question_group=group,
+                        content=content,
+                        content_pinyin=c_pinyin,
+                        option_a=opt_a,
+                        option_a_pinyin=a_pin,
+                        option_b=opt_b,
+                        option_b_pinyin=b_pin,
+                        option_c=opt_c,
+                        option_c_pinyin=c_pin,
+                        correct_answer=str(correct).strip().upper()
+                    )
+
+                messages.success(request, f"Đã nhập thành công đề thi: {exam_title}!")
+                return redirect('/admin/courses/exam/')
+            
+            except Exception as e:
+                messages.error(request, f"Lỗi xử lý file Excel: {e}")
+                return redirect('.')
+
+        return render(request, 'admin/import_excel.html')
 
 @admin.register(ExamQuestion)
 class ExamQuestionAdmin(admin.ModelAdmin):

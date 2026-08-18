@@ -17,6 +17,7 @@
                     
                     <hr>
                     
+                    <!-- FORM ĐỔI TÊN -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -28,7 +29,7 @@
                 </div>
             </div>
             
-            <!-- Thành tích cao nhất -->
+            <!-- THÀNH TÍCH CAO NHẤT -->
             <div class="card shadow-sm border-0 mt-3" style="border-radius: 15px;">
                 <div class="card-header bg-white fw-bold border-0 pt-3">🏆 Kỷ lục của bạn</div>
                 <ul class="list-group list-group-flush pb-2">
@@ -68,7 +69,7 @@
                                 <td class="ps-4 small text-muted">{{ record.created_at|date:"d/m/Y H:i" }}</td>
                                 <td class="fw-bold">{{ record.lesson.title_vietnamese }}</td>
                                 <td>
-                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI TIẾNG VIỆT KÈM MÀU SẮC -->
+                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI KÈM MÀU SẮC -->
                                     {% if record.game_type == 'quiz_1' %}
                                         <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nối từ</span>
                                     {% elif record.game_type == 'quiz_2' %}

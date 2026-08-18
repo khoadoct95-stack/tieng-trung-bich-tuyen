@@ -1,17 +1,36 @@
+import git
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Min
-from .models import GameHistory, Lesson
-# (Nếu bạn có các import khác ở trên cùng thì cứ giữ lại nhé)
 
+# Import các bảng từ Database của bạn
+from .models import GameHistory, Lesson
+
+# ==========================================
+# 1. HÀM WEBHOOK (GIÚP WEB TỰ ĐỘNG CẬP NHẬT CODE)
+# ==========================================
+@csrf_exempt
+def github_webhook(request):
+    if request.method == 'POST':
+        repo = git.Repo('/home/xuehanyu/tieng-trung-bich-tuyen')
+        origin = repo.remotes.origin
+        origin.pull()
+        return HttpResponse("Updated code on PythonAnywhere successfully")
+    return HttpResponse("Invalid request", status=400)
+
+
+# ==========================================
+# 2. HÀM BẢNG XẾP HẠNG (DASHBOARD)
+# ==========================================
 @login_required
 def dashboard_view(request):
-    # 1. Xử lý Bảng xếp hạng
     selected_game = request.GET.get('game', 'quiz_1')
     game_names = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    # Lấy danh sách Top 100 (Đã có lesson__id để làm link chuyển hướng)
+    # Lấy danh sách Top 100 (Kèm lesson__id để làm link chuyển hướng)
     leaderboard_query = GameHistory.objects.filter(game_type=selected_game)\
         .values('user__username', 'user__first_name', 'lesson__id', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
@@ -20,10 +39,10 @@ def dashboard_view(request):
     leaderboard = list(leaderboard_query[:100])
     top_3 = leaderboard[:3] # Lấy riêng Top 3
     
-    # 2. Tính toán thứ hạng và thành tích của chính User
     user_rank = None
     personal_best = None
     
+    # Tìm thứ hạng của user đang đăng nhập
     for index, entry in enumerate(leaderboard):
         if entry['user__username'] == request.user.username:
             user_rank = index + 1
@@ -51,6 +70,10 @@ def dashboard_view(request):
     }
     return render(request, 'courses/dashboard.html', context)
 
+
+# ==========================================
+# 3. HÀM TRANG CÁ NHÂN (PROFILE)
+# ==========================================
 @login_required
 def profile_view(request):
     # Xử lý cập nhật Tên hiển thị
@@ -74,3 +97,5 @@ def profile_view(request):
         'history_records': history_records,
         'best_scores': best_scores,
     })
+
+# --- NẾU BẠN CÓ CÁC HÀM NHƯ lesson_detail, quiz_1, quiz_2... HÃY DÁN CHÚNG VÀO BÊN DƯỚI DÒNG NÀY ---

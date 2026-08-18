@@ -6,6 +6,7 @@
     .rank-card { transition: all 0.3s ease; border-radius: 20px; border: none; }
     .rank-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
     
+    /* Màu sắc bục vinh quang - Chữ có độ tương phản cao */
     .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); color: #6b4c00 !important; transform: scale(1.1); z-index: 3; box-shadow: 0 15px 30px rgba(253, 185, 49, 0.4); }
     .rank-2 { background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%); color: #333333 !important; box-shadow: 0 10px 20px rgba(158, 158, 158, 0.3); }
     .rank-3 { background: linear-gradient(135deg, #E6A171 0%, #C06014 100%); color: #ffffff !important; box-shadow: 0 10px 20px rgba(192, 96, 20, 0.3); }
@@ -30,7 +31,7 @@
         <div class="col-4 col-md-3 px-1 px-md-3" style="order: {% if forloop.counter == 1 %}2{% elif forloop.counter == 2 %}1{% else %}3{% endif %};">
             <div class="card rank-card rank-{{ forloop.counter }} h-100 py-3 position-relative" style="cursor: pointer;" title="Bấm vào để thách đấu bài: {{ top.lesson__title_vietnamese }}">
                 
-                <!-- LINK THÁCH ĐẤU -->
+                <!-- LINK THÁCH ĐẤU ẨN -->
                 <a href="{% url selected_game top.lesson__id %}" class="stretched-link"></a>
 
                 <div class="card-body p-2 p-md-4">
@@ -46,6 +47,7 @@
         {% endfor %}
     </div>
 
+    <!-- KHU VỰC THỨ HẠNG CỦA BẠN (Chữ trắng nổi bật trên nền đỏ) -->
     <div class="alert shadow-lg mb-5 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, #B22222, #E63946); color: white; border-radius: 15px; border: none;">
         <div class="d-flex align-items-center">
             <div class="bg-white text-danger rounded-circle d-flex justify-content-center align-items-center me-3 shadow" style="width: 50px; height: 50px; font-size: 1.2rem; font-weight: bold;">
@@ -63,6 +65,7 @@
         <div class="d-none d-md-block" style="font-size: 2.5rem; opacity: 0.3;">🎯</div>
     </div>
 
+    <!-- BẢNG XẾP HẠNG TOP 100 -->
     <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
         <div class="card-header bg-dark text-white fw-bold py-3 text-center fs-5" style="letter-spacing: 1px;">🏆 BẢNG XẾP HẠNG TOP 100 🏆</div>
         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">

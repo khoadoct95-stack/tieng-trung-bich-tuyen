@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Min
-from .models import GameHistory, Curriculum, Lesson
+from .models import GameHistory, Lesson
 # (Nếu bạn có các import khác ở trên cùng thì cứ giữ lại nhé)
 
 @login_required

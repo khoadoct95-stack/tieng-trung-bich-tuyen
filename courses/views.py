@@ -13,34 +13,35 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
 
-# 1. Trang chủ: Chọn giáo trình
+# ==========================================
+# 1. CÁC HÀM CƠ BẢN CỦA WEB
+# ==========================================
 @login_required
 def home(request):
     curriculums = Curriculum.objects.all()
     return render(request, 'courses/home.html', {'curriculums': curriculums})
 
-# 2. Trang danh sách bài học
 @login_required
 def lesson_list(request, curriculum_id):
     curriculum = get_object_or_404(Curriculum, id=curriculum_id)
     lessons = curriculum.lessons.all().order_by('order')
     return render(request, 'courses/lesson_list.html', {'curriculum': curriculum, 'lessons': lessons})
 
-# 3. Trang bảng từ vựng 
 @login_required
 def vocab_list(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     vocabularies = lesson.vocabularies.all()
     return render(request, 'courses/vocab_list.html', {'lesson': lesson, 'vocabularies': vocabularies})
 
-# View cho trang Flashcard
 @login_required
 def flashcard_view(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     vocabularies = lesson.vocabularies.all()
     return render(request, 'courses/flashcard.html', {'lesson': lesson, 'vocabularies': vocabularies})
 
-# Các View cho Trò chơi (Quiz 1 -> 4)
+# ==========================================
+# 2. CÁC HÀM TRÒ CHƠI
+# ==========================================
 @login_required
 def quiz_1_view(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
@@ -70,7 +71,6 @@ def game_zone_view(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     return render(request, 'courses/game_zone.html', {'lesson': lesson})
 
-# API Lưu điểm số Game
 @login_required
 def save_score(request):
     if request.method == 'POST':
@@ -90,7 +90,9 @@ def save_score(request):
         return JsonResponse({'status': 'success', 'message': 'Đã lưu điểm'})
     return JsonResponse({'status': 'error'}, status=400)
 
-# Đăng ký & Đăng xuất
+# ==========================================
+# 3. ĐĂNG KÝ & ĐĂNG XUẤT
+# ==========================================
 def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -106,12 +108,9 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-
 # ==========================================
-# KHU VỰC BẢNG XẾP HẠNG & CÁ NHÂN (MỚI)
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (MỚI)
 # ==========================================
-
-# Bảng xếp hạng
 @login_required
 def dashboard_view(request):
     selected_game = request.GET.get('game', 'quiz_1')
@@ -155,7 +154,6 @@ def dashboard_view(request):
     }
     return render(request, 'courses/dashboard.html', context)
 
-# Trang Hồ sơ cá nhân
 @login_required
 def profile_view(request):
     if request.method == 'POST':
@@ -177,16 +175,16 @@ def profile_view(request):
         'best_scores': best_scores,
     })
 
-# Webhook Github cập nhật code
+# ==========================================
+# 5. WEBHOOK GITHUB
+# ==========================================
 @csrf_exempt
 def github_webhook(request):
     if request.method == 'POST':
         project_dir = '/home/xuehanyu/tieng-trung-bich-tuyen'
         wsgi_file = '/var/www/xuehanyu_pythonanywhere_com_wsgi.py'
         try:
-            # Lệnh kéo code về
             subprocess.run(['git', 'pull'], cwd=project_dir, check=True)
-            # Lệnh tự khởi động lại Web sau khi kéo code
             subprocess.run(['touch', wsgi_file], check=True)
             return HttpResponse("Updated code successfully")
         except subprocess.CalledProcessError as e:

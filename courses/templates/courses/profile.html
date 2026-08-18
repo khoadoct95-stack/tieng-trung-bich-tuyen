@@ -3,6 +3,14 @@
 
 {% block content %}
 <div class="container mt-4 mb-5">
+    
+    <!-- NÚT QUAY LẠI TRANG TRƯỚC -->
+    <div class="mb-4">
+        <a href="javascript:history.back()" class="btn btn-white shadow-sm rounded-pill fw-bold px-4 py-2" style="color: #B22222; border: 1px solid #ffcccc;">
+            <span style="font-size: 1.2rem; line-height: 1;">&larr;</span> Quay lại
+        </a>
+    </div>
+
     <div class="row">
         <!-- Cột Trái: Thông tin & Đổi tên -->
         <div class="col-md-4 mb-4">
@@ -17,7 +25,6 @@
                     
                     <hr>
                     
-                    <!-- FORM ĐỔI TÊN -->
                     <form method="POST" class="text-start">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -29,7 +36,7 @@
                 </div>
             </div>
             
-            <!-- THÀNH TÍCH CAO NHẤT -->
+            <!-- Thành tích cao nhất -->
             <div class="card shadow-sm border-0 mt-3" style="border-radius: 15px;">
                 <div class="card-header bg-white fw-bold border-0 pt-3">🏆 Kỷ lục của bạn</div>
                 <ul class="list-group list-group-flush pb-2">
@@ -69,7 +76,7 @@
                                 <td class="ps-4 small text-muted">{{ record.created_at|date:"d/m/Y H:i" }}</td>
                                 <td class="fw-bold">{{ record.lesson.title_vietnamese }}</td>
                                 <td>
-                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI KÈM MÀU SẮC -->
+                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI TIẾNG VIỆT -->
                                     {% if record.game_type == 'quiz_1' %}
                                         <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nối từ</span>
                                     {% elif record.game_type == 'quiz_2' %}

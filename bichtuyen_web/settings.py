@@ -171,3 +171,12 @@ SOCIALACCOUNT_PROVIDERS = {
 # Cấu hình cho file tải lên (Media)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ==========================================
+# CẤU HÌNH ĐĂNG NHẬP GOOGLE (TỰ ĐỘNG HOÀN TOÀN)
+# ==========================================
+SOCIALACCOUNT_AUTO_SIGNUP = True       # Tự động tạo tài khoản không cần hỏi
+ACCOUNT_USERNAME_REQUIRED = False      # Không bắt buộc điền Username (Hệ thống sẽ tự tạo)
+ACCOUNT_EMAIL_REQUIRED = True          # Bắt buộc phải có Email từ Google
+ACCOUNT_AUTHENTICATION_METHOD = 'email'# Dùng Email làm thông tin định danh chính
+ACCOUNT_EMAIL_VERIFICATION = 'none'    # Tắt việc gửi email xác thực (vào thẳng web luôn)

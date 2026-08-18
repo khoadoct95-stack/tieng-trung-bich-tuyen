@@ -1,24 +1,27 @@
-import git
+import subprocess
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Min
 
-# Import các bảng từ Database của bạn
 from .models import GameHistory, Lesson
 
 # ==========================================
-# 1. HÀM WEBHOOK (GIÚP WEB TỰ ĐỘNG CẬP NHẬT CODE)
+# 1. HÀM WEBHOOK (DÙNG SUBPROCESS CÓ SẴN)
 # ==========================================
 @csrf_exempt
 def github_webhook(request):
     if request.method == 'POST':
-        repo = git.Repo('/home/xuehanyu/tieng-trung-bich-tuyen')
-        origin = repo.remotes.origin
-        origin.pull()
-        return HttpResponse("Updated code on PythonAnywhere successfully")
+        try:
+            # Chạy lệnh git pull trực tiếp trên thư mục code
+            subprocess.run(['git', 'pull'], cwd='/home/xuehanyu/tieng-trung-bich-tuyen', check=True)
+            return HttpResponse("Updated code on PythonAnywhere successfully")
+        except Exception as e:
+            return HttpResponse(f"Error: {str(e)}", status=500)
     return HttpResponse("Invalid request", status=400)
+
+# ... (Các hàm dashboard_view và profile_view ở dưới BẠN GIỮ NGUYÊN KHÔNG ĐỤNG ĐẾN NHÉ) ...
 
 
 # ==========================================

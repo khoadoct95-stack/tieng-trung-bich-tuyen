@@ -68,7 +68,17 @@
                                 <td class="ps-4 small text-muted">{{ record.created_at|date:"d/m/Y H:i" }}</td>
                                 <td class="fw-bold">{{ record.lesson.title_vietnamese }}</td>
                                 <td>
-                                    <span class="badge bg-light text-dark border">{{ record.get_game_type_display|default:record.game_type }}</span>
+                                    {% if record.game_type == 'quiz_1' %}
+                                        <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nối từ</span>
+                                    {% elif record.game_type == 'quiz_2' %}
+                                        <span class="badge bg-success text-white rounded-pill px-3 shadow-sm">Lật thẻ</span>
+                                    {% elif record.game_type == 'quiz_3' %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 shadow-sm">Viết chữ</span>
+                                    {% elif record.game_type == 'quiz_4' %}
+                                        <span class="badge bg-primary text-white rounded-pill px-3 shadow-sm">Phát âm</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill px-3">{{ record.game_type }}</span>
+                                    {% endif %}
                                 </td>
                                 <td class="fw-bold text-danger">{{ record.time_taken }}s</td>
                             </tr>

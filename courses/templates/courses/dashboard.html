@@ -1,30 +1,46 @@
 {% extends 'courses/base.html' %}
-{% block title %}Bảng xếp hạng{% endblock %}
+{% block title %}Bảng xếp hạng - Xue Hanyu{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<!-- CSS tùy chỉnh tạo hiệu ứng bục vinh quang -->
+<style>
+    .rank-card { transition: all 0.3s ease; border-radius: 20px; border: none; }
+    .rank-card:hover { transform: translateY(-5px); }
+    /* Màu Vàng (Top 1) */
+    .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); color: #fff; transform: scale(1.1); z-index: 3; box-shadow: 0 15px 30px rgba(253, 185, 49, 0.4); }
+    /* Màu Bạc (Top 2) */
+    .rank-2 { background: linear-gradient(135deg, #E0E0E0 0%, #9E9E9E 100%); color: #fff; box-shadow: 0 10px 20px rgba(158, 158, 158, 0.3); }
+    /* Màu Đồng (Top 3) */
+    .rank-3 { background: linear-gradient(135deg, #E6A171 0%, #C06014 100%); color: #fff; box-shadow: 0 10px 20px rgba(192, 96, 20, 0.3); }
+    
+    .badge-time { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); font-size: 1rem; }
+    .current-user-row { background-color: #fff0f0 !important; border-left: 5px solid #B22222; }
+</style>
+
+<div class="container mt-4 mb-5">
     <!-- Nút chọn trò chơi -->
-    <div class="d-flex justify-content-center mb-4 gap-2">
-        <a href="?game=quiz_1" class="btn {% if selected_game == 'quiz_1' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Nối từ</a>
-        <a href="?game=quiz_2" class="btn {% if selected_game == 'quiz_2' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Lật thẻ</a>
-        <a href="?game=quiz_3" class="btn {% if selected_game == 'quiz_3' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Viết chữ</a>
-        <a href="?game=quiz_4" class="btn {% if selected_game == 'quiz_4' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Phát âm</a>
+    <div class="d-flex justify-content-center mb-5 gap-2 flex-wrap">
+        <a href="?game=quiz_1" class="btn {% if selected_game == 'quiz_1' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Nối từ</a>
+        <a href="?game=quiz_2" class="btn {% if selected_game == 'quiz_2' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Lật thẻ</a>
+        <a href="?game=quiz_3" class="btn {% if selected_game == 'quiz_3' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Viết chữ</a>
+        <a href="?game=quiz_4" class="btn {% if selected_game == 'quiz_4' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Phát âm</a>
     </div>
 
-    <h3 class="text-center fw-bold mb-4" style="color: #B22222;">Vinh Danh Top 3 - {{ selected_game_name }}</h3>
-
-    <!-- KHU VỰC TOP 3 -->
-    <div class="row justify-content-center mb-4 text-center">
+    <!-- BỤC VINH DANH TOP 3 -->
+    <h3 class="text-center fw-bold mb-4 text-uppercase" style="color: #B22222; letter-spacing: 2px;">Vinh Danh Top 3 <br><small class="text-muted fs-5">{{ selected_game_name }}</small></h3>
+    
+    <div class="row justify-content-center align-items-end text-center mb-5 d-flex">
         {% for top in top_3 %}
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm h-100 border-0 {% if forloop.counter == 1 %}bg-warning text-dark{% elif forloop.counter == 2 %}bg-light{% else %}bg-white{% endif %}" style="border-radius: 15px; {% if forloop.counter == 1 %}transform: scale(1.05); z-index:2;{% endif %}">
-                <div class="card-body">
-                    <h1 class="display-4 mb-0">
-                        {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+        <!-- Dùng thuộc tính order để đẩy Top 1 vào giữa (2), Top 2 sang trái (1), Top 3 sang phải (3) -->
+        <div class="col-4 col-md-3 px-1 px-md-3" style="order: {% if forloop.counter == 1 %}2{% elif forloop.counter == 2 %}1{% else %}3{% endif %};">
+            <div class="card rank-card rank-{{ forloop.counter }} h-100 py-3">
+                <div class="card-body p-2 p-md-4">
+                    <h1 class="display-3 mb-1" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                        {% if forloop.counter == 1 %}👑{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
                     </h1>
-                    <h5 class="fw-bold mt-2 text-truncate">{{ top.user__first_name|default:top.user__username }}</h5>
-                    <p class="small text-muted mb-1">{{ top.lesson__title_vietnamese }}</p>
-                    <span class="badge bg-danger fs-6 rounded-pill">{{ top.best_time }} giây</span>
+                    <h5 class="fw-bold mt-2 text-truncate text-white">{{ top.user__first_name|default:top.user__username }}</h5>
+                    <p class="small text-white-50 mb-3 d-none d-md-block">{{ top.lesson__title_vietnamese }}</p>
+                    <span class="badge badge-time rounded-pill px-3 py-2">{{ top.best_time }} giây</span>
                 </div>
             </div>
         </div>
@@ -32,41 +48,56 @@
     </div>
 
     <!-- KHU VỰC THỨ HẠNG CỦA BẠN -->
-    <div class="alert shadow-sm mb-4 d-flex justify-content-between align-items-center" style="background-color: #fdf3f3; border-left: 5px solid #B22222; border-radius: 8px;">
-        <div>
-            <h5 class="fw-bold mb-1 text-danger">Thứ hạng của bạn</h5>
-            {% if personal_best %}
-                <span class="text-dark">Hạng: <strong>#{{ user_rank }}</strong></span> | 
-                <span class="text-dark">Kỷ lục: <strong class="text-danger">{{ personal_best }}s</strong></span>
-            {% else %}
-                <span class="text-muted">Bạn chưa có thành tích. Hãy chơi để leo rank nhé!</span>
-            {% endif %}
+    <div class="alert shadow-lg mb-5 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, #B22222, #E63946); color: white; border-radius: 15px; border: none;">
+        <div class="d-flex align-items-center">
+            <div class="bg-white text-danger rounded-circle d-flex justify-content-center align-items-center me-3 shadow" style="width: 50px; height: 50px; font-size: 1.2rem; font-weight: bold;">
+                #{{ user_rank|default:"-" }}
+            </div>
+            <div>
+                <h5 class="fw-bold mb-0">Thành tích của bạn</h5>
+                {% if personal_best %}
+                    <span class="opacity-75 small">Kỷ lục hiện tại: <strong>{{ personal_best }} giây</strong></span>
+                {% else %}
+                    <span class="opacity-75 small">Bạn chưa tham gia trò chơi này</span>
+                {% endif %}
+            </div>
         </div>
+        <div class="d-none d-md-block" style="font-size: 2.5rem; opacity: 0.3;">🎯</div>
     </div>
 
     <!-- DANH SÁCH TOP 100 -->
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white fw-bold">Bảng Xếp Hạng Top 100</div>
+    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+        <div class="card-header bg-dark text-white fw-bold py-3 text-center fs-5" style="letter-spacing: 1px;">
+            🏆 BẢNG XẾP HẠNG TOP 100 🏆
+        </div>
         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
+            <table class="table table-hover align-middle mb-0 border-0">
+                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <tr>
-                        <th class="text-center" style="width: 10%;">#</th>
-                        <th>Học viên</th>
-                        <th>Bài học</th>
-                        <th class="text-center">Thời gian</th>
+                        <th class="text-center py-3" style="width: 10%;">#</th>
+                        <th class="py-3">Học viên</th>
+                        <th class="py-3">Bài học</th>
+                        <th class="text-center py-3">Thời gian</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for entry in leaderboard %}
-                    <tr class="{% if entry.user__username == user.username %}table-danger fw-bold{% endif %}">
-                        <td class="text-center text-muted">{{ forloop.counter }}</td>
+                    <tr class="{% if entry.user__username == user.username %}current-user-row fw-bold{% endif %}">
+                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
                         <td>
                             {{ entry.user__first_name|default:entry.user__username }}
-                            {% if entry.user__username == user.username %} <span class="badge bg-danger ms-1">Bạn</span> {% endif %}
+                            {% if entry.user__username == user.username %} 
+                                <span class="badge bg-danger ms-2 shadow-sm">Bạn</span> 
+                            {% endif %}
                         </td>
                         <td class="small text-muted">{{ entry.lesson__title_vietnamese }}</td>
                         <td class="text-center fw-bold text-danger">{{ entry.best_time }}s</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <span class="fs-1">⏳</span><br>Chưa có dữ liệu xếp hạng.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -1,117 +1,76 @@
 {% extends 'courses/base.html' %}
-
-{% block title %}Bảng điều khiển{% endblock %}
+{% block title %}Bảng xếp hạng{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Xin chào, {{ user.username }}!</h2>
+    <!-- Nút chọn trò chơi -->
+    <div class="d-flex justify-content-center mb-4 gap-2">
+        <a href="?game=quiz_1" class="btn {% if selected_game == 'quiz_1' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Nối từ</a>
+        <a href="?game=quiz_2" class="btn {% if selected_game == 'quiz_2' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Lật thẻ</a>
+        <a href="?game=quiz_3" class="btn {% if selected_game == 'quiz_3' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Viết chữ</a>
+        <a href="?game=quiz_4" class="btn {% if selected_game == 'quiz_4' %}btn-danger fw-bold{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Phát âm</a>
+    </div>
 
-    <!-- Thanh điều hướng Tabs (Tương thích cả Bootstrap 4 & 5) -->
-    <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'history' %}active{% endif %}" 
-                    id="history-tab" data-toggle="tab" data-bs-toggle="tab" 
-                    data-target="#history" data-bs-target="#history" 
-                    type="button" role="tab">
-                Lịch sử học tập
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'leaderboard' %}active{% endif %}" 
-                    id="leaderboard-tab" data-toggle="tab" data-bs-toggle="tab" 
-                    data-target="#leaderboard" data-bs-target="#leaderboard" 
-                    type="button" role="tab">
-                Bảng xếp hạng
-            </button>
-        </li>
-    </ul>
+    <h3 class="text-center fw-bold mb-4" style="color: #B22222;">Vinh Danh Top 3 - {{ selected_game_name }}</h3>
 
-    <div class="tab-content mt-3" id="dashboardTabsContent">
-        
-        <!-- ==================================== -->
-        <!-- TAB 1: LỊCH SỬ HỌC TẬP -->
-        <!-- ==================================== -->
-        <div class="tab-pane fade {% if active_tab == 'history' %}show active{% endif %}" id="history" role="tabpanel">
-            <table class="table table-bordered table-hover mt-3">
-                <thead class="thead-light">
+    <!-- KHU VỰC TOP 3 -->
+    <div class="row justify-content-center mb-4 text-center">
+        {% for top in top_3 %}
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100 border-0 {% if forloop.counter == 1 %}bg-warning text-dark{% elif forloop.counter == 2 %}bg-light{% else %}bg-white{% endif %}" style="border-radius: 15px; {% if forloop.counter == 1 %}transform: scale(1.05); z-index:2;{% endif %}">
+                <div class="card-body">
+                    <h1 class="display-4 mb-0">
+                        {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+                    </h1>
+                    <h5 class="fw-bold mt-2 text-truncate">{{ top.user__first_name|default:top.user__username }}</h5>
+                    <p class="small text-muted mb-1">{{ top.lesson__title_vietnamese }}</p>
+                    <span class="badge bg-danger fs-6 rounded-pill">{{ top.best_time }} giây</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- KHU VỰC THỨ HẠNG CỦA BẠN -->
+    <div class="alert shadow-sm mb-4 d-flex justify-content-between align-items-center" style="background-color: #fdf3f3; border-left: 5px solid #B22222; border-radius: 8px;">
+        <div>
+            <h5 class="fw-bold mb-1 text-danger">Thứ hạng của bạn</h5>
+            {% if personal_best %}
+                <span class="text-dark">Hạng: <strong>#{{ user_rank }}</strong></span> | 
+                <span class="text-dark">Kỷ lục: <strong class="text-danger">{{ personal_best }}s</strong></span>
+            {% else %}
+                <span class="text-muted">Bạn chưa có thành tích. Hãy chơi để leo rank nhé!</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DANH SÁCH TOP 100 -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-bold">Bảng Xếp Hạng Top 100</div>
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
-                        <th>Ngày chơi</th>
+                        <th class="text-center" style="width: 10%;">#</th>
+                        <th>Học viên</th>
                         <th>Bài học</th>
-                        <th>Trò chơi</th>
-                        <th>Thời gian</th>
+                        <th class="text-center">Thời gian</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in history_records %}
-                    <tr>
-                        <td>{{ item.created_at|date:"d/m/Y H:i" }}</td>
-                        <td>{{ item.lesson.title_vietnamese }}</td>
+                    {% for entry in leaderboard %}
+                    <tr class="{% if entry.user__username == user.username %}table-danger fw-bold{% endif %}">
+                        <td class="text-center text-muted">{{ forloop.counter }}</td>
                         <td>
-                            {% if item.game_type == 'quiz_1' %}Nối từ
-                            {% elif item.game_type == 'quiz_2' %}Lật thẻ
-                            {% elif item.game_type == 'quiz_3' %}Viết chữ
-                            {% elif item.game_type == 'quiz_4' %}Phát âm
-                            {% endif %}
+                            {{ entry.user__first_name|default:entry.user__username }}
+                            {% if entry.user__username == user.username %} <span class="badge bg-danger ms-1">Bạn</span> {% endif %}
                         </td>
-                        <td>{{ item.time_taken }}s</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted">Bạn chưa có lịch sử học tập nào.</td>
+                        <td class="small text-muted">{{ entry.lesson__title_vietnamese }}</td>
+                        <td class="text-center fw-bold text-danger">{{ entry.best_time }}s</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-
-        <!-- ==================================== -->
-        <!-- TAB 2: BẢNG XẾP HẠNG -->
-        <!-- ==================================== -->
-        <div class="tab-pane fade {% if active_tab == 'leaderboard' %}show active{% endif %}" id="leaderboard" role="tabpanel">
-            
-            <!-- Hiển thị kỷ lục cá nhân -->
-            {% if personal_best %}
-            <div style="margin-bottom: 15px; padding: 10px; background-color: #fdf3f3; border-left: 4px solid #B22222; border-radius: 5px;">
-                <strong>🏆 Thành tích tốt nhất của bạn:</strong> <span style="color: red; font-weight: bold;">{{ personal_best }} giây</span>
-            </div>
-            {% endif %}
-
-            <!-- Nút chọn trò chơi -->
-            <div class="mb-3">
-                <a href="?tab=leaderboard&game=quiz_1" class="btn {% if selected_game == 'quiz_1' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm">Nối từ</a>
-                <a href="?tab=leaderboard&game=quiz_2" class="btn {% if selected_game == 'quiz_2' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm">Lật thẻ</a>
-                <a href="?tab=leaderboard&game=quiz_3" class="btn {% if selected_game == 'quiz_3' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm">Viết chữ</a>
-                <a href="?tab=leaderboard&game=quiz_4" class="btn {% if selected_game == 'quiz_4' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm">Phát âm</a>
-            </div>
-
-            <!-- Bảng xếp hạng Top 100 có thanh cuộn -->
-            <div style="max-height: 500px; overflow-y: auto;">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light" style="position: sticky; top: 0; z-index: 1; background-color: #f8f9fa;">
-                        <tr>
-                            <th class="text-center" style="width: 10%;">Hạng</th>
-                            <th>Học viên</th>
-                            <th>Bài học</th>
-                            <th class="text-center">Thời gian</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in leaderboard %}
-                        <tr {% if forloop.counter <= 3 %}style="background-color: #fff9e6;"{% endif %}>
-                            <td class="text-center font-weight-bold">{{ forloop.counter }}</td>
-                            <td class="font-weight-bold">{{ entry.user__username }}</td>
-                            <td>{{ entry.lesson__title_vietnamese }}</td>
-                            <td class="text-center font-weight-bold text-danger">{{ entry.best_time }}s</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">Chưa có dữ liệu xếp hạng.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
         </div>
     </div>
 </div>

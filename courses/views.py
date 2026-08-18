@@ -89,40 +89,49 @@ def save_score(request):
 # Bảng xếp hạng và Lịch sử cá nhân
 @login_required
 def dashboard_view(request):
-    # 1. Lịch sử học tập (đã sửa date_played thành created_at)
-    history_records = GameHistory.objects.filter(user=request.user).order_by('-created_at')
-
-    # 2. Xử lý phần Bảng xếp hạng
+    # 1. Xử lý Bảng xếp hạng
     selected_game = request.GET.get('game', 'quiz_1')
-    game_names = {
-        'quiz_1': 'Nối từ',
-        'quiz_2': 'Lật thẻ',
-        'quiz_3': 'Viết chữ',
-        'quiz_4': 'Phát âm'
-    }
+    game_names = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    # Bảng xếp hạng Top 100 (đã sửa title thành title_vietnamese)
-    leaderboard = GameHistory.objects.filter(game_type=selected_game)\
-        .values('user__username', 'lesson__title_vietnamese')\
+    # Lấy danh sách Top 100 (Kéo thêm trường first_name làm Tên hiển thị)
+    leaderboard_query = GameHistory.objects.filter(game_type=selected_game)\
+        .values('user__username', 'user__first_name', 'lesson__title_vietnamese')\
         .annotate(best_time=Min('time_taken'))\
-        .order_by('best_time')[:100]
+        .order_by('best_time')
         
-    # Kỷ lục cá nhân của user đang đăng nhập
-    personal_best = GameHistory.objects.filter(
-        user=request.user, 
-        game_type=selected_game
-    ).aggregate(best=Min('time_taken'))['best']
+    leaderboard = list(leaderboard_query[:100])
+    top_3 = leaderboard[:3] # Lấy riêng Top 3
+    
+    # 2. Tính toán thứ hạng và thành tích của chính User
+    user_rank = None
+    personal_best = None
+    
+    # Tìm xem user có trong Top 100 không
+    for index, entry in enumerate(leaderboard):
+        if entry['user__username'] == request.user.username:
+            user_rank = index + 1
+            personal_best = entry['best_time']
+            break
+            
+    # Nếu không lọt Top 100 nhưng đã từng chơi (Tính rank thực tế)
+    if not user_rank:
+        pb_query = GameHistory.objects.filter(user=request.user, game_type=selected_game).aggregate(best=Min('time_taken'))['best']
+        if pb_query:
+            personal_best = pb_query
+            # Đếm xem có bao nhiêu người điểm cao hơn
+            better_count = GameHistory.objects.filter(game_type=selected_game).values('user').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
+            user_rank = better_count + 1
 
-    # Xác định tab đang mở
-    active_tab = request.GET.get('tab', 'history')
+    active_tab = request.GET.get('tab', 'leaderboard')
 
     context = {
-        'history_records': history_records,
         'leaderboard': leaderboard,
+        'top_3': top_3,
         'selected_game': selected_game,
         'selected_game_name': selected_game_name,
         'personal_best': personal_best,
+        'user_rank': user_rank,
         'active_tab': active_tab,
     }
     return render(request, 'courses/dashboard.html', context)
@@ -130,13 +139,27 @@ def dashboard_view(request):
 # Trang Hồ sơ cá nhân
 @login_required
 def profile_view(request):
-    total_games = GameHistory.objects.filter(user=request.user).count()
-    return render(request, 'courses/profile.html', {'total_games': total_games})
+    # Xử lý cập nhật Tên hiển thị
+    if request.method == 'POST':
+        display_name = request.POST.get('display_name', '').strip()
+        if display_name:
+            request.user.first_name = display_name
+            request.user.save()
 
-# Đổi mật khẩu
-class MyPasswordChangeView(PasswordChangeView):
-    template_name = 'courses/change_password.html'
-    success_url = reverse_lazy('profile')
+    # Lịch sử hoạt động
+    history_records = GameHistory.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Thành tích cao nhất các game
+    games = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
+    best_scores = []
+    for code, name in games.items():
+        best = GameHistory.objects.filter(user=request.user, game_type=code).aggregate(b=Min('time_taken'))['b']
+        best_scores.append({'name': name, 'score': best})
+        
+    return render(request, 'courses/profile.html', {
+        'history_records': history_records,
+        'best_scores': best_scores,
+    })
 
 # Đăng ký & Đăng xuất (Không cần chặn @login_required)
 def register_view(request):

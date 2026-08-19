@@ -1,0 +1,190 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Kết quả thi - {{ result.exam.title }}{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    body {
+        background-color: #F8FAFC;
+        font-family: 'Nunito', sans-serif;
+    }
+
+    .result-container {
+        max-width: 800px;
+        margin: 40px auto;
+    }
+
+    .result-card {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 50px 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        border: 1px solid #f1f5f9;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Vòng tròn điểm số */
+    .score-circle {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px auto;
+        border: 10px solid #f1f5f9;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+    .score-value {
+        font-size: 4rem;
+        font-weight: 900;
+        font-family: 'Playfair Display', serif;
+        line-height: 1;
+    }
+
+    .score-max {
+        font-size: 1.5rem;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    /* Style tùy biến khi Đỗ / Trượt */
+    .passed .score-circle {
+        border-color: #10B981;
+        background: #ECFDF5;
+    }
+    .passed .score-value { color: #059669; }
+    
+    .failed .score-circle {
+        border-color: #EF4444;
+        background: #FEF2F2;
+    }
+    .failed .score-value { color: #DC2626; }
+
+    /* Thông số chi tiết */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin: 40px 0;
+    }
+
+    .stat-box {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+    .stat-title { font-size: 1rem; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;}
+    .stat-number { font-size: 2rem; font-weight: 800; color: #334155; }
+
+    /* Nút điều hướng */
+    .btn-action {
+        padding: 14px 30px;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .btn-primary-custom {
+        background: var(--primary-color, #9B1C1C);
+        color: white;
+        border: none;
+        box-shadow: 0 8px 20px rgba(155, 28, 28, 0.25);
+    }
+    .btn-primary-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(155, 28, 28, 0.35);
+        color: white;
+    }
+
+    .btn-outline-custom {
+        background: white;
+        color: #475569;
+        border: 2px solid #cbd5e1;
+    }
+    .btn-outline-custom:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+        border-color: #94a3b8;
+    }
+    
+    .confetti-icon { font-size: 3rem; margin-bottom: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container result-container">
+    <div class="result-card {% if is_passed %}passed{% else %}failed{% endif %}">
+        
+        <!-- Icon Trạng thái -->
+        <div class="confetti-icon">
+            {% if is_passed %}
+                🏆
+            {% else %}
+                💪
+            {% endif %}
+        </div>
+
+        <!-- Tiêu đề -->
+        <h2 class="fw-bold mb-2" style="color: #1e293b;">Kết quả bài thi</h2>
+        <h4 class="mb-4" style="color: #64748B;">{{ result.exam.title }}</h4>
+
+        <!-- Vòng tròn hiển thị điểm -->
+        <div class="score-circle">
+            <div>
+                <div class="score-value">{{ result.score }}</div>
+                <div class="score-max">/ 200</div>
+            </div>
+        </div>
+
+        <!-- Lời nhắn -->
+        {% if is_passed %}
+            <h3 class="fw-bold" style="color: #10B981;">Chúc mừng bạn đã thi Đỗ! 🎉</h3>
+            <p class="text-muted fs-5 mt-2">Tuyệt vời! Bạn đã vượt qua mức điểm chuẩn (120 điểm) của HSK 1. Hãy tiếp tục duy trì phong độ này nhé!</p>
+        {% else %}
+            <h3 class="fw-bold" style="color: #EF4444;">Chưa đạt điểm chuẩn rồi! 🥺</h3>
+            <p class="text-muted fs-5 mt-2">Không sao cả, thất bại là mẹ thành công. Bạn cần đạt tối thiểu 120 điểm để đỗ. Hãy ôn tập lại kiến thức và thử sức thêm lần nữa nhé!</p>
+        {% endif %}
+
+        <!-- Bảng thống kê -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-title"><i class="fas fa-check-circle text-success"></i> Số câu đúng</div>
+                <div class="stat-number">{{ result.total_correct }} <span style="font-size: 1.2rem; color: #94a3b8;">/ {{ total_questions }}</span></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title"><i class="fas fa-percentage text-primary"></i> Tỉ lệ chính xác</div>
+                <div class="stat-number">{{ percentage }}%</div>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a href="{% url 'exam_list' %}" class="btn btn-outline-custom btn-action">
+                <i class="fas fa-arrow-left me-2"></i> Thi đề khác
+            </a>
+            
+            <!-- NÚT XEM LẠI BÀI MỚI THÊM -->
+            <a href="{% url 'review_exam' result.id %}" class="btn btn-action" style="background-color: #0dcaf0; color: #1e293b; box-shadow: 0 8px 20px rgba(13, 202, 240, 0.25);">
+                <i class="fas fa-search-plus me-2"></i> Xem chi tiết đáp án
+            </a>
+
+            <a href="{% url 'dashboard' %}" class="btn btn-primary-custom btn-action">
+                <i class="fas fa-trophy me-2"></i> Bảng xếp hạng
+            </a>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

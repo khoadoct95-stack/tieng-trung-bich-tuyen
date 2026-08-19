@@ -10,7 +10,7 @@ from django.contrib.auth import login, logout
 from django.urls import reverse_lazy
 from django.db.models import Min
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib import messages
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
 from .models import Exam, ExamQuestion, ExamResult
 
@@ -198,15 +198,82 @@ def github_webhook(request):
     return HttpResponse("Invalid request", status=400)
 
 # Hàm hiển thị trang làm bài thi HSK
-@login_required
+# Bổ sung json vào thư viện nếu cần (thường Django tự hiểu JSONField)
+@login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
-    # Lấy tất cả câu hỏi của đề này, sắp xếp theo số thứ tự (1 đến 40)
-    questions = exam.questions.all().order_by('question_number')
-    
-    return render(request, 'courses/take_exam.html', {
+    questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
+
+    if request.method == 'POST':
+        total_correct = 0
+        user_answers_dict = {} # <-- TẠO CUỐN SỔ TAY LƯU ĐÁP ÁN
+
+        for q in questions:
+            submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
+            
+            # Ghi chép lại học viên đã chọn gì cho câu này
+            user_answers_dict[str(q.id)] = submitted_answer 
+            
+            correct_ans = str(q.correct_answer).strip().upper()
+            if submitted_answer and submitted_answer == correct_ans:
+                total_correct += 1
+
+        score = total_correct * 5
+
+        # LƯU KẾT QUẢ KÈM THEO CUỐN SỔ TAY ĐÁP ÁN
+        result = ExamResult.objects.create(
+            user=request.user,
+            exam=exam,
+            score=score,
+            total_correct=total_correct,
+            user_answers=user_answers_dict # <-- Đưa vào DB
+        )
+
+        messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
+        return redirect('exam_result', result_id=result.id)
+
+    return render(request, 'courses/take_exam.html', {'exam': exam, 'questions': questions})
+
+# ==========================================
+# HÀM MỚI: XEM LẠI CHI TIẾT BÀI LÀM
+# ==========================================
+@login_required(login_url='login')
+def review_exam(request, result_id):
+    result = get_object_or_404(ExamResult, id=result_id, user=request.user)
+    exam = result.exam
+    questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
+
+    # Bơm thêm dữ liệu (Đúng/Sai) vào từng câu hỏi để giao diện dễ bôi màu
+    for q in questions:
+        q.user_ans = result.user_answers.get(str(q.id), '')
+        q.correct_ans = str(q.correct_answer).strip().upper()
+        q.is_correct = (q.user_ans == q.correct_ans)
+
+    return render(request, 'courses/review_exam.html', {
         'exam': exam,
-        'questions': questions
+        'questions': questions,
+        'result': result
+    })
+
+
+# HÀM HIỂN THỊ KẾT QUẢ ĐIỂM SỐ
+@login_required(login_url='login')
+def exam_result(request, result_id):
+    # Chỉ cho phép học viên xem điểm của chính mình
+    result = get_object_or_404(ExamResult, id=result_id, user=request.user)
+    
+    # Tính tỉ lệ phần trăm làm đúng
+    total_questions = ExamQuestion.objects.filter(exam=result.exam).count()
+    percentage = int((result.total_correct / total_questions) * 100) if total_questions > 0 else 0
+    
+    # Đánh giá Đỗ / Trượt (Chuẩn HSK 1: >= 120 điểm là Đỗ)
+    is_passed = result.score >= 120
+
+    return render(request, 'courses/exam_result.html', {
+        'result': result,
+        'total_questions': total_questions,
+        'percentage': percentage,
+        'is_passed': is_passed
     })
 
 # Hàm hiển thị danh sách các đề thi

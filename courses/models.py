@@ -123,6 +123,7 @@ class ExamResult(models.Model):
     total_correct = models.IntegerField(verbose_name="Số câu đúng")
     time_spent = models.IntegerField(verbose_name="Thời gian làm bài (giây)")
     completed_at = models.DateTimeField(auto_now_add=True)
+    user_answers = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.exam.title} - {self.score} điểm"

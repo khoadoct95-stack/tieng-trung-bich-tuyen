@@ -94,20 +94,9 @@
         transition: all 0.3s;
         text-transform: uppercase;
         letter-spacing: 1px;
+        text-decoration: none;
     }
     
-    .btn-primary-custom {
-        background: var(--primary-color, #9B1C1C);
-        color: white;
-        border: none;
-        box-shadow: 0 8px 20px rgba(155, 28, 28, 0.25);
-    }
-    .btn-primary-custom:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 25px rgba(155, 28, 28, 0.35);
-        color: white;
-    }
-
     .btn-outline-custom {
         background: white;
         color: #475569;
@@ -129,11 +118,7 @@
         
         <!-- Icon Trạng thái -->
         <div class="confetti-icon">
-            {% if is_passed %}
-                🏆
-            {% else %}
-                💪
-            {% endif %}
+            {% if is_passed %}🏆{% else %}🥺{% endif %}
         </div>
 
         <!-- Tiêu đề -->
@@ -143,7 +128,8 @@
         <!-- Vòng tròn hiển thị điểm -->
         <div class="score-circle">
             <div>
-                <div class="score-value">{{ result.score }}</div>
+                <!-- Ép điểm số mất phần thập phân (Ví dụ: 0.0 -> 0) -->
+                <div class="score-value">{{ result.score|floatformat:0 }}</div>
                 <div class="score-max">/ 200</div>
             </div>
         </div>
@@ -169,19 +155,14 @@
             </div>
         </div>
 
-        <!-- Nút hành động -->
+        <!-- Nút hành động: Chỉ giữ lại 2 nút và căn giữa -->
         <div class="d-flex justify-content-center gap-3 mt-4">
             <a href="{% url 'exam_list' %}" class="btn btn-outline-custom btn-action">
                 <i class="fas fa-arrow-left me-2"></i> Thi đề khác
             </a>
             
-            <!-- NÚT XEM LẠI BÀI MỚI THÊM -->
             <a href="{% url 'review_exam' result.id %}" class="btn btn-action" style="background-color: #0dcaf0; color: #1e293b; box-shadow: 0 8px 20px rgba(13, 202, 240, 0.25);">
                 <i class="fas fa-search-plus me-2"></i> Xem chi tiết đáp án
-            </a>
-
-            <a href="{% url 'dashboard' %}" class="btn btn-primary-custom btn-action">
-                <i class="fas fa-trophy me-2"></i> Bảng xếp hạng
             </a>
         </div>
         

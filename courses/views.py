@@ -227,6 +227,7 @@ def take_exam(request, exam_id):
             score=score,
             total_correct=total_correct,
             user_answers=user_answers_dict # <-- Đưa vào DB
+            time_spent=0  # <--- BỔ SUNG DÒNG NÀY ĐỂ TRÁNH LỖI NOT NULL
         )
 
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")

@@ -2,27 +2,26 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import HttpResponse
+from django.core.files.base import ContentFile
 import openpyxl
 import zipfile
 import io
-from django.http import HttpResponse
+import re
 
-# 1. IMPORT TOÀN BỘ MODEL (Cả cũ và mới)
-# Lưu ý: Hãy kiểm tra file models.py của bạn có những model nào (Curriculum, Lesson, Vocabulary...) thì khai báo hết vào đây:
+# 1. IMPORT TOÀN BỘ MODEL
 from .models import Exam, ExamQuestion, ExamResult, Curriculum, Lesson, Vocabulary
 
 # ==========================================
-# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH, BÀI HỌC (PHẦN CŨ CỦA BẠN)
+# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH, BÀI HỌC
 # ==========================================
-# Bạn hãy chép lại các đoạn code đăng ký admin.site.register() cũ của bạn vào đây. 
-# Nếu không nhớ code cũ, bạn có thể dùng tạm các dòng đăng ký mặc định này:
 admin.site.register(Curriculum)
 admin.site.register(Lesson)
 admin.site.register(Vocabulary)
 
 
 # ==========================================
-# KHU VỰC 2: QUẢN LÝ ĐỀ THI HSK (PHẦN MỚI CẬP NHẬT)
+# KHU VỰC 2: QUẢN LÝ ĐỀ THI HSK
 # ==========================================
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
@@ -30,16 +29,68 @@ class ExamAdmin(admin.ModelAdmin):
     list_filter = ('hsk_level',)
     search_fields = ('title',)
     
-    # Bổ sung thêm đường dẫn cho công cụ Vắt ảnh
+    # Đăng ký các đường dẫn tùy chỉnh trong Admin
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('import-excel/', self.admin_site.admin_view(self.import_excel_view), name='import_exam_excel'),
             path('extract-images/', self.admin_site.admin_view(self.extract_images_view), name='extract_word_images'),
+            path('bulk-upload-images/', self.admin_site.admin_view(self.bulk_image_upload_view), name='bulk_upload_images'),
         ]
         return custom_urls + urls
 
-    # Động cơ bóc tách hình ảnh từ Word
+    # ---------------------------------------------------------
+    # CHỨC NĂNG 1: GẮN ẢNH HÀNG LOẠT TỪ FILE ZIP (TÍNH NĂNG MỚI)
+    # ---------------------------------------------------------
+    def bulk_image_upload_view(self, request):
+        if request.method == 'POST':
+            exam_id = request.POST.get('exam_id')
+            zip_file = request.FILES.get('zip_file')
+
+            if not exam_id or not zip_file:
+                messages.error(request, "Vui lòng chọn đề thi và tải lên file ZIP!")
+                return redirect('.')
+
+            try:
+                exam = Exam.objects.get(id=exam_id)
+                success_count = 0
+
+                # Đọc file ZIP trong bộ nhớ
+                with zipfile.ZipFile(zip_file, 'r') as z:
+                    for filename in z.namelist():
+                        # Bỏ qua các thư mục hoặc file ẩn của macOS/Windows
+                        if '__MACOSX' in filename or filename.startswith('.'):
+                            continue
+
+                        # Dùng Regex tìm các file có dạng q1.jpg, q15.png...
+                        match = re.search(r'q(\d+)\.(jpg|jpeg|png)', filename.lower().split('/')[-1])
+                        if match:
+                            q_num = int(match.group(1)) # Lấy số câu hỏi
+                            try:
+                                # Tìm câu hỏi tương ứng trong CSDL
+                                question = ExamQuestion.objects.get(exam=exam, question_number=q_num)
+                                image_data = z.read(filename)
+                                
+                                # Lưu ảnh vào field 'image' của câu hỏi
+                                file_name_to_save = filename.split('/')[-1]
+                                question.image.save(file_name_to_save, ContentFile(image_data), save=True)
+                                success_count += 1
+                            except ExamQuestion.DoesNotExist:
+                                pass # Bỏ qua nếu câu hỏi không tồn tại
+
+                messages.success(request, f"Thành công! Đã gắn tự động {success_count} bức ảnh vào đề thi: {exam.title}.")
+                return redirect('/admin/courses/exam/')
+            
+            except Exception as e:
+                messages.error(request, f"Đã xảy ra lỗi khi xử lý file ZIP: {e}")
+                return redirect('.')
+
+        exams = Exam.objects.all().order_by('-created_at')
+        return render(request, 'admin/bulk_upload_images.html', {'exams': exams})
+
+    # ---------------------------------------------------------
+    # CHỨC NĂNG 2: VẮT ẢNH TỪ FILE WORD (.DOCX)
+    # ---------------------------------------------------------
     def extract_images_view(self, request):
         if request.method == 'POST':
             word_file = request.FILES.get('word_file')
@@ -49,24 +100,16 @@ class ExamAdmin(admin.ModelAdmin):
                 return redirect('.')
 
             try:
-                # Tạo một file ZIP ảo trong bộ nhớ RAM
                 zip_buffer = io.BytesIO()
-                
-                # Mở file Word (bản chất là 1 file nén ZIP)
                 with zipfile.ZipFile(word_file, 'r') as docx_zip:
-                    # Tạo file ZIP kết quả để gom ảnh
                     with zipfile.ZipFile(zip_buffer, 'w') as out_zip:
-                        
-                        # Quét tất cả các thành phần trong file Word
                         for item in docx_zip.namelist():
-                            # Nếu phát hiện thư mục chứa ảnh (word/media/)
                             if item.startswith('word/media/'):
-                                filename = item.split('/')[-1] # Lấy tên ảnh gốc (VD: image1.jpeg)
-                                if filename: # Bỏ qua nếu chỉ là thư mục rỗng
+                                filename = item.split('/')[-1] 
+                                if filename: 
                                     image_data = docx_zip.read(item)
-                                    out_zip.writestr(filename, image_data) # Nén ảnh vào file ZIP mới
+                                    out_zip.writestr(filename, image_data) 
                 
-                # Đóng gói và gửi trả file ZIP về cho máy tính của bạn tải xuống
                 response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
                 response['Content-Disposition'] = 'attachment; filename="Tat_ca_anh_tu_Word.zip"'
                 return response
@@ -77,6 +120,9 @@ class ExamAdmin(admin.ModelAdmin):
 
         return render(request, 'admin/extract_images.html')
 
+    # ---------------------------------------------------------
+    # CHỨC NĂNG 3: IMPORT DỮ LIỆU ĐỀ THI TỪ FILE EXCEL
+    # ---------------------------------------------------------
     def import_excel_view(self, request):
         if request.method == 'POST':
             excel_file = request.FILES.get('excel_file')
@@ -103,6 +149,9 @@ class ExamAdmin(admin.ModelAdmin):
                     
                     q_num, section, group, p_text, p_pinyin, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:14]
                     
+                    # An toàn xử lý đáp án bị rỗng
+                    correct_ans = str(correct).strip().upper() if correct else ""
+
                     ExamQuestion.objects.create(
                         exam=exam,
                         question_number=int(q_num),
@@ -118,7 +167,7 @@ class ExamAdmin(admin.ModelAdmin):
                         option_b_pinyin=b_pin,
                         option_c=opt_c,
                         option_c_pinyin=c_pin,
-                        correct_answer=str(correct).strip().upper()
+                        correct_answer=correct_ans
                     )
 
                 messages.success(request, f"Đã nhập thành công đề thi: {exam_title}!")
@@ -130,6 +179,10 @@ class ExamAdmin(admin.ModelAdmin):
 
         return render(request, 'admin/import_excel.html')
 
+
+# ==========================================
+# KHU VỰC 3: QUẢN LÝ CÂU HỎI VÀ KẾT QUẢ
+# ==========================================
 @admin.register(ExamQuestion)
 class ExamQuestionAdmin(admin.ModelAdmin):
     list_display = ('exam', 'question_number', 'section_type', 'question_group')

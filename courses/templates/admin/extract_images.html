@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2 style="color: #d39e00;">✂️ Công cụ Vắt ảnh từ file Word</h2>
+    <p class="text-muted mt-2">Hãy tải lên file đề thi dạng <b>.docx</b>. Hệ thống sẽ tự động quét, gom toàn bộ hình ảnh đang bị ẩn trong file Word và trả về cho bạn 1 file <b>.zip</b>.</p>
+    
+    <form method="POST" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="fw-bold mb-2">Chọn file Word (.docx):</label>
+            <input type="file" name="word_file" class="form-control" accept=".docx" required>
+        </div>
+
+        <button type="submit" class="btn btn-warning fw-bold px-4 py-2 text-dark shadow-sm">
+            🎯 Bắt đầu Vắt ảnh
+        </button>
+    </form>
+</div>
+{% endblock %}

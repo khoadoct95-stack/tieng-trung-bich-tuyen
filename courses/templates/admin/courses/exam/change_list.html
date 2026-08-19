@@ -2,13 +2,19 @@
 {% load i18n %}
 
 {% block object-tools-items %}
-    <!-- Nút Upload Excel của chúng ta -->
+    <!-- Nút Vắt ảnh từ Word -->
+    <li>
+        <a href="extract-images/" class="addlink" style="background-color: #ffc107; color: black;">
+            ✂️ Vắt ảnh từ Word
+        </a>
+    </li>
+
+    <!-- Nút Upload Excel -->
     <li>
         <a href="import-excel/" class="addlink" style="background-color: #28a745; color: white;">
             📥 Import Đề thi (Excel)
         </a>
     </li>
     
-    <!-- Giữ lại nút Add Exam mặc định của Django -->
     {{ block.super }}
 {% endblock %}

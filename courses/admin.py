@@ -3,6 +3,9 @@ from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import openpyxl
+import zipfile
+import io
+from django.http import HttpResponse
 
 # 1. IMPORT TOÀN BỘ MODEL (Cả cũ và mới)
 # Lưu ý: Hãy kiểm tra file models.py của bạn có những model nào (Curriculum, Lesson, Vocabulary...) thì khai báo hết vào đây:
@@ -27,12 +30,52 @@ class ExamAdmin(admin.ModelAdmin):
     list_filter = ('hsk_level',)
     search_fields = ('title',)
     
+    # Bổ sung thêm đường dẫn cho công cụ Vắt ảnh
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('import-excel/', self.admin_site.admin_view(self.import_excel_view), name='import_exam_excel'),
+            path('extract-images/', self.admin_site.admin_view(self.extract_images_view), name='extract_word_images'),
         ]
         return custom_urls + urls
+
+    # Động cơ bóc tách hình ảnh từ Word
+    def extract_images_view(self, request):
+        if request.method == 'POST':
+            word_file = request.FILES.get('word_file')
+            
+            if not word_file or not word_file.name.endswith('.docx'):
+                messages.error(request, "Vui lòng tải lên file Word định dạng .docx hợp lệ!")
+                return redirect('.')
+
+            try:
+                # Tạo một file ZIP ảo trong bộ nhớ RAM
+                zip_buffer = io.BytesIO()
+                
+                # Mở file Word (bản chất là 1 file nén ZIP)
+                with zipfile.ZipFile(word_file, 'r') as docx_zip:
+                    # Tạo file ZIP kết quả để gom ảnh
+                    with zipfile.ZipFile(zip_buffer, 'w') as out_zip:
+                        
+                        # Quét tất cả các thành phần trong file Word
+                        for item in docx_zip.namelist():
+                            # Nếu phát hiện thư mục chứa ảnh (word/media/)
+                            if item.startswith('word/media/'):
+                                filename = item.split('/')[-1] # Lấy tên ảnh gốc (VD: image1.jpeg)
+                                if filename: # Bỏ qua nếu chỉ là thư mục rỗng
+                                    image_data = docx_zip.read(item)
+                                    out_zip.writestr(filename, image_data) # Nén ảnh vào file ZIP mới
+                
+                # Đóng gói và gửi trả file ZIP về cho máy tính của bạn tải xuống
+                response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+                response['Content-Disposition'] = 'attachment; filename="Tat_ca_anh_tu_Word.zip"'
+                return response
+
+            except Exception as e:
+                messages.error(request, f"Lỗi khi vắt ảnh: {e}")
+                return redirect('.')
+
+        return render(request, 'admin/extract_images.html')
 
     def import_excel_view(self, request):
         if request.method == 'POST':

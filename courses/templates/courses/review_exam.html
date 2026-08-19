@@ -298,8 +298,8 @@
             // 1. Lấy nội dung nguyên thủy
             let rawText = el.innerText || el.textContent;
             
-            // 2. "ỦI PHẲNG" MỌI THỨ: Thay thế toàn bộ dấu xuống dòng, tab, khoảng trắng kép thành 1 dấu cách duy nhất
-            let cleanText = rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+            // Thay thế toàn bộ dấu xuống dòng, tab, khoảng trắng kép, và ĐẶC BIỆT là khoảng trắng full-width của tiếng Trung
+let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
             
             // 3. Bộ lọc Regex xịn: Tìm chữ A-F đứng đầu, theo sau là dấu chấm/khoảng trắng
             let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;

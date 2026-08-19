@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    /* ... Copy toàn bộ CSS của take_exam.html sang ... */
     :root { --primary-color: #9B1C1C; --bg-color: #F1F5F9; --card-bg: #FFFFFF; --border-color: #E2E8F0; --text-main: #334155; --text-muted: #64748B; --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04); }
     body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
     .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; color: #0f172a; line-height: 1.7; white-space: pre-wrap; }
@@ -31,7 +30,6 @@
     .shared-opt-item { background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; }
     .shared-opt-letter { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); background: #fef2f2; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; }
     .af-options-wrapper { display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px dashed #cbd5e1; }
-    
     .crop-window { width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc; }
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
@@ -39,9 +37,9 @@
     /* ==========================================
        STYLE CHỈNH SỬA DÀNH CHO TRANG XEM LẠI KẾT QUẢ 
        ========================================== */
-    .opt-box { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; background: #f8fafc; height: 100%; }
-    .circle-box { display: inline-flex; justify-content: center; align-items: center; width: 50px; height: 50px; border: 2px solid var(--border-color); border-radius: 50%; font-weight: 800; font-size: 1.25rem; color: var(--text-muted); background: #fff; margin: 0; }
-    .auto-crop-box { display: flex; flex-direction: column; height: 100%; border: 2px solid transparent; border-radius: 16px; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
+    .opt-box { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; background: #f8fafc; height: 100%; position: relative; }
+    .circle-box { display: inline-flex; justify-content: center; align-items: center; width: 50px; height: 50px; border: 2px solid var(--border-color); border-radius: 50%; font-weight: 800; font-size: 1.25rem; color: var(--text-muted); background: #fff; margin: 0; position: relative;}
+    .auto-crop-box { display: flex; flex-direction: column; height: 100%; border: 2px solid transparent; border-radius: 16px; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); position: relative;}
 
     /* MÀU SẮC KHI ĐÚNG / SAI */
     .correct-ans {
@@ -61,7 +59,7 @@
     .status-badge { font-family: 'Nunito', sans-serif; font-size: 0.95rem; padding: 6px 14px; border-radius: 20px; font-weight: 800; margin-left: 15px; }
     .status-correct { background: #10B981; color: white; }
     .status-wrong { background: #EF4444; color: white; }
-    .status-empty { background: #94A3B8; color: white; }
+    .status-empty { background: #F59E0B; color: white; } /* Đổi màu vàng cam cho bắt mắt */
 
     /* Cột bên phải (Lưới điểm) */
     .sticky-sidebar { position: sticky; top: 25px; }
@@ -71,7 +69,7 @@
     
     .grid-item.correct { background: #10B981; color: white; border-color: #10B981; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2); }
     .grid-item.wrong { background: #EF4444; color: white; border-color: #EF4444; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2); }
-    .grid-item.empty { background: #e2e8f0; color: #64748B; border-color: #cbd5e1; }
+    .grid-item.empty { background: #FEF3C7; color: #D97706; border-color: #FCD34D; }
 </style>
 {% endblock %}
 
@@ -86,7 +84,7 @@
                     <p class="text-muted"><i class="fas fa-info-circle"></i> Câu trả lời đúng được bọc <b>viền Xanh</b>. Câu bạn chọn sai bị bọc viền Đỏ.</p>
                 </div>
                 <div>
-                    <a href="{% url 'exam_result' result.id %}" class="btn btn-dark rounded-pill px-4 fw-bold shadow"><i class="fas fa-arrow-left me-2"></i> Quay lại điểm số</a>
+                    <a href="{% url 'exam_result' result.id %}" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow"><i class="fas fa-arrow-left me-2"></i> Quay lại điểm số</a>
                 </div>
             </div>
 
@@ -129,12 +127,12 @@
                                 <div class="q-number-text">{{ q.question_number }}.</div>
                                 <div class="q-content-area w-100">
                                     
-                                    <!-- Nhãn Đúng / Sai -->
+                                    <!-- NHÃN TRẠNG THÁI -->
                                     <div class="mb-2">
                                         {% if q.is_correct %}
                                             <span class="status-badge status-correct"><i class="fas fa-check"></i> ĐÚNG</span>
                                         {% elif not q.user_ans %}
-                                            <span class="status-badge status-empty"><i class="fas fa-minus"></i> KHÔNG TRẢ LỜI</span>
+                                            <span class="status-badge status-empty"><i class="fas fa-exclamation-triangle"></i> KHÔNG TRẢ LỜI</span>
                                         {% else %}
                                             <span class="status-badge status-wrong"><i class="fas fa-times"></i> SAI</span>
                                         {% endif %}
@@ -152,26 +150,35 @@
                             </div>
 
                             <div class="mt-2">
-                                <!-- NỐI A-F -->
+                                <!-- DẠNG NỐI A-F -->
                                 {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
                                     <div class="af-options-wrapper mt-3">
                                         {% for opt in "ABCDEF"|make_list %}
-                                            <div class="circle-box {% if q.correct_ans == opt %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">{{ opt }}</div>
+                                            <div class="circle-box {% if q.correct_ans == opt %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
+                                                {{ opt }}
+                                            </div>
                                         {% endfor %}
                                     </div>
-                                <!-- CẮT 3 ẢNH -->
+                                    
+                                <!-- DẠNG CẮT 3 ẢNH -->
                                 {% elif q.image %}
                                     <div class="row g-4 mt-1">
                                         {% for opt in "ABC"|make_list %}
                                         <div class="col-4">
                                             <div class="auto-crop-box {% if q.correct_ans == opt %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
                                                 <div class="crop-window show-part-{{ opt }}"><img src="{{ q.image.url }}"></div>
-                                                <div class="text-center mt-3 fw-bold fs-5">{{ opt }}</div>
+                                                <div class="text-center mt-3 fw-bold fs-5">
+                                                    {{ opt }} 
+                                                    {% if q.correct_ans == opt %}
+                                                        <span class="badge bg-success ms-1 small"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </div>
                                             </div>
                                         </div>
                                         {% endfor %}
                                     </div>
-                                <!-- CHỈ CÓ TEXT -->
+                                    
+                                <!-- DẠNG CHỈ CÓ TEXT -->
                                 {% else %}
                                     <div class="row g-3 mt-1">
                                         {% if q.option_a or q.option_a_pinyin %}
@@ -182,9 +189,11 @@
                                                     {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_a }}</div>
                                                 </div>
+                                                {% if q.correct_ans == 'A' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
+                                        
                                         {% if q.option_b or q.option_b_pinyin %}
                                         <div class="col-md-4">
                                             <div class="opt-box {% if q.correct_ans == 'B' %}correct-ans{% elif q.user_ans == 'B' %}wrong-ans{% endif %}">
@@ -193,9 +202,11 @@
                                                     {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_b }}</div>
                                                 </div>
+                                                {% if q.correct_ans == 'B' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
+                                        
                                         {% if q.option_c or q.option_c_pinyin %}
                                         <div class="col-md-4">
                                             <div class="opt-box {% if q.correct_ans == 'C' %}correct-ans{% elif q.user_ans == 'C' %}wrong-ans{% endif %}">
@@ -204,11 +215,20 @@
                                                     {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_c }}</div>
                                                 </div>
+                                                {% if q.correct_ans == 'C' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
                                     </div>
                                 {% endif %}
+
+                                <!-- THÔNG BÁO VÀNG NẾU BỎ TRỐNG CÂU HỎI -->
+                                {% if not q.user_ans %}
+                                    <div class="alert mt-4 mb-0 py-3 px-4 shadow-sm fw-bold" style="border-radius: 12px; border-left: 6px solid #F59E0B; background: #FEF3C7; color: #B45309;">
+                                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i> Bạn đã bỏ trống câu này! Đáp án đúng của câu {{ q.question_number }} là: <span class="badge bg-success ms-2 fs-6 px-3 py-2">{{ q.correct_ans }}</span>
+                                    </div>
+                                {% endif %}
+
                             </div>
                         </div>
                     {% endfor %}
@@ -221,11 +241,16 @@
             <div class="sticky-sidebar">
                 <div class="panel-box text-center mb-4">
                     <h1 class="fw-black mb-0" style="color: var(--primary-color); font-family: 'Playfair Display', serif;">{{ result.score }} <span class="fs-4 text-muted">/ 200</span></h1>
-                    <p class="text-muted fw-bold mb-0">ĐIỂM SỐ</p>
+                    <p class="text-muted fw-bold mb-0">ĐIỂM SỐ CỦA BẠN</p>
                 </div>
                 
                 <div class="panel-box">
                     <p class="fw-bold mb-3" style="font-size: 1.1rem;"><i class="fas fa-th-large text-primary"></i> Tổng quan 40 câu</p>
+                    <div class="d-flex justify-content-between mb-3 small fw-bold">
+                        <span class="text-success"><i class="fas fa-square"></i> Đúng</span>
+                        <span class="text-danger"><i class="fas fa-square"></i> Sai</span>
+                        <span style="color: #F59E0B;"><i class="fas fa-square"></i> Trống</span>
+                    </div>
                     <div class="grid-progress">
                         {% for q in questions %}
                             <div class="grid-item {% if q.is_correct %}correct{% elif q.user_ans %}wrong{% else %}empty{% endif %}" onclick="scrollToQ({{ q.question_number }})">
@@ -247,7 +272,6 @@
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Biến văn bản Rổ đáp án thành Grid
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
         sharedTexts.forEach(function(el) {

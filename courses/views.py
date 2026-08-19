@@ -244,11 +244,17 @@ def review_exam(request, result_id):
     exam = result.exam
     questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
 
-    # Bơm thêm dữ liệu (Đúng/Sai) vào từng câu hỏi để giao diện dễ bôi màu
     for q in questions:
-        q.user_ans = result.user_answers.get(str(q.id), '')
-        q.correct_ans = str(q.correct_answer).strip().upper()
-        q.is_correct = (q.user_ans == q.correct_ans)
+        # Lấy đáp án học viên chọn (Nếu rỗng thì tự động ép về chuỗi rỗng '')
+        raw_user = result.user_answers.get(str(q.id), '')
+        q.user_ans = str(raw_user).strip().upper() if raw_user else ''
+        
+        # Lấy đáp án đúng chuẩn (Chống lỗi NoneType từ Database)
+        raw_correct = q.correct_answer
+        q.correct_ans = str(raw_correct).strip().upper() if raw_correct else ''
+        
+        # Chấm lại trạng thái (Chỉ đúng khi có chọn đáp án VÀ chọn chính xác)
+        q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 
     return render(request, 'courses/review_exam.html', {
         'exam': exam,

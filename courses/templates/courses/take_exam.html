@@ -377,31 +377,81 @@
 
 {% block extra_js %}
 <script>
+    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
+
     function scrollToQ(qNumber) {
         const el = document.getElementById('q' + qNumber);
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    // Phần đếm ngược thời gian (Chỉ dùng cho take_exam, nếu ở review_exam có báo lỗi nhẹ ở console thì bỏ qua không sao)
+    if (document.getElementById('countdown')) {
+        let timeInSeconds = {{ exam.duration_minutes|default:0 }} * 60;
+        function startTimer() {
+            let display = document.getElementById('countdown');
+            let timer = setInterval(function () {
+                let minutes = parseInt(timeInSeconds / 60, 10);
+                let seconds = parseInt(timeInSeconds % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timeInSeconds < 0) {
+                    clearInterval(timer);
+                    alert("⏳ Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
+                    if(document.getElementById('exam-form')) {
+                        document.getElementById('exam-form').submit();
+                    }
+                }
+            }, 1000);
+        }
+        window.onload = startTimer;
+    }
+
+    function submitExam() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = document.querySelectorAll('.grid-item').length;
+        if (totalDone < totalQ) {
+            let missing = totalQ - totalDone;
+            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) return;
+        } else {
+            if (!confirm("✅ Xác nhận nộp bài?")) return;
+        }
+        document.getElementById('exam-form').submit();
+    }
+
+    // ==========================================
+    // BỘ QUÉT RỔ ĐÁP ÁN (PHIÊN BẢN TỐI THƯỢNG)
+    // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
+        
         sharedTexts.forEach(function(el) {
-            let text = el.innerText || el.textContent;
-            text = text.trim();
+            // 1. Lấy nội dung nguyên thủy
+            let rawText = el.innerText || el.textContent;
             
-            // Regex siêu mạnh: Kháng được mọi lỗi nhập liệu (Alt+Enter, viết dính chùm...)
-            let regex = /(?:^|\s)([A-F])[.、\s]*([\s\S]*?)(?=\s+[A-F][.、\s]*|$)/g;
+            // 2. "ỦI PHẲNG" MỌI THỨ: Thay thế toàn bộ dấu xuống dòng, tab, khoảng trắng kép thành 1 dấu cách duy nhất
+            let cleanText = rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+            
+            // 3. Bộ lọc Regex xịn: Tìm chữ A-F đứng đầu, theo sau là dấu chấm/khoảng trắng
+            let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
             let match;
             let html = '<div class="shared-options-grid">';
             let found = false;
             
-            while ((match = regex.exec(text)) !== null) {
+            while ((match = regex.exec(cleanText)) !== null) {
                 found = true;
-                let letter = match[1];
+                let letter = match[1].trim();
                 let content = match[2].trim();
-                html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${content}</div></div>`;
+                html += `
+                    <div class="shared-opt-item shadow-sm">
+                        <div class="shared-opt-letter">${letter}</div>
+                        <div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${content}</div>
+                    </div>`;
             }
             html += '</div>';
             
+            // 4. Quyết định hiển thị
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
             } else { 

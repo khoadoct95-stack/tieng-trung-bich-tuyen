@@ -232,18 +232,24 @@
                             <div class="q-number-badge">Câu {{ q.question_number }}</div>
                             
                             <div class="q-content-area w-100">
-                                <!-- Đoạn văn (Ngoại trừ các câu đầu nhóm đã show ở Rổ đáp án) -->
-                                {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                                    <div class="chinese-text mb-2">{{ q.passage_text }}</div>
-                                {% endif %}
-                                
-                                {% if q.content_pinyin %}
-                                    <div class="pinyin-text">{{ q.content_pinyin }}</div>
-                                {% endif %}
-                                {% if q.content %}
-                                    <div class="chinese-text fw-bold">{{ q.content }}</div>
-                                {% endif %}
-                            </div>
+    <!-- Đoạn văn riêng (VD: Câu 36-40) -->
+    {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
+        <!-- Thêm hiển thị Pinyin đoạn văn bị thiếu -->
+        {% if q.passage_pinyin %}
+            <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
+        {% endif %}
+        <!-- Thêm đường kẻ mỏng ở dưới để phân cách đoạn văn và câu hỏi -->
+        <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
+    {% endif %}
+    
+    <!-- Nội dung câu hỏi (kể cả hội thoại VD: Câu 35) -->
+    {% if q.content_pinyin %}
+        <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
+    {% endif %}
+    {% if q.content %}
+        <div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>
+    {% endif %}
+</div>
                         </div>
 
                         <!-- Ảnh riêng của từng câu -->

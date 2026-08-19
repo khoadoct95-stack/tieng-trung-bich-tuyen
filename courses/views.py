@@ -285,6 +285,23 @@ def exam_result(request, result_id):
 
 # Hàm hiển thị danh sách các đề thi
 def exam_list(request):
-    # Lấy tất cả đề thi, sắp xếp theo đề mới nhất lên đầu
-    exams = Exam.objects.all().order_by('-created_at')
-    return render(request, 'courses/exam_list.html', {'exams': exams})
+    # 1. Lấy từ khóa tìm kiếm và cấp độ từ Form gửi lên
+    search_query = request.GET.get('q', '').strip()
+    level_filter = request.GET.get('level', '')
+
+    # 2. Lấy toàn bộ đề thi, sắp xếp đề mới nhất lên đầu
+    exams = Exam.objects.all().order_by('-id')
+
+    # 3. Lọc theo Tên đề (Có chứa từ khóa)
+    if search_query:
+        exams = exams.filter(title__icontains=search_query)
+
+    # 4. Lọc theo Cấp độ HSK (Trường hsk_level là số nguyên)
+    if level_filter.isdigit():
+        exams = exams.filter(hsk_level=int(level_filter))
+
+    return render(request, 'courses/exam_list.html', {
+        'exams': exams,
+        'search_query': search_query,
+        'level_filter': level_filter
+    })

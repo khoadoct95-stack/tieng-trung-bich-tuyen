@@ -8,7 +8,232 @@
         <h2 class="fw-bold" style="color: #d32f2f;">📝 TRUNG TÂM THI THỬ HSK</h2>
         <p class="text-muted">Làm quen với cấu trúc đề thi thực tế và đánh giá trình độ của bạn</p>
     </div>
+<!-- THÊM CSS CHO THANH TÌM KIẾM -->
+<style>
+    .search-filter-section {
+        max-width: 800px;
+        margin: 0 auto 40px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .search-box {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .search-box input {
+        height: 60px;
+        padding-left: 55px;
+        border-radius: 30px;
+        border: 2px solid #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #334155;
+        transition: all 0.3s ease;
+    }
+    
+    .search-box input:focus {
+        border-color: #9B1C1C;
+        box-shadow: 0 0 0 4px rgba(155, 28, 28, 0.1);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.2rem;
+    }
+    
+    .btn-search {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        bottom: 8px;
+        border-radius: 25px;
+        background: #9B1C1C;
+        color: white;
+        font-weight: 700;
+        padding: 0 30px;
+        border: none;
+        transition: all 0.3s;
+    }
+    
+    .btn-search:hover {
+        background: #7f1717;
+        transform: scale(1.02);
+    }
 
+    /* Nút lọc cấp độ (Pill Buttons) */
+    .level-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .btn-level {
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        color: #64748B;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-level:hover {
+        border-color: #cbd5e1;
+        background: #e2e8f0;
+    }
+    
+    .btn-level.active {
+        background: #9B1C1C;
+        border-color: #9B1C1C;
+        color: white;
+        box-shadow: 0 4px 10px rgba(155, 28, 28, 0.2);
+    }
+<!-- BỘ LỌC TÌM KIẾM & CẤP ĐỘ -->
+<style>
+    .search-filter-section {
+        max-width: 800px;
+        margin: 0 auto 40px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    
+    .search-box {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .search-box input {
+        height: 60px;
+        padding-left: 55px;
+        border-radius: 30px;
+        border: 2px solid #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #334155;
+        transition: all 0.3s ease;
+    }
+    
+    .search-box input:focus {
+        border-color: #9B1C1C;
+        box-shadow: 0 0 0 4px rgba(155, 28, 28, 0.1);
+        outline: none;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.2rem;
+    }
+    
+    .btn-search {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        bottom: 8px;
+        border-radius: 25px;
+        background: #9B1C1C;
+        color: white;
+        font-weight: 700;
+        padding: 0 30px;
+        border: none;
+        transition: all 0.3s;
+    }
+    
+    .btn-search:hover {
+        background: #7f1717;
+        transform: scale(1.02);
+    }
+
+    /* Nút lọc cấp độ (Pill Buttons) */
+    .level-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .btn-level {
+        border-radius: 20px;
+        padding: 8px 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        color: #64748B;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .btn-level:hover {
+        border-color: #cbd5e1;
+        background: #e2e8f0;
+    }
+    
+    .btn-level.active {
+        background: #9B1C1C;
+        border-color: #9B1C1C;
+        color: white;
+        box-shadow: 0 4px 10px rgba(155, 28, 28, 0.2);
+    }
+</style>
+
+<div class="search-filter-section">
+    <form method="GET" action="{% url 'exam_list' %}">
+        
+        <!-- Ô nhập tìm kiếm -->
+        <div class="search-box w-100">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control w-100" placeholder="Nhập tên bài thi (VD: Đề mẫu HSK 1)...">
+            <button type="submit" class="btn-search">TÌM KIẾM</button>
+        </div>
+        
+        <!-- Nút chọn cấp độ (Giá trị truyền vào là 1, 2, 3... tương ứng với hsk_level) -->
+        <div class="level-filters">
+            <button type="submit" name="level" value="" class="btn-level {% if not level_filter %}active{% endif %}">
+                Tất cả
+            </button>
+            <button type="submit" name="level" value="1" class="btn-level {% if level_filter == '1' %}active{% endif %}">
+                HSK 1
+            </button>
+            <button type="submit" name="level" value="2" class="btn-level {% if level_filter == '2' %}active{% endif %}">
+                HSK 2
+            </button>
+            <button type="submit" name="level" value="3" class="btn-level {% if level_filter == '3' %}active{% endif %}">
+                HSK 3
+            </button>
+            <button type="submit" name="level" value="4" class="btn-level {% if level_filter == '4' %}active{% endif %}">
+                HSK 4
+            </button>
+            <button type="submit" name="level" value="5" class="btn-level {% if level_filter == '5' %}active{% endif %}">
+                HSK 5
+            </button>
+            <button type="submit" name="level" value="6" class="btn-level {% if level_filter == '6' %}active{% endif %}">
+                HSK 6
+            </button>
+        </div>
+        
+    </form>
+</div>
+<!-- KẾT THÚC BỘ LỌC TÌM KIẾM -->
+
+<!-- Dưới này là vòng lặp danh sách đề thi của bạn ({% for exam in exams %}...) -->
     <div class="row">
         {% for exam in exams %}
         <div class="col-md-4 mb-4">

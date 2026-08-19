@@ -3,137 +3,182 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
+<!-- Import Font chữ mềm mại, dễ đọc -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
-    /* Mở rộng tối đa không gian màn hình */
+    :root {
+        --primary-red: #d32f2f;
+        --soft-bg: #f8f9fa;
+        --border-color: #e2e8f0;
+    }
+
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.25rem; font-weight: 500; }
+    
     .exam-wrapper { max-width: 1400px; margin: 0 auto; padding: 20px; }
     
-    /* Thiết kế Bảng câu hỏi bên trái */
-    .question-box { background: #fff; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .q-number { font-size: 1.3rem; font-weight: bold; color: var(--primary-red, #B22222); border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px;}
-    .passage-box { background: #f8f9fa; border-left: 5px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-size: 1.1rem;}
+    /* Thiết kế Bảng câu hỏi */
+    .question-card { background: #fff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+    .q-number { font-size: 1.2rem; font-weight: 600; color: var(--primary-red); border-bottom: 2px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px;}
     
-    /* Biến Radio Button xấu xí thành Nút bấm đẹp mắt */
-    .option-radio { display: none; } /* Ẩn ô tròn mặc định */
-    .option-label { display: block; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-weight: 500; margin-bottom: 10px;}
-    .option-label:hover { border-color: var(--primary-red, #B22222); background: #fff5f5; }
-    .option-radio:checked + .option-label { background: var(--primary-red, #B22222); color: white; border-color: var(--primary-red, #B22222); }
+    /* Khu vực dùng chung (Đoạn văn / Ảnh chung) */
+    .shared-content-box { background: #ebf5ff; border-left: 5px solid #3b82f6; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    .shared-content-box img { max-height: 250px; object-fit: contain; border-radius: 8px; mix-blend-mode: multiply; }
 
-    /* Bảng điều khiển bên phải (Trượt theo màn hình) */
+    /* Nút Radio thông thường (A, B, C) */
+    .option-radio { display: none; }
+    .option-label { display: block; padding: 15px 20px; border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s; background: #fff;}
+    .option-label:hover { border-color: #94a3b8; background: var(--soft-bg); }
+    .option-radio:checked + .option-label { background: #fef2f2; color: var(--primary-red); border-color: var(--primary-red); }
+
+    /* Nút Trắc nghiệm dạng Nối (A-F) */
+    .circle-radio { display: none; }
+    .circle-label { display: inline-block; width: 45px; height: 45px; line-height: 41px; text-align: center; border: 2px solid var(--border-color); border-radius: 50%; cursor: pointer; font-weight: 600; color: #475569; transition: all 0.2s; margin-right: 12px; background: #fff; }
+    .circle-label:hover { border-color: #94a3b8; background: var(--soft-bg); }
+    .circle-radio:checked + .circle-label { background-color: var(--primary-red); color: white; border-color: var(--primary-red); }
+
+    /* Bảng điều khiển Trượt */
     .sticky-panel { position: sticky; top: 20px; }
-    .control-box { background: #fff; border-radius: 15px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-bottom: 20px;}
+    .control-box { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color);}
     
-    /* Đồng hồ đếm ngược */
-    .timer-text { font-size: 2.5rem; font-weight: bold; color: #dc3545; text-align: center; margin: 0; font-family: monospace;}
+    .timer-text { font-size: 2.2rem; font-weight: 700; color: var(--primary-red); text-align: center; margin: 0; font-family: monospace;}
+    
+    /* Lưới theo dõi câu hỏi */
+    .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+    .grid-btn { padding: 8px 0; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: 500; font-size: 0.9rem; cursor: pointer; background: #fff; transition: 0.2s; color: #64748b; }
+    .grid-btn:hover { background: #e2e8f0; }
+    .grid-btn.done { background: #22c55e; color: white; border-color: #22c55e; }
+    .grid-btn.active { border-color: var(--primary-red); color: var(--primary-red); font-weight: bold; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="exam-wrapper mt-4">
-    
+<div class="exam-wrapper mt-3">
     <div class="row">
-        <!-- CỘT TRÁI: DANH SÁCH CÂU HỎI (Chiếm 8 phần) -->
+        <!-- CỘT TRÁI: DANH SÁCH CÂU HỎI -->
         <div class="col-lg-8">
-            <h2 class="fw-bold mb-4" style="color: #B22222;">{{ exam.title }}</h2>
-            <p class="text-muted mb-4"><i class="fas fa-info-circle"></i> Vui lòng nghe kỹ Audio và chọn đáp án chính xác nhất.</p>
+            <h2 class="fw-bold mb-3 chinese-text" style="color: var(--primary-red);">{{ exam.title }}</h2>
+            <p class="text-muted mb-4"><i class="fas fa-info-circle"></i> Vui lòng hoàn thành tất cả các câu hỏi trước khi hết giờ.</p>
 
             <form id="exam-form" action="" method="POST">
                 {% csrf_token %}
                 
                 {% for q in questions %}
-                <div class="question-box" id="q{{ q.question_number }}">
-                    <!-- Gợi ý nhóm câu hỏi (VD: Phần đọc hiểu) -->
-                    {% if q.passage_text %}
-                    <div class="passage-box">
-                        {% if q.passage_pinyin %}<div class="text-primary mb-1">{{ q.passage_pinyin }}</div>{% endif %}
-                        <div class="fw-bold text-dark">{{ q.passage_text }}</div>
-                    </div>
+                
+                    <!-- KHU VỰC DÙNG CHUNG (Chỉ hiển thị 1 lần duy nhất cho mỗi nhóm câu) -->
+                    {% if q.question_group %}
+                        {% ifchanged q.question_group %}
+                        <div class="shared-content-box mt-4">
+                            <h5 class="fw-bold text-primary mb-3"><i class="fas fa-list-ul"></i> Nhóm câu hỏi {{ q.question_group }}</h5>
+                            
+                            <!-- Ảnh dùng chung (Cho nhóm 11-15, 21-25) -->
+                            {% if q.shared_image %}
+                                <div class="text-center"><img src="{{ q.shared_image.url }}" alt="Shared Image"></div>
+                            {% endif %}
+
+                            <!-- Đoạn văn dùng chung (Cho nhóm 26-30, 31-35, 36-40) -->
+                            {% if q.passage_text %}
+                                {% if q.passage_pinyin %}<div class="text-secondary mb-1" style="font-size: 1.1rem;">{{ q.passage_pinyin|linebreaksbr }}</div>{% endif %}
+                                <div class="chinese-text text-dark">{{ q.passage_text|linebreaksbr }}</div>
+                            {% endif %}
+                        </div>
+                        {% endifchanged %}
                     {% endif %}
 
-                    <!-- Tiêu đề câu hỏi -->
-                    <div class="q-number">Câu {{ q.question_number }}.</div>
-                    
-                    {% if q.content_pinyin %}<h5 class="text-primary mb-1">{{ q.content_pinyin }}</h5>{% endif %}
-                    {% if q.content %}<h4 class="mb-3">{{ q.content }}</h4>{% endif %}
-                    {% if q.image %}<img src="{{ q.image.url }}" alt="Question Image" class="img-fluid rounded mb-3" style="max-height: 200px;">{% endif %}
-
-                    <!-- Các đáp án -->
-                    <div class="row mt-3">
-                        <!-- Đáp án A -->
-                        {% if q.option_a or q.option_a_pinyin %}
-                        <div class="col-md-4">
-                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_a" value="A" class="option-radio">
-                            <label class="option-label" for="q{{ q.id }}_a">
-                                <strong>A.</strong> 
-                                {% if q.option_a_pinyin %}<span class="text-muted small d-block">{{ q.option_a_pinyin }}</span>{% endif %}
-                                {{ q.option_a }}
-                            </label>
-                        </div>
-                        {% endif %}
-
-                        <!-- Đáp án B -->
-                        {% if q.option_b or q.option_b_pinyin %}
-                        <div class="col-md-4">
-                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_b" value="B" class="option-radio">
-                            <label class="option-label" for="q{{ q.id }}_b">
-                                <strong>B.</strong> 
-                                {% if q.option_b_pinyin %}<span class="text-muted small d-block">{{ q.option_b_pinyin }}</span>{% endif %}
-                                {{ q.option_b }}
-                            </label>
-                        </div>
-                        {% endif %}
-
-                        <!-- Đáp án C -->
-                        {% if q.option_c or q.option_c_pinyin %}
-                        <div class="col-md-4">
-                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_c" value="C" class="option-radio">
-                            <label class="option-label" for="q{{ q.id }}_c">
-                                <strong>C.</strong> 
-                                {% if q.option_c_pinyin %}<span class="text-muted small d-block">{{ q.option_c_pinyin }}</span>{% endif %}
-                                {{ q.option_c }}
-                            </label>
-                        </div>
-                        {% endif %}
+                    <!-- TỪNG CÂU HỎI -->
+                    <div class="question-card" id="q{{ q.question_number }}">
+                        <div class="q-number">Câu {{ q.question_number }}</div>
                         
-                        <!-- CÁC ĐÁP ÁN NỐI (D, E, F) (Sẽ hiển thị nếu là dạng nối) -->
-                        {% if q.option_d or q.option_e or q.option_f %}
-                            <!-- Code cho nút D, E, F sẽ được tối ưu ở bản sau -->
-                            <div class="col-12 mt-2 text-warning fw-bold"><i>(Dạng bài chọn từ A-F)</i></div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+                        <!-- Nội dung câu hỏi (Nếu có) -->
+                        {% if q.content_pinyin %}<div class="text-secondary mb-1" style="font-size: 1.1rem;">{{ q.content_pinyin }}</div>{% endif %}
+                        {% if q.content %}<div class="chinese-text mb-3">{{ q.content }}</div>{% endif %}
+                        {% if q.image %}<img src="{{ q.image.url }}" alt="Q Image" class="img-fluid rounded mb-3" style="max-height: 200px;">{% endif %}
 
-                <button type="button" class="btn btn-danger btn-lg w-100 rounded-pill fw-bold mb-5 shadow" onclick="submitExam()">NỘP BÀI</button>
+                        <!-- KHU VỰC ĐÁP ÁN -->
+                        <div class="row mt-3">
+                            {% if q.question_group in '11-15 21-25 26-30 31-35' %}
+                                <!-- DẠNG NỐI A-F (Chỉ hiện các hình tròn chọn chữ cái) -->
+                                <div class="col-12">
+                                    <p class="text-muted small mb-2"><i>* Chọn đáp án tương ứng từ A đến F:</i></p>
+                                    {% for opt in "ABCDEF"|make_list %}
+                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
+                                    <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <!-- DẠNG TRẮC NGHIỆM THƯỜNG (A, B, C) -->
+                                {% if q.option_a or q.option_a_pinyin %}
+                                <div class="col-md-4 mb-2">
+                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="option-radio" onchange="markDone({{ q.question_number }})">
+                                    <label class="option-label" for="q{{ q.id }}_A">
+                                        <div class="fw-bold mb-1">A.</div> 
+                                        {% if q.option_a_pinyin %}<div class="text-muted small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                        <div class="chinese-text">{{ q.option_a }}</div>
+                                    </label>
+                                </div>
+                                {% endif %}
+                                
+                                {% if q.option_b or q.option_b_pinyin %}
+                                <div class="col-md-4 mb-2">
+                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="option-radio" onchange="markDone({{ q.question_number }})">
+                                    <label class="option-label" for="q{{ q.id }}_B">
+                                        <div class="fw-bold mb-1">B.</div> 
+                                        {% if q.option_b_pinyin %}<div class="text-muted small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                        <div class="chinese-text">{{ q.option_b }}</div>
+                                    </label>
+                                </div>
+                                {% endif %}
+
+                                {% if q.option_c or q.option_c_pinyin %}
+                                <div class="col-md-4 mb-2">
+                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="option-radio" onchange="markDone({{ q.question_number }})">
+                                    <label class="option-label" for="q{{ q.id }}_C">
+                                        <div class="fw-bold mb-1">C.</div> 
+                                        {% if q.option_c_pinyin %}<div class="text-muted small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                        <div class="chinese-text">{{ q.option_c }}</div>
+                                    </label>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
             </form>
         </div>
 
-        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN (Chiếm 4 phần) -->
+        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN & LƯỚI THEO DÕI -->
         <div class="col-lg-4">
             <div class="sticky-panel">
                 
                 <!-- Bảng Đồng hồ đếm ngược -->
-                <div class="control-box text-center">
-                    <h5 class="fw-bold text-muted mb-2">⏱️ THỜI GIAN CÒN LẠI</h5>
-                    <p class="timer-text" id="countdown">{{ exam.duration_minutes }}:00</p>
+                <div class="control-box text-center pb-3">
+                    <h6 class="fw-bold text-muted mb-2 text-uppercase">Thời gian còn lại</h6>
+                    <div class="timer-text" id="countdown">{{ exam.duration_minutes }}:00</div>
                 </div>
 
-                <!-- Bảng Trình phát Audio (Chỉ hiện nếu có Audio) -->
+                <!-- Bảng Trình phát Audio -->
                 {% if exam.listening_audio %}
                 <div class="control-box">
-                    <h5 class="fw-bold text-dark mb-3">🎧 BÀI NGHE (LISTENING)</h5>
+                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headphones-alt"></i> Bài nghe (Listening)</h6>
                     <audio controls class="w-100">
                         <source src="{{ exam.listening_audio.url }}" type="audio/mpeg">
-                        Trình duyệt của bạn không hỗ trợ file âm thanh.
                     </audio>
-                    <p class="text-muted small mt-2 mb-0">* Lời khuyên: Hãy bấm Play 1 lần duy nhất để làm bài thi giống thực tế.</p>
                 </div>
                 {% endif %}
 
-                <!-- Bảng Hình ảnh dùng chung (Cho câu 11-15, v.v...) -->
-                <div class="control-box d-none" id="shared-image-box">
-                    <h5 class="fw-bold text-dark mb-2">🖼️ ẢNH GỢI Ý (A - F)</h5>
-                    <!-- Khu vực này sẽ tự động hiện ảnh khi học viên cuộn đến các câu hỏi dạng Nối -->
-                    <p class="text-muted small">Khu vực hiển thị Rổ đáp án...</p>
+                <!-- Bảng Lưới theo dõi câu hỏi -->
+                <div class="control-box">
+                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-th"></i> Bảng tiến độ</h6>
+                    <p class="text-muted small mb-0">Màu xanh là câu đã làm. Bấm vào số để nhảy đến câu hỏi.</p>
+                    <div class="grid-container">
+                        {% for q in questions %}
+                            <div class="grid-btn" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">
+                                {{ q.question_number }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-danger btn-lg w-100 fw-bold mt-4 shadow-sm" onclick="submitExam()">NỘP BÀI</button>
                 </div>
 
             </div>
@@ -144,9 +189,44 @@
 
 {% block extra_js %}
 <script>
-    // Script đếm ngược thời gian sẽ viết vào đây sau
+    // 1. CẬP NHẬT TRẠNG THÁI "ĐÃ LÀM" LÊN LƯỚI
+    function markDone(qNumber) {
+        document.getElementById('grid-btn-' + qNumber).classList.add('done');
+    }
+
+    // 2. TỰ ĐỘNG CUỘN ĐẾN CÂU HỎI KHI BẤM VÀO LƯỚI
+    function scrollToQ(qNumber) {
+        document.getElementById('q' + qNumber).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // 3. ĐỒNG HỒ ĐẾM NGƯỢC
+    let timeInSeconds = {{ exam.duration_minutes }} * 60;
+    
+    function startTimer() {
+        let display = document.getElementById('countdown');
+        let timer = setInterval(function () {
+            let minutes = parseInt(timeInSeconds / 60, 10);
+            let seconds = parseInt(timeInSeconds % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            display.textContent = minutes + ":" + seconds;
+
+            if (--timeInSeconds < 0) {
+                clearInterval(timer);
+                alert("Đã hết thời gian làm bài! Hệ thống tự động nộp bài.");
+                document.getElementById('exam-form').submit();
+            }
+        }, 1000);
+    }
+
+    window.onload = startTimer;
+
+    // 4. XỬ LÝ NỘP BÀI THỦ CÔNG
     function submitExam() {
-        alert("Tính năng Nộp bài đang được hoàn thiện!");
+        if (confirm("Bạn có chắc chắn muốn nộp bài? Hãy kiểm tra bảng tiến độ xem còn câu nào màu trắng không nhé!")) {
+            document.getElementById('exam-form').submit();
+        }
     }
 </script>
 {% endblock %}

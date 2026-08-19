@@ -59,7 +59,7 @@
     .status-badge { font-family: 'Nunito', sans-serif; font-size: 0.95rem; padding: 6px 14px; border-radius: 20px; font-weight: 800; margin-left: 15px; }
     .status-correct { background: #10B981; color: white; }
     .status-wrong { background: #EF4444; color: white; }
-    .status-empty { background: #F59E0B; color: white; } /* Đổi màu vàng cam cho bắt mắt */
+    .status-empty { background: #F59E0B; color: white; }
 
     /* Cột bên phải (Lưới điểm) */
     .sticky-sidebar { position: sticky; top: 25px; }
@@ -131,13 +131,14 @@
                                     <div class="mb-2">
                                         {% if q.is_correct %}
                                             <span class="status-badge status-correct"><i class="fas fa-check"></i> ĐÚNG</span>
+                                            <span class="text-muted ms-2 small fw-bold">(Bạn chọn: {{ q.user_ans }} | Đáp án: {{ q.correct_ans }})</span>
                                         {% elif not q.user_ans %}
-                                            <span class="status-badge status-empty"><i class="fas fa-exclamation-triangle"></i> KHÔNG TRẢ LỜI</span>
+                                            <span class="status-badge status-empty"><i class="fas fa-exclamation-triangle"></i> BỎ QUA</span>
+                                            <!-- Đã xóa phần hiển thị đáp án đúng ở đây -->
                                         {% else %}
                                             <span class="status-badge status-wrong"><i class="fas fa-times"></i> SAI</span>
+                                            <span class="text-muted ms-2 small fw-bold">(Bạn chọn: {{ q.user_ans }} | Đáp án: {{ q.correct_ans }})</span>
                                         {% endif %}
-                                        
-                                        <span class="text-muted ms-2 small fw-bold">(Bạn chọn: {% if q.user_ans %}{{ q.user_ans }}{% else %}Trống{% endif %} | Đáp án: {{ q.correct_ans }})</span>
                                     </div>
 
                                     {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
@@ -154,7 +155,8 @@
                                 {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
                                     <div class="af-options-wrapper mt-3">
                                         {% for opt in "ABCDEF"|make_list %}
-                                            <div class="circle-box {% if q.correct_ans == opt %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
+                                            <!-- CHỈ HIỆN ĐÁP ÁN ĐÚNG NẾU HỌC VIÊN CÓ TRẢ LỜI CÂU NÀY (q.user_ans) -->
+                                            <div class="circle-box {% if q.correct_ans == opt and q.user_ans %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
                                                 {{ opt }}
                                             </div>
                                         {% endfor %}
@@ -165,11 +167,11 @@
                                     <div class="row g-4 mt-1">
                                         {% for opt in "ABC"|make_list %}
                                         <div class="col-4">
-                                            <div class="auto-crop-box {% if q.correct_ans == opt %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
+                                            <div class="auto-crop-box {% if q.correct_ans == opt and q.user_ans %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
                                                 <div class="crop-window show-part-{{ opt }}"><img src="{{ q.image.url }}"></div>
                                                 <div class="text-center mt-3 fw-bold fs-5">
                                                     {{ opt }} 
-                                                    {% if q.correct_ans == opt %}
+                                                    {% if q.correct_ans == opt and q.user_ans %}
                                                         <span class="badge bg-success ms-1 small"><i class="fas fa-check"></i></span>
                                                     {% endif %}
                                                 </div>
@@ -183,49 +185,49 @@
                                     <div class="row g-3 mt-1">
                                         {% if q.option_a or q.option_a_pinyin %}
                                         <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'A' %}correct-ans{% elif q.user_ans == 'A' %}wrong-ans{% endif %}">
+                                            <div class="opt-box {% if q.correct_ans == 'A' and q.user_ans %}correct-ans{% elif q.user_ans == 'A' %}wrong-ans{% endif %}">
                                                 <span class="fw-bold fs-4 me-3">A.</span>
                                                 <div>
                                                     {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_a }}</div>
                                                 </div>
-                                                {% if q.correct_ans == 'A' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
+                                                {% if q.correct_ans == 'A' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
                                         
                                         {% if q.option_b or q.option_b_pinyin %}
                                         <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'B' %}correct-ans{% elif q.user_ans == 'B' %}wrong-ans{% endif %}">
+                                            <div class="opt-box {% if q.correct_ans == 'B' and q.user_ans %}correct-ans{% elif q.user_ans == 'B' %}wrong-ans{% endif %}">
                                                 <span class="fw-bold fs-4 me-3">B.</span>
                                                 <div>
                                                     {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_b }}</div>
                                                 </div>
-                                                {% if q.correct_ans == 'B' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
+                                                {% if q.correct_ans == 'B' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
                                         
                                         {% if q.option_c or q.option_c_pinyin %}
                                         <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'C' %}correct-ans{% elif q.user_ans == 'C' %}wrong-ans{% endif %}">
+                                            <div class="opt-box {% if q.correct_ans == 'C' and q.user_ans %}correct-ans{% elif q.user_ans == 'C' %}wrong-ans{% endif %}">
                                                 <span class="fw-bold fs-4 me-3">C.</span>
                                                 <div>
                                                     {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
                                                     <div class="chinese-text">{{ q.option_c }}</div>
                                                 </div>
-                                                {% if q.correct_ans == 'C' %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
+                                                {% if q.correct_ans == 'C' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
                                             </div>
                                         </div>
                                         {% endif %}
                                     </div>
                                 {% endif %}
 
-                                <!-- THÔNG BÁO VÀNG NẾU BỎ TRỐNG CÂU HỎI -->
+                                <!-- THÔNG BÁO NẾU BỎ TRỐNG CÂU HỎI (Ẩn đáp án đúng) -->
                                 {% if not q.user_ans %}
                                     <div class="alert mt-4 mb-0 py-3 px-4 shadow-sm fw-bold" style="border-radius: 12px; border-left: 6px solid #F59E0B; background: #FEF3C7; color: #B45309;">
-                                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i> Bạn đã bỏ trống câu này! Đáp án đúng của câu {{ q.question_number }} là: <span class="badge bg-success ms-2 fs-6 px-3 py-2">{{ q.correct_ans }}</span>
+                                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i> Bạn đã bỏ qua câu này! Hệ thống đã ẩn đáp án đúng.
                                     </div>
                                 {% endif %}
 

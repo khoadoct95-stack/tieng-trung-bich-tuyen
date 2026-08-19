@@ -1,0 +1,36 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Trung tâm Thi thử HSK{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold" style="color: #d32f2f;">📝 TRUNG TÂM THI THỬ HSK</h2>
+        <p class="text-muted">Làm quen với cấu trúc đề thi thực tế và đánh giá trình độ của bạn</p>
+    </div>
+
+    <div class="row">
+        {% for exam in exams %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4" style="transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="card-body p-4">
+                    <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill">HSK {{ exam.hsk_level }}</span>
+                    <h5 class="card-title fw-bold text-dark mb-3">{{ exam.title }}</h5>
+                    
+                    <div class="d-flex justify-content-between text-muted small mb-4">
+                        <span><i class="fas fa-clock text-warning"></i> {{ exam.duration_minutes }} phút</span>
+                        <span><i class="fas fa-file-alt text-primary"></i> 40 Câu hỏi</span>
+                    </div>
+                    
+                    <a href="{% url 'take_exam' exam.id %}" class="btn btn-outline-danger w-100 fw-bold rounded-pill">VÀO THI NGAY</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted py-5">
+            <h5 class="fw-light">Hiện tại chưa có đề thi nào được mở. Vui lòng quay lại sau!</h5>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

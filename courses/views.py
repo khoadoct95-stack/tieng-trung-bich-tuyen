@@ -208,3 +208,9 @@ def take_exam(request, exam_id):
         'exam': exam,
         'questions': questions
     })
+
+# Hàm hiển thị danh sách các đề thi
+def exam_list(request):
+    # Lấy tất cả đề thi, sắp xếp theo đề mới nhất lên đầu
+    exams = Exam.objects.all().order_by('-created_at')
+    return render(request, 'courses/exam_list.html', {'exams': exams})

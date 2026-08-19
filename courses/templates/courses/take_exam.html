@@ -377,72 +377,38 @@
 
 {% block extra_js %}
 <script>
-    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
-
     function scrollToQ(qNumber) {
         const el = document.getElementById('q' + qNumber);
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    let timeInSeconds = {{ exam.duration_minutes }} * 60;
-    function startTimer() {
-        let display = document.getElementById('countdown');
-        let timer = setInterval(function () {
-            let minutes = parseInt(timeInSeconds / 60, 10);
-            let seconds = parseInt(timeInSeconds % 60, 10);
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-            display.textContent = minutes + ":" + seconds;
-
-            if (--timeInSeconds < 0) {
-                clearInterval(timer);
-                alert("⏳ Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
-                document.getElementById('exam-form').submit();
-            }
-        }, 1000);
     }
 
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
         sharedTexts.forEach(function(el) {
             let text = el.innerText || el.textContent;
-            let regex = /([A-F])\s+(.*?)(?=[A-F]\s+|$)/g;
+            text = text.trim();
+            
+            // Regex siêu mạnh: Kháng được mọi lỗi nhập liệu (Alt+Enter, viết dính chùm...)
+            let regex = /(?:^|\s)([A-F])[.、\s]*([\s\S]*?)(?=\s+[A-F][.、\s]*|$)/g;
             let match;
             let html = '<div class="shared-options-grid">';
             let found = false;
             
             while ((match = regex.exec(text)) !== null) {
                 found = true;
-                html += `
-                    <div class="shared-opt-item">
-                        <div class="shared-opt-letter">${match[1]}</div>
-                        <div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${match[2].trim()}</div>
-                    </div>
-                `;
+                let letter = match[1];
+                let content = match[2].trim();
+                html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${content}</div></div>`;
             }
             html += '</div>';
             
-            if (found) {
-                el.insertAdjacentHTML('afterend', html);
-            } else {
-                el.style.display = 'block';
-                el.classList.add('chinese-text', 'mb-2');
+            if (found) { 
+                el.insertAdjacentHTML('afterend', html); 
+            } else { 
+                el.style.display = 'block'; 
+                el.classList.add('chinese-text', 'mb-2'); 
             }
         });
     });
-
-    window.onload = startTimer;
-
-    function submitExam() {
-        let totalDone = document.querySelectorAll('.grid-item.done').length;
-        let totalQ = {{ questions.count }};
-        if (totalDone < totalQ) {
-            let missing = totalQ - totalDone;
-            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) return;
-        } else {
-            if (!confirm("✅ Xác nhận nộp bài?")) return;
-        }
-        document.getElementById('exam-form').submit();
-    }
 </script>
 {% endblock %}

@@ -3,13 +3,13 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<!-- Font chữ hiện đại, mềm mại cho Tiếng Việt và Tiếng Trung -->
+<!-- Font chữ hiện đại, mềm mại -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
     :root {
-        --primary-color: #9B1C1C; /* Đỏ sang trọng từ trang chủ của bạn */
+        --primary-color: #9B1C1C;
         --bg-color: #F8FAFC; 
         --card-bg: #FFFFFF;
         --border-color: #E2E8F0;
@@ -17,225 +17,97 @@
         --text-muted: #64748B;
     }
 
-    body {
-        font-family: 'Nunito', sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-main);
-    }
+    body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
 
-    /* Font chữ Hán to, rõ, chuẩn mực */
+    /* TEXT CHUẨN (Giữ nguyên khoảng trắng) */
     .chinese-text {
         font-family: 'Noto Sans SC', sans-serif;
         font-size: 1.35rem;
         color: #0f172a;
         line-height: 1.7;
-        white-space: pre-wrap; /* Ép web giữ nguyên mọi khoảng trắng bạn gõ */
+        white-space: pre-wrap; 
     }
 
     .pinyin-text {
         font-size: 1.1rem;
         color: #3b82f6;
         margin-bottom: 3px;
-        white-space: pre-wrap; /* Ép web giữ nguyên mọi khoảng trắng bạn gõ */
+        white-space: pre-wrap; 
     }
 
     .exam-container { max-width: 1300px; margin: 0 auto; padding: 30px 15px; }
 
-    /* Thiết kế Thẻ Câu Hỏi */
     .q-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        transition: border-color 0.3s ease;
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 30px; margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); transition: border-color 0.3s ease;
     }
     .q-card:hover { border-color: #cbd5e1; }
 
-    /* Đưa số câu hỏi và nội dung nằm ngang (Giải quyết câu 36-40) */
-    .q-header-inline {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
+    .q-header-inline { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
     .q-number-badge {
-        flex-shrink: 0;
-        background-color: var(--primary-color);
-        color: white;
-        font-weight: 700;
-        font-size: 1.05rem;
-        padding: 5px 14px;
-        border-radius: 20px;
-        margin-top: 4px;
+        flex-shrink: 0; background-color: var(--primary-color); color: white;
+        font-weight: 700; font-size: 1.05rem; padding: 5px 14px; border-radius: 20px; margin-top: 4px;
     }
 
-    /* KHU VỰC RỔ ĐÁP ÁN (Cho câu 11-15, 21-25, 26-30, 31-35) */
+    /* 1. KHU VỰC RỔ ĐÁP ÁN - GHIM STICKY & KÍNH MỜ */
     .shared-pool {
-        background: #EFF6FF;
-        border-left: 4px solid #3B82F6;
-        padding: 25px;
-        border-radius: 8px;
+        position: sticky;
+        top: 15px;
+        z-index: 99;
+        background: rgba(239, 246, 255, 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        max-height: 40vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #bfdbfe;
+        padding: 20px 25px;
+        border-radius: 12px;
         margin-bottom: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
+    .shared-pool::-webkit-scrollbar { width: 6px; }
+    .shared-pool::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
     .shared-pool img { max-width: 100%; border-radius: 6px; mix-blend-mode: multiply;}
 
-    /* Nút chọn (A, B, C) */
-    .opt-radio { display: none; }
-    .opt-label {
-        display: flex;
-        align-items: center;
-        padding: 15px 20px;
-        border: 2px solid var(--border-color);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: #fff;
-        height: 100%;
-    }
+    /* Rổ đáp án Text -> Grid */
+    .shared-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .shared-opt-item { background: #ffffff; border: 1px solid #cbd5e1; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .shared-opt-letter { font-size: 1.15rem; font-weight: 800; color: var(--primary-color); background: #FEF2F2; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; margin-right: 12px; }
+
+    /* Nút lựa chọn cơ bản */
+    .opt-radio, .circle-radio { display: none; }
+    .opt-label { display: flex; align-items: center; padding: 15px 20px; border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; background: #fff; height: 100%; }
     .opt-label:hover { border-color: #94A3B8; background: #F1F5F9; }
-    .opt-radio:checked + .opt-label {
-        border-color: var(--primary-color);
-        background: #FEF2F2;
-        box-shadow: inset 0 0 0 1px var(--primary-color);
-    }
-
-    /* Nút Trắc nghiệm dạng Nối (A-F) */
-    .circle-radio { display: none; }
-    .circle-label {
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        width: 45px; height: 45px;
-        border: 2px solid var(--border-color);
-        border-radius: 50%;
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 1.15rem;
-        color: var(--text-muted);
-        transition: all 0.2s ease;
-        margin: 0 10px 10px 0;
-        background: #fff;
-    }
+    .opt-radio:checked + .opt-label { border-color: var(--primary-color); background: #FEF2F2; box-shadow: inset 0 0 0 1px var(--primary-color); }
+    
+    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 45px; height: 45px; border: 2px solid var(--border-color); border-radius: 50%; cursor: pointer; font-weight: 700; font-size: 1.15rem; color: var(--text-muted); transition: all 0.2s ease; margin: 0 10px 10px 0; background: #fff; }
     .circle-label:hover { border-color: #94A3B8; background: #F1F5F9; color: var(--text-main); }
-    .circle-radio:checked + .circle-label {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-        transform: scale(1.08);
-    }
+    .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.08); }
 
-    /* Cột Panel bên phải */
+    /* 2. KỸ THUẬT AUTO-CROP: CHIA 1 ẢNH THÀNH 3 NÚT BẤM (Cho toàn bộ các ảnh) */
+    .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 3px solid transparent; border-radius: 12px; transition: all 0.2s ease; padding: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-3px); }
+    .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: 0 5px 15px rgba(155, 28, 28, 0.2); }
+    
+    .crop-window { width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 8px; background-color: #f8fafc; }
+    .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; }
+    
+    /* Dịch chuyển ảnh 3 phần */
+    .show-part-A img { left: 0%; }
+    .show-part-B img { left: -100%; }
+    .show-part-C img { left: -200%; }
+
+    /* Bảng tiến độ bên phải */
     .sticky-sidebar { position: sticky; top: 25px; }
-    .panel-box {
-        background: #fff;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-    }
-
-    /* Đồng hồ đếm ngược */
-    .timer-display {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: var(--primary-color);
-        text-align: center;
-        font-family: 'Courier New', Courier, monospace;
-        letter-spacing: 2px;
-        line-height: 1;
-    }
-
-    /* Bảng Lưới tiến độ */
-    .grid-progress {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-    }
-    .grid-item {
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: var(--text-muted);
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
+    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
+    .timer-display { font-size: 2.8rem; font-weight: 800; color: var(--primary-color); text-align: center; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }
+    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 700; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; }
     .grid-item:hover { background: #E2E8F0; }
-    .grid-item.done {
-        background: #10B981; /* Đổi màu xanh lá khi đã làm */
-        border-color: #10B981;
-        color: white;
-    }
-    
-    .btn-submit {
-        background: var(--primary-color);
-        color: white;
-        font-weight: 700;
-        border-radius: 30px;
-        padding: 14px;
-        font-size: 1.15rem;
-        border: none;
-        transition: transform 0.2s;
-    }
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(155, 28, 28, 0.35);
-        color: white;
-    }
-    /* THIẾT KẾ RỔ ĐÁP ÁN DẠNG LƯỚI CARD */
-    .shared-options-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-    }
-    
-    .shared-opt-item {
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
-        padding: 12px 16px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        transition: all 0.2s;
-    }
-    
-    .shared-opt-item:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 8px rgba(155, 28, 28, 0.1);
-        transform: translateY(-2px);
-    }
-    
-    .shared-opt-letter {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: var(--primary-color);
-        background: #FEF2F2;
-        width: 38px;
-        height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        flex-shrink: 0;
-        margin-right: 12px;
-    }
-    
-    .shared-opt-text {
-        font-family: 'Noto Sans SC', sans-serif;
-        font-size: 1.2rem;
-        color: #1e293b;
-    }
+    .grid-item.done { background: #10B981; border-color: #10B981; color: white; }
+    .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 30px; padding: 14px; font-size: 1.15rem; border: none; transition: transform 0.2s; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(155, 28, 28, 0.35); color: white; }
 </style>
 {% endblock %}
 
@@ -254,15 +126,15 @@
 
                 {% for q in questions %}
                     
-                    <!-- 1. HIỂN THỊ RỔ ĐÁP ÁN DÙNG CHUNG (Cho câu 11, 21, 26, 31) -->
+                    <!-- 1. HIỂN THỊ RỔ ĐÁP ÁN DÙNG CHUNG (Ghim nổi lên trên) -->
                     {% if q.question_number == 11 or q.question_number == 21 or q.question_number == 26 or q.question_number == 31 %}
                         {% if q.image or q.passage_text %}
                             <div class="shared-pool">
                                 <h5 class="fw-bold mb-2" style="color: #1E3A8A;"><i class="fas fa-layer-group"></i> Rổ đáp án cho Nhóm câu {{ q.question_group }}</h5>
-                                <p class="small text-muted mb-3">Vui lòng đọc/xem các đáp án (A-F) dưới đây để trả lời cho các câu bên dưới:</p>
+                                <p class="small text-muted mb-3">Đọc hoặc xem các đáp án (A-F) dưới đây để trả lời cho các câu bên dưới:</p>
                                 
                                 {% if q.passage_text %}
-                                <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                    <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
                                 {% endif %}
                                 {% if q.image %}
                                     <img src="{{ q.image.url }}" alt="Shared Options" class="mt-2">
@@ -273,41 +145,27 @@
 
                     <!-- 2. THẺ CÂU HỎI TỪNG CÂU -->
                     <div class="q-card" id="q{{ q.question_number }}">
-                        
-                        <!-- Số câu và Nội dung nằm ngang hàng -->
                         <div class="q-header-inline">
                             <div class="q-number-badge">Câu {{ q.question_number }}</div>
-                            
                             <div class="q-content-area w-100">
-    <!-- Đoạn văn riêng (VD: Câu 36-40) -->
-    {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-        <!-- Thêm hiển thị Pinyin đoạn văn bị thiếu -->
-        {% if q.passage_pinyin %}
-            <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
-        {% endif %}
-        <!-- Thêm đường kẻ mỏng ở dưới để phân cách đoạn văn và câu hỏi -->
-        <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
-    {% endif %}
-    
-    <!-- Nội dung câu hỏi (kể cả hội thoại VD: Câu 35) -->
-    {% if q.content_pinyin %}
-        <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
-    {% endif %}
-    {% if q.content %}
-        <div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>
-    {% endif %}
-</div>
+                                {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
+                                    {% if q.passage_pinyin %}
+                                        <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
+                                    {% endif %}
+                                    <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
+                                {% endif %}
+                                
+                                {% if q.content_pinyin %}
+                                    <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
+                                {% endif %}
+                                {% if q.content %}
+                                    <div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
-                        <!-- Ảnh riêng của từng câu -->
-                        {% if q.image and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                            <div class="mb-4">
-                                <img src="{{ q.image.url }}" alt="Question Image" style="max-height: 220px; border-radius: 8px;">
-                            </div>
-                        {% endif %}
-
-                        <!-- KHU VỰC LỰA CHỌN ĐÁP ÁN -->
-                        <div>
+                        <!-- 3. KHU VỰC LỰA CHỌN ĐÁP ÁN -->
+                        <div class="mt-4">
                             {% if q.question_group in '11-15 21-25 26-30 31-35' %}
                                 <!-- Form đáp án dạng Nối A-F -->
                                 <p class="text-muted small fw-bold mb-3">Chọn 1 đáp án (A-F):</p>
@@ -317,48 +175,96 @@
                                         <label class="circle-label shadow-sm" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
                                     {% endfor %}
                                 </div>
+                            
                             {% else %}
-                                <!-- Form đáp án dạng A, B, C bình thường -->
-                                <div class="row g-3">
-                                    {% if q.option_a or q.option_a_pinyin %}
-                                    <div class="col-md-4">
-                                        <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                        <label class="opt-label shadow-sm" for="q{{ q.id }}_A">
-                                            <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">A.</span>
-                                            <div>
-                                                {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
-                                                <div class="chinese-text">{{ q.option_a }}</div>
-                                            </div>
-                                        </label>
+                                <!-- NẾU CÓ ẢNH RIÊNG CỦA CÂU ĐÓ -> TỰ ĐỘNG CHIA 3 NÚT A, B, C -->
+                                {% if q.image %}
+                                    <p class="text-muted small fw-bold mb-3"><i class="fas fa-mouse-pointer"></i> Nhấp chọn trực tiếp vào hình ảnh đáp án bên dưới:</p>
+                                    <div class="row g-3">
+                                        <div class="col-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="auto-crop-btn" for="q{{ q.id }}_A">
+                                                <div class="crop-window show-part-A"><img src="{{ q.image.url }}" alt="A"></div>
+                                                <div class="text-center mt-2 fw-bold text-dark fs-5">A</div>
+                                                {% if q.option_a or q.option_a_pinyin %}
+                                                    <div class="text-center mt-1">
+                                                        {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                        {% if q.option_a %}<div class="chinese-text" style="font-size: 1.1rem;">{{ q.option_a }}</div>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="auto-crop-btn" for="q{{ q.id }}_B">
+                                                <div class="crop-window show-part-B"><img src="{{ q.image.url }}" alt="B"></div>
+                                                <div class="text-center mt-2 fw-bold text-dark fs-5">B</div>
+                                                {% if q.option_b or q.option_b_pinyin %}
+                                                    <div class="text-center mt-1">
+                                                        {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                        {% if q.option_b %}<div class="chinese-text" style="font-size: 1.1rem;">{{ q.option_b }}</div>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="auto-crop-btn" for="q{{ q.id }}_C">
+                                                <div class="crop-window show-part-C"><img src="{{ q.image.url }}" alt="C"></div>
+                                                <div class="text-center mt-2 fw-bold text-dark fs-5">C</div>
+                                                {% if q.option_c or q.option_c_pinyin %}
+                                                    <div class="text-center mt-1">
+                                                        {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                        {% if q.option_c %}<div class="chinese-text" style="font-size: 1.1rem;">{{ q.option_c }}</div>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </label>
+                                        </div>
                                     </div>
-                                    {% endif %}
-                                    
-                                    {% if q.option_b or q.option_b_pinyin %}
-                                    <div class="col-md-4">
-                                        <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                        <label class="opt-label shadow-sm" for="q{{ q.id }}_B">
-                                            <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">B.</span>
-                                            <div>
-                                                {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
-                                                <div class="chinese-text">{{ q.option_b }}</div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    {% endif %}
+                                
+                                <!-- NẾU CHỈ CÓ TEXT (Không có ảnh) -> HIỂN THỊ NÚT BẤM BÌNH THƯỜNG -->
+                                {% else %}
+                                    <div class="row g-3">
+                                        {% if q.option_a or q.option_a_pinyin %}
+                                        <div class="col-md-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="opt-label shadow-sm" for="q{{ q.id }}_A_txt">
+                                                <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">A.</span>
+                                                <div>
+                                                    {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                    <div class="chinese-text">{{ q.option_a }}</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if q.option_b or q.option_b_pinyin %}
+                                        <div class="col-md-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="opt-label shadow-sm" for="q{{ q.id }}_B_txt">
+                                                <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">B.</span>
+                                                <div>
+                                                    {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                    <div class="chinese-text">{{ q.option_b }}</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        {% endif %}
 
-                                    {% if q.option_c or q.option_c_pinyin %}
-                                    <div class="col-md-4">
-                                        <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                        <label class="opt-label shadow-sm" for="q{{ q.id }}_C">
-                                            <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">C.</span>
-                                            <div>
-                                                {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
-                                                <div class="chinese-text">{{ q.option_c }}</div>
-                                            </div>
-                                        </label>
+                                        {% if q.option_c or q.option_c_pinyin %}
+                                        <div class="col-md-4">
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                            <label class="opt-label shadow-sm" for="q{{ q.id }}_C_txt">
+                                                <span class="fw-bold fs-5 me-3" style="color: var(--primary-color);">C.</span>
+                                                <div>
+                                                    {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                    <div class="chinese-text">{{ q.option_c }}</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    {% endif %}
-                                </div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -369,7 +275,6 @@
         <!-- CỘT PHẢI: ĐIỀU KHIỂN & LƯỚI TIẾN ĐỘ -->
         <div class="col-lg-4">
             <div class="sticky-sidebar">
-                
                 <!-- Đồng hồ -->
                 <div class="panel-box text-center">
                     <p class="text-uppercase fw-bold text-muted mb-2 small">Thời gian còn lại</p>
@@ -386,7 +291,7 @@
                 </div>
                 {% endif %}
 
-                <!-- Lưới tiến độ thông minh -->
+                <!-- Lưới tiến độ -->
                 <div class="panel-box">
                     <p class="fw-bold mb-2" style="font-size: 1.1rem;"><i class="fas fa-th-large" style="color: var(--primary-color);"></i> Bảng tiến độ (40 Câu)</p>
                     <p class="small text-muted mb-4">Nhấp vào ô số để cuộn đến câu hỏi tương ứng.</p>
@@ -403,7 +308,6 @@
                         <i class="fas fa-paper-plane me-2"></i> NỘP BÀI THI
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -412,27 +316,23 @@
 
 {% block extra_js %}
 <script>
-    // 1. Tự đổi màu xanh khi đã chọn đáp án
-    function markDone(qNumber) {
-        document.getElementById('grid-btn-' + qNumber).classList.add('done');
-    }
+    // 1. Tự đổi màu lưới
+    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
 
-    // 2. Cuộn mượt mà đến câu hỏi (Có trừ hao khoảng cách Menu)
+    // 2. Cuộn câu hỏi
     function scrollToQ(qNumber) {
         const el = document.getElementById('q' + qNumber);
         const y = el.getBoundingClientRect().top + window.scrollY - 100;
         window.scrollTo({top: y, behavior: 'smooth'});
     }
 
-    // 3. Hệ thống đếm ngược thời gian
+    // 3. Hệ thống đếm ngược
     let timeInSeconds = {{ exam.duration_minutes }} * 60;
-    
     function startTimer() {
         let display = document.getElementById('countdown');
         let timer = setInterval(function () {
             let minutes = parseInt(timeInSeconds / 60, 10);
             let seconds = parseInt(timeInSeconds % 60, 10);
-
             minutes = minutes < 10 ? "0" + minutes : minutes;
             seconds = seconds < 10 ? "0" + seconds : seconds;
             display.textContent = minutes + ":" + seconds;
@@ -445,33 +345,11 @@
         }, 1000);
     }
 
-    window.onload = startTimer;
-
-    // 4. Logic thông minh khi bấm Nộp Bài
-    function submitExam() {
-        let totalDone = document.querySelectorAll('.grid-item.done').length;
-        let totalQ = {{ questions.count }};
-        
-        if (totalDone < totalQ) {
-            let missing = totalQ - totalDone;
-            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm (các ô màu trắng). Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) {
-                return; // Hủy nộp nếu bấm Cancel
-            }
-        } else {
-            if (!confirm("✅ Bạn đã hoàn thành tất cả câu hỏi. Xác nhận nộp bài?")) {
-                return;
-            }
-        }
-        document.getElementById('exam-form').submit();
-    }
-    // 5. TỰ ĐỘNG LÀM ĐẸP RỔ ĐÁP ÁN (A-F) THÀNH DẠNG GRID
+    // 4. BIẾN ĐỔI TEXT THÀNH BẢNG GRID CHO RỔ ĐÁP ÁN
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
-        
         sharedTexts.forEach(function(el) {
             let text = el.innerText || el.textContent;
-            
-            // Tìm và tách các đáp án A, B, C... một cách thông minh
             let regex = /([A-F])\s+(.*?)(?=[A-F]\s+|$)/g;
             let match;
             let html = '<div class="shared-options-grid">';
@@ -482,21 +360,34 @@
                 html += `
                     <div class="shared-opt-item">
                         <div class="shared-opt-letter">${match[1]}</div>
-                        <div class="shared-opt-text">${match[2].trim()}</div>
+                        <div class="shared-opt-text chinese-text" style="font-size: 1.15rem; line-height: 1.3;">${match[2].trim()}</div>
                     </div>
                 `;
             }
             html += '</div>';
             
-            // Nếu tìm thấy form đáp án, hiển thị Grid lên
             if (found) {
                 el.insertAdjacentHTML('afterend', html);
             } else {
-                // Nếu là đoạn văn bình thường, hiện lại như cũ
                 el.style.display = 'block';
                 el.classList.add('chinese-text', 'mb-2');
             }
         });
     });
+
+    window.onload = startTimer;
+
+    // 5. Logic nộp bài
+    function submitExam() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = {{ questions.count }};
+        if (totalDone < totalQ) {
+            let missing = totalQ - totalDone;
+            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) return;
+        } else {
+            if (!confirm("✅ Xác nhận nộp bài?")) return;
+        }
+        document.getElementById('exam-form').submit();
+    }
 </script>
 {% endblock %}

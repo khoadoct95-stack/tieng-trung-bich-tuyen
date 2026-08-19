@@ -91,6 +91,52 @@
         position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; 
         image-rendering: -webkit-optimize-contrast; 
     }
+    /* 3. AUTO-CROP CHO RỔ ĐÁP ÁN (CHIA ẢNH 2x3 THÀNH 6 PHẦN TRẢI NGANG) */
+    .shared-img-grid { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); /* Trải thành 3 cột ngang cho đỡ tốn diện tích dọc */
+        gap: 15px; 
+        margin-top: 15px; 
+    }
+    
+    .shared-crop-window {
+        width: 100%;
+        padding-top: 75%; /* Tỉ lệ khung ảnh con */
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #fff;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .shared-crop-window:hover { transform: scale(1.03); border-color: #93c5fd; }
+    
+    .crop-badge {
+        position: absolute; top: 8px; left: 8px;
+        background: var(--primary-color); color: white;
+        font-weight: 900; font-size: 1.1rem;
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    /* Phóng to ảnh gấp 2 lần chiều ngang và 3 lần chiều dọc */
+    .shared-crop-window img { 
+        position: absolute; 
+        width: 200%; height: 300%; 
+        max-width: none !important; object-fit: fill; 
+        image-rendering: -webkit-optimize-contrast; 
+    }
+    
+    /* Dịch chuyển ảnh để lấy đúng góc phần tư */
+    .pos-A img { top: 0; left: 0; }
+    .pos-B img { top: 0; left: -100%; }
+    .pos-C img { top: -100%; left: 0; }
+    .pos-D img { top: -100%; left: -100%; }
+    .pos-E img { top: -200%; left: 0; }
+    .pos-F img { top: -200%; left: -100%; }
     
     .show-part-A img { left: 0%; }
     .show-part-B img { left: -100%; }
@@ -140,8 +186,34 @@
                                             <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
                                         {% endif %}
                                         
+                                        <!-- Xẻ ảnh 2x3 thành lưới 6 ô trải ngang -->
                                         {% if q.image %}
-                                            <img src="{{ q.image.url }}" alt="Shared Options" class="img-frame">
+                                            <div class="shared-img-grid mt-3">
+                                                <div class="shared-crop-window pos-A">
+                                                    <span class="crop-badge">A</span>
+                                                    <img src="{{ q.image.url }}" alt="A">
+                                                </div>
+                                                <div class="shared-crop-window pos-B">
+                                                    <span class="crop-badge">B</span>
+                                                    <img src="{{ q.image.url }}" alt="B">
+                                                </div>
+                                                <div class="shared-crop-window pos-C">
+                                                    <span class="crop-badge">C</span>
+                                                    <img src="{{ q.image.url }}" alt="C">
+                                                </div>
+                                                <div class="shared-crop-window pos-D">
+                                                    <span class="crop-badge">D</span>
+                                                    <img src="{{ q.image.url }}" alt="D">
+                                                </div>
+                                                <div class="shared-crop-window pos-E">
+                                                    <span class="crop-badge">E</span>
+                                                    <img src="{{ q.image.url }}" alt="E">
+                                                </div>
+                                                <div class="shared-crop-window pos-F">
+                                                    <span class="crop-badge">F</span>
+                                                    <img src="{{ q.image.url }}" alt="F">
+                                                </div>
+                                            </div>
                                         {% endif %}
                                     </div>
                                 {% endif %}

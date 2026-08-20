@@ -154,6 +154,27 @@ def dashboard_view(request):
         'user_rank': user_rank,
         'active_tab': active_tab,
     }
+
+    # Thêm đoạn code này để tìm cấp độ HSK cao nhất mà User đã THI ĐỖ (>= 120 điểm)
+    highest_hsk = 0
+    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
+    if passed_exams.exists():
+        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
+
+    active_tab = request.GET.get('tab', 'leaderboard')
+
+    context = {
+        'leaderboard': leaderboard,
+        'top_3': top_3,
+        'selected_game': selected_game,
+        'selected_game_name': selected_game_name,
+        'personal_best': personal_best,
+        'user_rank': user_rank,
+        'active_tab': active_tab,
+        
+        # Đưa biến HSK này ra ngoài giao diện
+        'highest_hsk': highest_hsk, 
+    }
     return render(request, 'courses/dashboard.html', context)
 
 @login_required

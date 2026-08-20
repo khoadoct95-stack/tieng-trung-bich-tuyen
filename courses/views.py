@@ -302,23 +302,28 @@ def exam_list(request):
         'level_filter': level_filter
     }
 
-    # --- PHẦN 2: TÍCH HỢP DASHBOARD (Chỉ khi đã đăng nhập) ---
+    # --- PHẦN 2: TÍCH HỢP DASHBOARD & HUY HIỆU (Chỉ khi đã đăng nhập) ---
     if request.user.is_authenticated:
         user_results = ExamResult.objects.filter(user=request.user).order_by('-completed_at')
-        context['total_exams'] = user_results.count()
         
-        # BỘ LỌC ĐIỂM CAO NHẤT THEO TỪNG CẤP ĐỘ
+        # 1. Khai báo các biến đếm trước để dùng chung
+        total_exams = user_results.count()
+        passed_exams = user_results.filter(score__gte=120).count()
+        
+        # 2. Đưa vào context hiển thị ra giao diện
+        context['total_exams'] = total_exams
+        context['passed_exams'] = passed_exams
+        context['recent_results'] = user_results[:5]
+
+        # 3. Tính điểm cao nhất theo từng cấp độ
         highest_scores = {}
         for level in range(1, 7):
             max_score = user_results.filter(exam__hsk_level=level).aggregate(Max('score'))['score__max']
             if max_score is not None:
                 highest_scores[level] = max_score
-        
         context['highest_scores_by_level'] = highest_scores
-        context['passed_exams'] = user_results.filter(score__gte=120).count()
-        context['recent_results'] = user_results[:5]
 
-        # BỘ LỌC HUY HIỆU THÀNH TÍCH
+        # 4. Tính toán Huy hiệu dựa trên các biến đã khai báo
         badges = []
         if total_exams >= 1:
             badges.append({'name': 'Tân binh chăm chỉ', 'icon': 'fa-seedling', 'color': '#10B981', 'desc': 'Hoàn thành bài thi đầu tiên'})
@@ -333,8 +338,6 @@ def exam_list(request):
             badges.append({'name': 'Cao thủ Hán ngữ', 'icon': 'fa-fire', 'color': '#EF4444', 'desc': 'Đạt trên 180 điểm'})
             
         context['badges'] = badges
-        
-        context['highest_scores_by_level'] = highest_scores
 
     return render(request, 'courses/exam_list.html', context)
 

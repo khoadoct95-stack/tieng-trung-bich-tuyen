@@ -46,7 +46,7 @@ class LessonAdmin(admin.ModelAdmin):
         ('Thông tin Bài học', {
             # Giả định tên các cột trong model Lesson của bạn. 
             # (Nếu model Lesson của bạn có tên cột khác, hãy sửa lại cho khớp nhé)
-            'fields': ('curriculum', 'order', 'title_zh', 'title_pinyin', 'title_vi', 'description') 
+            'fields': ('curriculum', 'order', 'title_hanzi', 'title_pinyin', 'title_vietnamese', 'description') 
         }),
         ('Thêm Từ vựng nhanh', {
             'fields': ('bulk_vocab',),

@@ -179,24 +179,46 @@ def dashboard_view(request):
 
 @login_required
 def profile_view(request):
+    # 1. XỬ LÝ CẬP NHẬT TÊN HIỂN THỊ
     if request.method == 'POST':
         display_name = request.POST.get('display_name', '').strip()
         if display_name:
             request.user.first_name = display_name
             request.user.save()
+            # Nếu bạn có sử dụng messages thì bỏ comment dòng dưới
+            # messages.success(request, 'Cập nhật tên hiển thị thành công!')
+            return redirect('profile')
 
-    history_records = GameHistory.objects.filter(user=request.user).order_by('-created_at')
+    # 2. LẤY LỊCH SỬ HOẠT ĐỘNG (10 LẦN GẦN NHẤT)
+    # Lưu ý: Thay 'created_at' bằng tên trường thời gian thực tế trong model GameHistory của bạn
+    try:
+        recent_history = GameHistory.objects.filter(user=request.user).order_by('-id')[:10]
+    except Exception:
+        recent_history = []
+
+    # 3. TÌM KỶ LỤC CÁ NHÂN TỪNG GAME
+    best_quiz_1 = GameHistory.objects.filter(user=request.user, game_type='quiz_1').aggregate(Min('time_taken'))['time_taken__min']
+    best_quiz_2 = GameHistory.objects.filter(user=request.user, game_type='quiz_2').aggregate(Min('time_taken'))['time_taken__min']
+    best_quiz_3 = GameHistory.objects.filter(user=request.user, game_type='quiz_3').aggregate(Min('time_taken'))['time_taken__min']
+    best_quiz_4 = GameHistory.objects.filter(user=request.user, game_type='quiz_4').aggregate(Min('time_taken'))['time_taken__min']
+
+    # 4. TÌM CẤP ĐỘ HSK CAO NHẤT (ĐỂ HIỂN THỊ HUY HIỆU AVATAR)
+    highest_hsk = 0
+    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
+    if passed_exams.exists():
+        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
+
+    # 5. GỬI RA GIAO DIỆN
+    context = {
+        'recent_history': recent_history,
+        'best_quiz_1': best_quiz_1,
+        'best_quiz_2': best_quiz_2,
+        'best_quiz_3': best_quiz_3,
+        'best_quiz_4': best_quiz_4,
+        'highest_hsk': highest_hsk,
+    }
     
-    games = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
-    best_scores = []
-    for code, name in games.items():
-        best = GameHistory.objects.filter(user=request.user, game_type=code).aggregate(b=Min('time_taken'))['b']
-        best_scores.append({'name': name, 'score': best})
-        
-    return render(request, 'courses/profile.html', {
-        'history_records': history_records,
-        'best_scores': best_scores,
-    })
+    return render(request, 'courses/profile.html', context)
 
 # ==========================================
 # 5. WEBHOOK GITHUB (BẢN CHỐNG KẸT LỖI)

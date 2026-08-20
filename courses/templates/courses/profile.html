@@ -1,104 +1,151 @@
 {% extends 'courses/base.html' %}
-{% block title %}Trang cá nhân{% endblock %}
+
+{% block title %}Hồ sơ cá nhân - {{ user.username }}{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    body { background-color: #F8FAFC; font-family: 'Nunito', sans-serif; color: #1e293b; }
+    
+    .card-custom { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; margin-bottom: 20px; }
+    
+    .btn-back { color: #b91c1c; background: #fff; border: 1px solid #fca5a5; border-radius: 6px; padding: 8px 15px; font-weight: 700; text-decoration: none; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+    .btn-back:hover { background: #fef2f2; border-color: #b91c1c; color: #b91c1c; }
+    
+    .profile-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: #b91c1c; margin-top: 15px; margin-bottom: 5px; text-align: center; }
+    .profile-info { text-align: center; color: #64748B; font-size: 0.9rem; margin-bottom: 5px; }
+    
+    .form-control-custom { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 15px; }
+    .btn-update { background: #e11d48; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 800; width: 100%; transition: 0.3s; }
+    .btn-update:hover { background: #be123c; }
+    
+    .record-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
+    .record-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .record-val { background: #e11d48; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; }
+    .record-empty { color: #94a3b8; font-size: 0.9rem; }
+    
+    .table-custom { width: 100%; margin-top: 10px; }
+    .table-custom th { color: #1e293b; font-weight: 800; padding: 15px; border-bottom: 1px solid #e2e8f0; }
+    .table-custom td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: #475569; vertical-align: middle; }
+    
+    .game-tag { padding: 5px 12px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; color: white; }
+    .tag-quiz1 { background: #0ea5e9; }
+    .tag-quiz2 { background: #10b981; }
+    .tag-quiz3 { background: #f59e0b; }
+    .tag-quiz4 { background: #8b5cf6; }
+    
+    .result-val { color: #e11d48; font-weight: 800; font-size: 1.05rem; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
+<div class="container py-4">
+    <a href="{% url 'home' %}" class="btn-back"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
     
-    <!-- NÚT QUAY LẠI TRANG TRƯỚC -->
-    <div class="mb-4">
-        <a href="javascript:history.back()" class="btn btn-white shadow-sm rounded-pill fw-bold px-4 py-2" style="color: #B22222; border: 1px solid #ffcccc;">
-            <span style="font-size: 1.2rem; line-height: 1;">&larr;</span> Quay lại
-        </a>
-    </div>
-
-    <div class="row">
-        <!-- Cột Trái: Thông tin & Đổi tên -->
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm border-0" style="border-radius: 15px;">
-                <div class="card-body text-center p-4">
-                    <div class="bg-light d-inline-flex align-items-center justify-content-center shadow-sm mb-3" style="width: 80px; height: 80px; border-radius: 50%;">
-                        <span style="font-size: 2.5rem;">🎓</span>
+    <div class="row g-4">
+        <!-- CỘT TRÁI: THÔNG TIN & KỶ LỤC -->
+        <div class="col-lg-4">
+            
+            <!-- THẺ THÔNG TIN CÁ NHÂN -->
+            <div class="card-custom">
+                
+                <!-- AVATAR ĐỘNG & HUY HIỆU HSK -->
+                <div style="position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto;">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed={{ user.username }}&backgroundColor=f8fafc" 
+                         alt="Avatar" 
+                         style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid #cbd5e1; background: #fff; padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    
+                    {% if highest_hsk > 0 %}
+                    <div style="position: absolute; bottom: -5px; right: -10px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-size: 0.8rem; font-weight: 900; padding: 4px 10px; border-radius: 15px; border: 2px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.25); text-transform: uppercase;">
+                        HSK {{ highest_hsk }}
                     </div>
-                    <h4 class="fw-bold">{{ user.first_name|default:"Chưa đặt tên" }}</h4>
-                    <p class="text-muted small mb-1">Đăng nhập bằng: {{ user.username }}</p>
-                    <p class="text-muted small">Thành viên từ: {{ user.date_joined|date:"d/m/Y" }}</p>
-                    
-                    <hr>
-                    
-                    <form method="POST" class="text-start">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Tên hiển thị trên web</label>
-                            <input type="text" name="display_name" class="form-control" value="{{ user.first_name }}" placeholder="Nhập tên bạn muốn hiển thị" required>
-                        </div>
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Cập nhật tên</button>
-                    </form>
+                    {% endif %}
+                </div>
+                
+                <h2 class="profile-name">{{ user.first_name|default:user.username }}</h2>
+                <div class="profile-info">Đăng nhập bằng: <strong>{{ user.username }}</strong></div>
+                <div class="profile-info mb-4">Thành viên từ: {{ user.date_joined|date:"d/m/Y" }}</div>
+                
+                <hr style="border-color: #e2e8f0; margin-bottom: 20px;">
+                
+                <form method="POST" action="{% url 'profile' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.9rem;">Tên hiển thị trên web</label>
+                        <input type="text" name="display_name" class="form-control form-control-custom" value="{{ user.first_name|default:user.username }}">
+                    </div>
+                    <button type="submit" class="btn-update">Cập nhật tên</button>
+                </form>
+            </div>
+            
+            <!-- THẺ KỶ LỤC CÁ NHÂN -->
+            <div class="card-custom">
+                <h6 class="fw-bold mb-3" style="color: #1e293b;"><i class="fas fa-trophy text-warning me-2"></i>Kỷ lục của bạn</h6>
+                
+                <div class="record-item">
+                    <span class="text-muted fw-bold">Nối từ</span>
+                    {% if best_quiz_1 %}<span class="record-val">{{ best_quiz_1 }}s</span>{% else %}<span class="record-empty">Chưa chơi</span>{% endif %}
+                </div>
+                <div class="record-item">
+                    <span class="text-muted fw-bold">Lật thẻ</span>
+                    {% if best_quiz_2 %}<span class="record-val">{{ best_quiz_2 }}s</span>{% else %}<span class="record-empty">Chưa chơi</span>{% endif %}
+                </div>
+                <div class="record-item">
+                    <span class="text-muted fw-bold">Viết chữ</span>
+                    {% if best_quiz_3 %}<span class="record-val">{{ best_quiz_3 }}s</span>{% else %}<span class="record-empty">Chưa chơi</span>{% endif %}
+                </div>
+                <div class="record-item">
+                    <span class="text-muted fw-bold">Phát âm</span>
+                    {% if best_quiz_4 %}<span class="record-val">{{ best_quiz_4 }}s</span>{% else %}<span class="record-empty">Chưa chơi</span>{% endif %}
                 </div>
             </div>
             
-            <!-- Thành tích cao nhất -->
-            <div class="card shadow-sm border-0 mt-3" style="border-radius: 15px;">
-                <div class="card-header bg-white fw-bold border-0 pt-3">🏆 Kỷ lục của bạn</div>
-                <ul class="list-group list-group-flush pb-2">
-                    {% for item in best_scores %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 py-2">
-                        {{ item.name }}
-                        {% if item.score %}
-                            <span class="badge bg-danger rounded-pill">{{ item.score }}s</span>
-                        {% else %}
-                            <span class="text-muted small">Chưa chơi</span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
         </div>
-
-        <!-- Cột Phải: Lịch sử hoạt động -->
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
-                <div class="card-header bg-white fw-bold py-3 border-0">
-                    <i class="bi bi-clock-history text-danger me-2"></i>Lịch sử hoạt động gần đây
-                </div>
-                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
+        
+        <!-- CỘT PHẢI: LỊCH SỬ HOẠT ĐỘNG -->
+        <div class="col-lg-8">
+            <div class="card-custom h-100">
+                <h6 class="fw-bold mb-2" style="color: #1e293b;">Lịch sử hoạt động gần đây</h6>
+                
+                {% if recent_history %}
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
                             <tr>
-                                <th class="ps-4">Thời gian</th>
+                                <th>Thời gian</th>
                                 <th>Bài học</th>
                                 <th>Trò chơi</th>
                                 <th class="text-center">Kết quả</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for record in history_records %}
+                            {% for item in recent_history %}
                             <tr>
-                                <td class="ps-4 small text-muted">{{ record.created_at|date:"d/m/Y H:i" }}</td>
-                                <td class="fw-bold">{{ record.lesson.title_vietnamese }}</td>
+                                <!-- Sửa date template filter phù hợp với trường dữ liệu của bạn nếu cần -->
+                                <td class="text-muted" style="font-size: 0.9rem;">{{ item.id }}</td>
+                                <td class="fw-bold" style="color: #1e293b;">{{ item.lesson.title_vietnamese|default:"Xin chào AI Tiểu Ngữ!" }}</td>
                                 <td>
-                                    <!-- HIỂN THỊ TÊN TRÒ CHƠI TIẾNG VIỆT -->
-                                    {% if record.game_type == 'quiz_1' %}
-                                        <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nối từ</span>
-                                    {% elif record.game_type == 'quiz_2' %}
-                                        <span class="badge bg-success text-white rounded-pill px-3 shadow-sm">Lật thẻ</span>
-                                    {% elif record.game_type == 'quiz_3' %}
-                                        <span class="badge bg-warning text-dark rounded-pill px-3 shadow-sm">Viết chữ</span>
-                                    {% elif record.game_type == 'quiz_4' %}
-                                        <span class="badge bg-primary text-white rounded-pill px-3 shadow-sm">Phát âm</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary rounded-pill px-3">{{ record.game_type }}</span>
+                                    {% if item.game_type == 'quiz_1' %}<span class="game-tag tag-quiz1">Nối từ</span>
+                                    {% elif item.game_type == 'quiz_2' %}<span class="game-tag tag-quiz2">Lật thẻ</span>
+                                    {% elif item.game_type == 'quiz_3' %}<span class="game-tag tag-quiz3">Viết chữ</span>
+                                    {% elif item.game_type == 'quiz_4' %}<span class="game-tag tag-quiz4">Phát âm</span>
+                                    {% else %}<span class="game-tag tag-quiz1">Trò chơi</span>
                                     {% endif %}
                                 </td>
-                                <td class="fw-bold text-danger text-center">{{ record.time_taken }}s</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">Bạn chưa tham gia trò chơi nào!</td>
+                                <td class="text-center result-val">{{ item.time_taken }}s</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list mb-3" style="font-size: 3rem; color: #cbd5e1;"></i>
+                    <h5 class="text-muted">Bạn chưa có lịch sử hoạt động nào</h5>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

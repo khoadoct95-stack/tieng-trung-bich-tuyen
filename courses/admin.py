@@ -4,24 +4,88 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
+from django import forms
 import openpyxl
 import zipfile
 import io
 import re
 
-# 1. IMPORT TOÀN BỘ MODEL
+# IMPORT TOÀN BỘ MODEL
 from .models import Exam, ExamQuestion, ExamResult, Curriculum, Lesson, Vocabulary
 
 # ==========================================
-# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH, BÀI HỌC
+# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH
 # ==========================================
 admin.site.register(Curriculum)
-admin.site.register(Lesson)
 admin.site.register(Vocabulary)
+
+# ==========================================
+# KHU VỰC 2: QUẢN LÝ BÀI HỌC (CÓ TÍNH NĂNG DÁN TỪ VỰNG HÀNG LOẠT)
+# ==========================================
+class LessonAdminForm(forms.ModelForm):
+    bulk_vocab = forms.CharField(
+        label="⚡ Dán nhanh nhiều từ vựng (Tự động tách)",
+        widget=forms.Textarea(attrs={
+            'rows': 8, 
+            'placeholder': 'Định dạng: Chữ Hán | Pinyin | Nghĩa (Mỗi từ 1 dòng)\nVí dụ:\n你好 | nǐ hǎo | Xin chào\n谢谢 | xièxie | Cảm ơn'
+        }),
+        required=False,
+        help_text="Mỗi từ vựng 1 dòng. Ngăn cách nhau bằng dấu gạch đứng ( | ) hoặc dấu Tab."
+    )
+
+    class Meta:
+        model = Lesson
+        fields = '__all__'
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    form = LessonAdminForm
+    
+    # Hiển thị các trường trong giao diện Admin
+    fieldsets = (
+        ('Thông tin Bài học', {
+            # Giả định tên các cột trong model Lesson của bạn. 
+            # (Nếu model Lesson của bạn có tên cột khác, hãy sửa lại cho khớp nhé)
+            'fields': ('curriculum', 'order', 'title_zh', 'title_pinyin', 'title_vi', 'description') 
+        }),
+        ('Thêm Từ vựng nhanh', {
+            'fields': ('bulk_vocab',),
+            'classes': ('collapse',), # Làm cho phần này có thể thu gọn lại cho gọn gàng
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        # Lưu đối tượng Lesson trước
+        super().save_model(request, obj, form, change)
+
+        # Lấy dữ liệu từ ô bulk_vocab
+        bulk_text = form.cleaned_data.get('bulk_vocab')
+        
+        if bulk_text:
+            lines = bulk_text.strip().split('\n')
+            count = 0
+            for line in lines:
+                if not line.strip():
+                    continue
+                
+                # Cắt bằng dấu | hoặc Tab
+                parts = line.split('|') if '|' in line else line.split('\t')
+                
+                if len(parts) >= 3:
+                    # Chú ý: Đảm bảo 'chinese', 'pinyin', 'meaning' khớp với models.py của Vocabulary
+                    Vocabulary.objects.create(
+                        lesson=obj,
+                        chinese=parts[0].strip(),
+                        pinyin=parts[1].strip(),
+                        meaning=parts[2].strip()
+                    )
+                    count += 1
+            if count > 0:
+                messages.success(request, f"Đã tự động thêm thành công {count} từ vựng vào bài học này!")
 
 
 # ==========================================
-# KHU VỰC 2: QUẢN LÝ ĐỀ THI HSK
+# KHU VỰC 3: QUẢN LÝ ĐỀ THI HSK
 # ==========================================
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
@@ -29,7 +93,6 @@ class ExamAdmin(admin.ModelAdmin):
     list_filter = ('hsk_level',)
     search_fields = ('title',)
     
-    # Đăng ký các đường dẫn tùy chỉnh trong Admin
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -39,9 +102,7 @@ class ExamAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    # ---------------------------------------------------------
-    # CHỨC NĂNG 1: GẮN ẢNH HÀNG LOẠT TỪ FILE ZIP (TÍNH NĂNG MỚI)
-    # ---------------------------------------------------------
+    # ... (Các hàm bulk_image_upload_view, extract_images_view, import_excel_view của bạn được giữ nguyên y hệt bên dưới)
     def bulk_image_upload_view(self, request):
         if request.method == 'POST':
             exam_id = request.POST.get('exam_id')
@@ -55,28 +116,22 @@ class ExamAdmin(admin.ModelAdmin):
                 exam = Exam.objects.get(id=exam_id)
                 success_count = 0
 
-                # Đọc file ZIP trong bộ nhớ
                 with zipfile.ZipFile(zip_file, 'r') as z:
                     for filename in z.namelist():
-                        # Bỏ qua các thư mục hoặc file ẩn của macOS/Windows
                         if '__MACOSX' in filename or filename.startswith('.'):
                             continue
-
-                        # Dùng Regex tìm các file có dạng q1.jpg, q15.png...
+                        
                         match = re.search(r'q(\d+)\.(jpg|jpeg|png)', filename.lower().split('/')[-1])
                         if match:
-                            q_num = int(match.group(1)) # Lấy số câu hỏi
+                            q_num = int(match.group(1))
                             try:
-                                # Tìm câu hỏi tương ứng trong CSDL
                                 question = ExamQuestion.objects.get(exam=exam, question_number=q_num)
                                 image_data = z.read(filename)
-                                
-                                # Lưu ảnh vào field 'image' của câu hỏi
                                 file_name_to_save = filename.split('/')[-1]
                                 question.image.save(file_name_to_save, ContentFile(image_data), save=True)
                                 success_count += 1
                             except ExamQuestion.DoesNotExist:
-                                pass # Bỏ qua nếu câu hỏi không tồn tại
+                                pass
 
                 messages.success(request, f"Thành công! Đã gắn tự động {success_count} bức ảnh vào đề thi: {exam.title}.")
                 return redirect('/admin/courses/exam/')
@@ -88,9 +143,6 @@ class ExamAdmin(admin.ModelAdmin):
         exams = Exam.objects.all().order_by('-created_at')
         return render(request, 'admin/bulk_upload_images.html', {'exams': exams})
 
-    # ---------------------------------------------------------
-    # CHỨC NĂNG 2: VẮT ẢNH TỪ FILE WORD (.DOCX)
-    # ---------------------------------------------------------
     def extract_images_view(self, request):
         if request.method == 'POST':
             word_file = request.FILES.get('word_file')
@@ -120,9 +172,6 @@ class ExamAdmin(admin.ModelAdmin):
 
         return render(request, 'admin/extract_images.html')
 
-    # ---------------------------------------------------------
-    # CHỨC NĂNG 3: IMPORT DỮ LIỆU ĐỀ THI TỪ FILE EXCEL
-    # ---------------------------------------------------------
     def import_excel_view(self, request):
         if request.method == 'POST':
             excel_file = request.FILES.get('excel_file')
@@ -149,7 +198,6 @@ class ExamAdmin(admin.ModelAdmin):
                     
                     q_num, section, group, p_text, p_pinyin, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:14]
                     
-                    # An toàn xử lý đáp án bị rỗng
                     correct_ans = str(correct).strip().upper() if correct else ""
 
                     ExamQuestion.objects.create(
@@ -181,7 +229,7 @@ class ExamAdmin(admin.ModelAdmin):
 
 
 # ==========================================
-# KHU VỰC 3: QUẢN LÝ CÂU HỎI VÀ KẾT QUẢ
+# KHU VỰC 4: QUẢN LÝ CÂU HỎI VÀ KẾT QUẢ ĐỀ THI
 # ==========================================
 @admin.register(ExamQuestion)
 class ExamQuestionAdmin(admin.ModelAdmin):

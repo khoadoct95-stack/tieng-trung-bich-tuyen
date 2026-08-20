@@ -5,88 +5,60 @@
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Tích hợp thư viện Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
     body { background-color: #F1F5F9; font-family: 'Nunito', sans-serif; color: #1e293b; }
-    
     .page-header { margin-bottom: 2rem; text-align: center; }
     .page-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 900; color: #9B1C1C; text-transform: uppercase; letter-spacing: 1px; }
     .page-subtitle { color: #475569; font-size: 1.15rem; margin-top: 5px; font-weight: 600; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 25px; border-left: 6px solid #9B1C1C; padding-left: 15px; }
 
-    /* KHỐI NỔI 3D CHUNG */
-    .card-elevated {
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); 
-        border: 1px solid #cbd5e1; 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .card-elevated:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); 
-        border-color: #94a3b8;
-    }
+    .card-elevated { background: #ffffff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid #cbd5e1; transition: all 0.3s ease; }
+    .card-elevated:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border-color: #94a3b8; }
 
-    /* --- DASHBOARD THỐNG KÊ --- */
     .stat-card { display: flex; align-items: center; gap: 20px; padding: 25px; height: 100%; }
-    .stat-icon { width: 65px; height: 65px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .stat-icon { width: 65px; height: 65px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
     .icon-blue { background: #E0F2FE; color: #0284C7; border: 1px solid #bae6fd; }
     .icon-green { background: #DCFCE7; color: #16A34A; border: 1px solid #bbf7d0; }
     .icon-gold { background: #FEF9C3; color: #D97706; border: 1px solid #fef08a; }
 
-    /* --- BỘ LỌC TÌM KIẾM --- */
     .search-box { position: relative; margin-bottom: 25px; }
-    .search-box input {
-        height: 60px; padding-left: 55px; border-radius: 30px; border: 2px solid #cbd5e1;
-        font-size: 1.1rem; font-weight: 700; color: #1e293b; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-    }
+    .search-box input { height: 60px; padding-left: 55px; border-radius: 30px; border: 2px solid #cbd5e1; font-size: 1.1rem; font-weight: 700; color: #1e293b; transition: all 0.3s; }
     .search-box input:focus { border-color: #9B1C1C; box-shadow: 0 0 0 5px rgba(155, 28, 28, 0.15); outline: none; }
     .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: #64748B; font-size: 1.3rem; }
-    .btn-search {
-        position: absolute; right: 8px; top: 8px; bottom: 8px; border-radius: 25px;
-        background: #9B1C1C; color: white; font-weight: 800; padding: 0 30px; border: none; transition: all 0.3s;
-    }
-    .btn-search:hover { background: #7f1717; transform: scale(1.03); box-shadow: 0 4px 15px rgba(155,28,28,0.3); }
+    .btn-search { position: absolute; right: 8px; top: 8px; bottom: 8px; border-radius: 25px; background: #9B1C1C; color: white; font-weight: 800; padding: 0 30px; border: none; }
+    .btn-search:hover { background: #7f1717; transform: scale(1.03); }
     
     .level-filters { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .btn-level {
-        border-radius: 20px; padding: 10px 25px; font-weight: 800; font-size: 1rem;
-        border: 2px solid #cbd5e1; background: #f8fafc; color: #475569; transition: all 0.2s ease; cursor: pointer;
-    }
+    .btn-level { border-radius: 20px; padding: 10px 25px; font-weight: 800; font-size: 1rem; border: 2px solid #cbd5e1; background: #f8fafc; color: #475569; transition: all 0.2s; cursor: pointer; }
     .btn-level:hover { border-color: #94a3b8; background: #e2e8f0; color: #1e293b; }
     .btn-level.active { background: #9B1C1C; border-color: #9B1C1C; color: white; box-shadow: 0 6px 15px rgba(155, 28, 28, 0.25); }
 
-    /* --- THẺ ĐỀ THI --- */
     .exam-card { padding: 30px; display: flex; flex-direction: column; }
     .exam-badge { background: #e11d48; color: white; padding: 8px 18px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; display: inline-block; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3); }
-    .exam-title { font-weight: 900; color: #0f172a; font-size: 1.5rem; margin-bottom: 25px; font-family: 'Playfair Display', serif; }
-    .exam-meta { display: flex; justify-content: space-between; color: #475569; font-weight: 700; font-size: 1.05rem; margin-bottom: 30px; }
-    .btn-take-exam {
-        border: 3px solid #9B1C1C; color: #9B1C1C; border-radius: 30px; font-weight: 900; padding: 14px; font-size: 1.1rem;
-        text-align: center; display: block; text-decoration: none; transition: all 0.3s; margin-top: auto; text-transform: uppercase;
-    }
+    .record-badge { background: #fef08a; color: #b45309; padding: 6px 15px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; border: 1px solid #fde047; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px;}
+    .exam-title { font-weight: 900; color: #0f172a; font-size: 1.5rem; margin-bottom: 15px; font-family: 'Playfair Display', serif; }
+    .exam-meta { display: flex; justify-content: space-between; color: #475569; font-weight: 700; font-size: 1.05rem; margin-bottom: 25px; }
+    .btn-take-exam { border: 3px solid #9B1C1C; color: #9B1C1C; border-radius: 30px; font-weight: 900; padding: 14px; font-size: 1.1rem; text-align: center; display: block; text-decoration: none; transition: all 0.3s; margin-top: auto; text-transform: uppercase; }
     .btn-take-exam:hover { background: #9B1C1C; color: white; box-shadow: 0 8px 20px rgba(155, 28, 28, 0.25); }
 
-    /* --- BẢNG LỊCH SỬ --- */
     .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
     .table-custom th { color: #475569; font-weight: 800; text-transform: uppercase; font-size: 0.9rem; padding: 10px 20px; border-bottom: 2px solid #cbd5e1; }
     .table-custom td { padding: 18px 20px; background: #f8fafc; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; vertical-align: middle; }
     .table-custom tr td:first-child { border-left: 1px solid #cbd5e1; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
     .table-custom tr td:last-child { border-right: 1px solid #cbd5e1; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
     
-    .status-badge { padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 900; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .status-badge { padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 900; }
     .bg-passed { background: #DCFCE7; color: #16A34A; border: 1px solid #bbf7d0; }
     .bg-failed { background: #FEE2E2; color: #EF4444; border: 1px solid #fecaca; }
-    
-    .btn-review {
-        background: white; color: #0ea5e9; border: 2px solid #0ea5e9;
-        padding: 8px 18px; border-radius: 25px; font-weight: 800;
-        text-decoration: none; font-size: 0.95rem; transition: all 0.2s; display: inline-block;
-    }
+    .btn-review { background: white; color: #0ea5e9; border: 2px solid #0ea5e9; padding: 8px 18px; border-radius: 25px; font-weight: 800; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; display: inline-block; }
     .btn-review:hover { background: #0ea5e9; color: white; box-shadow: 0 6px 15px rgba(14, 165, 233, 0.25); }
     
-    .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 25px; border-left: 6px solid #9B1C1C; padding-left: 15px; }
+    /* Dropdown cho Chart */
+    .chart-select { border: 2px solid #cbd5e1; border-radius: 20px; padding: 8px 20px; font-weight: 800; color: #1e293b; background: white; outline: none; cursor: pointer;}
+    .chart-select:focus { border-color: #0284c7; }
 </style>
 {% endblock %}
 
@@ -98,10 +70,8 @@
         <p class="page-subtitle">Kiểm tra trình độ - Nâng cao năng lực Hán ngữ mỗi ngày</p>
     </div>
 
-    <!-- KHU VỰC 1: THỐNG KÊ CÁ NHÂN (CHỈ HIỆN KHI ĐÃ ĐĂNG NHẬP) -->
     {% if user.is_authenticated %}
     <div class="row g-4 mb-4">
-        <!-- Thẻ 1: Tổng bài làm -->
         <div class="col-md-4">
             <div class="card-elevated stat-card h-100">
                 <div class="stat-icon icon-blue flex-shrink-0"><i class="fas fa-file-alt"></i></div>
@@ -112,13 +82,11 @@
             </div>
         </div>
         
-        <!-- THẺ 2: ĐIỂM CAO NHẤT (ĐÃ CHIA CẤP ĐỘ) -->
         <div class="col-md-4">
             <div class="card-elevated stat-card h-100" style="align-items: flex-start;">
                 <div class="stat-icon icon-gold flex-shrink-0"><i class="fas fa-trophy"></i></div>
                 <div class="w-100">
                     <div class="fw-bold mb-3" style="color: #475569; font-size: 0.9rem;">ĐIỂM CAO NHẤT (TỪNG CẤP)</div>
-                    
                     {% if highest_scores_by_level %}
                         <div class="d-flex flex-column gap-2">
                             {% for level, score in highest_scores_by_level.items %}
@@ -135,7 +103,6 @@
             </div>
         </div>
         
-        <!-- Thẻ 3: Số bài đỗ -->
         <div class="col-md-4">
             <div class="card-elevated stat-card h-100">
                 <div class="stat-icon icon-green flex-shrink-0"><i class="fas fa-check-circle"></i></div>
@@ -147,18 +114,13 @@
         </div>
     </div>
 
-    <!-- TỦ HUY HIỆU -->
     {% if badges %}
     <div class="card-elevated mt-2 mb-5" style="padding: 20px 30px; background: linear-gradient(to right, #ffffff, #f8fafc);">
-        <h5 class="fw-bold mb-3" style="color: #1e293b; font-family: 'Playfair Display', serif;">
-            <i class="fas fa-medal me-2" style="color: #F59E0B;"></i>Bộ Sưu Tập Thành Tích
-        </h5>
+        <h5 class="fw-bold mb-3" style="color: #1e293b; font-family: 'Playfair Display', serif;"><i class="fas fa-medal me-2" style="color: #F59E0B;"></i>Bộ Sưu Tập Thành Tích</h5>
         <div class="d-flex flex-wrap gap-3">
             {% for badge in badges %}
             <div class="d-flex align-items-center gap-3 px-4 py-2" style="background: white; border: 1px solid #e2e8f0; border-radius: 50px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ badge.color }}15; color: {{ badge.color }}; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    <i class="fas {{ badge.icon }}"></i>
-                </div>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ badge.color }}15; color: {{ badge.color }}; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas {{ badge.icon }}"></i></div>
                 <div>
                     <div class="fw-bold" style="color: #1e293b; font-size: 0.95rem;">{{ badge.name }}</div>
                     <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">{{ badge.desc }}</div>
@@ -168,10 +130,26 @@
         </div>
     </div>
     {% endif %}
-    
+
+    <!-- KHU VỰC VẼ BIỂU ĐỒ TIẾN ĐỘ -->
+    {% if chart_data_json and chart_data_json != '{}' %}
+    <h3 class="section-title">Biểu Đồ Tiến Độ Học Tập</h3>
+    <div class="card-elevated mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-muted mb-0">Biến động điểm số qua các lần thi</h5>
+            <!-- Select box để chọn HSK Level -->
+            <select id="chartLevelSelector" class="chart-select" onchange="updateChart()">
+                <!-- Dữ liệu Option sẽ được nhúng bằng JavaScript -->
+            </select>
+        </div>
+        <div style="position: relative; height: 350px; width: 100%;">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
 
-    <!-- KHU VỰC 2: THANH TÌM KIẾM -->
+    <!-- KHU VỰC THANH TÌM KIẾM -->
     <div class="card-elevated mb-5" style="padding: 35px;">
         <form method="GET" action="{% url 'exam_list' %}">
             <div class="search-box w-100">
@@ -179,7 +157,6 @@
                 <input type="text" name="q" value="{{ search_query }}" class="form-control w-100" placeholder="Nhập tên bài thi hoặc mã đề (VD: Đề HSK 1)...">
                 <button type="submit" class="btn-search">TÌM KIẾM</button>
             </div>
-            
             <div class="level-filters">
                 <button type="submit" name="level" value="" class="btn-level {% if not level_filter %}active{% endif %}">Tất cả</button>
                 <button type="submit" name="level" value="1" class="btn-level {% if level_filter == '1' %}active{% endif %}">HSK 1</button>
@@ -192,13 +169,21 @@
         </form>
     </div>
 
-    <!-- KHU VỰC 3: DANH SÁCH ĐỀ THI -->
+    <!-- KHU VỰC DANH SÁCH ĐỀ THI (CÓ ĐIỂM KỶ LỤC) -->
     <h3 class="section-title">Danh Sách Đề Thi</h3>
     <div class="row g-4 mb-5">
         {% for exam in exams %}
             <div class="col-xl-4 col-lg-4 col-md-6">
                 <div class="card-elevated exam-card">
-                    <div><span class="exam-badge">HSK {{ exam.hsk_level }}</span></div>
+                    <div>
+                        <span class="exam-badge">HSK {{ exam.hsk_level }}</span>
+                        <!-- NẾU HỌC VIÊN ĐÃ LÀM VÀ CÓ ĐIỂM SẼ HIỆN Ở ĐÂY -->
+                        {% if exam.user_max_score is not None %}
+                            <span class="record-badge" title="Điểm cao nhất của bạn">
+                                <i class="fas fa-star"></i> {{ exam.user_max_score|floatformat:0 }}
+                            </span>
+                        {% endif %}
+                    </div>
                     <h3 class="exam-title">{{ exam.title }}</h3>
                     <div class="exam-meta">
                         <span><i class="fas fa-clock me-2" style="color: #64748B;"></i>{{ exam.duration_minutes }} phút</span>
@@ -211,14 +196,13 @@
             <div class="col-12 text-center py-5">
                 <i class="fas fa-box-open mb-3" style="font-size: 4rem; color: #cbd5e1;"></i>
                 <h4 class="fw-bold" style="color: #475569;">Chưa tìm thấy đề thi phù hợp</h4>
-                <p class="text-muted">Vui lòng thử lại bằng một từ khóa hoặc cấp độ khác nhé!</p>
             </div>
         {% endfor %}
     </div>
 
-    <!-- KHU VỰC 4: LỊCH SỬ THI -->
+    <!-- KHU VỰC LỊCH SỬ THI -->
     {% if user.is_authenticated and recent_results %}
-    <h3 class="section-title mt-5">Lịch Sử Làm Bài Của Bạn</h3>
+    <h3 class="section-title mt-5">Lịch Sử Làm Bài Gần Đây</h3>
     <div class="card-elevated">
         <div class="table-responsive">
             <table class="table-custom">
@@ -244,9 +228,7 @@
                                 <span class="status-badge bg-failed"><i class="fas fa-times me-1"></i> CHƯA ĐẠT</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
-                            <a href="{% url 'review_exam' item.id %}" class="btn-review">Xem đáp án</a>
-                        </td>
+                        <td class="text-center"><a href="{% url 'review_exam' item.id %}" class="btn-review">Xem đáp án</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -256,4 +238,84 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- KỊCH BẢN ĐỂ VẼ BIỂU ĐỒ (JAVASCRIPT) -->
+{% if chart_data_json and chart_data_json != '{}' %}
+<script>
+    const chartData = JSON.parse('{{ chart_data_json|safe }}');
+    let progressChart; // Biến lưu trữ đồ thị
+
+    function initChart() {
+        const selector = document.getElementById('chartLevelSelector');
+        // Nạp các lựa chọn HSK Level vào select box
+        for (let level in chartData) {
+            let option = document.createElement('option');
+            option.value = level;
+            option.text = 'Trình độ ' + level;
+            selector.appendChild(option);
+        }
+        
+        // Vẽ đồ thị cho cấp độ đầu tiên có trong danh sách
+        if(selector.options.length > 0) {
+            renderChart(selector.value);
+        }
+    }
+
+    function renderChart(level) {
+        const dataForLevel = chartData[level];
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        // Nếu đã vẽ chart trước đó thì hủy để vẽ cái mới (khi chuyển HSK Level)
+        if (progressChart) { progressChart.destroy(); }
+        
+        progressChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataForLevel.labels,
+                datasets: [{
+                    label: 'Điểm số',
+                    data: dataForLevel.scores,
+                    borderColor: '#9B1C1C',
+                    backgroundColor: 'rgba(155, 28, 28, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#F59E0B',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.4 // Làm cong đường nét cho mượt
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 200,
+                        grid: { borderDash: [5, 5], color: '#e2e8f0' },
+                        ticks: { font: { weight: 'bold', family: 'Nunito' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { weight: 'bold', family: 'Nunito' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        const selectedLevel = document.getElementById('chartLevelSelector').value;
+        renderChart(selectedLevel);
+    }
+
+    // Khởi chạy hệ thống vẽ biểu đồ khi trang web tải xong
+    document.addEventListener("DOMContentLoaded", initChart);
+</script>
+{% endif %}
 {% endblock %}

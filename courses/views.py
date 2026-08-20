@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
 from .models import Exam, ExamQuestion, ExamResult
+from django.db.models import Max
 
 # ==========================================
 # 1. CÁC HÀM CƠ BẢN CỦA WEB
@@ -305,3 +306,22 @@ def exam_list(request):
         'search_query': search_query,
         'level_filter': level_filter
     })
+
+@login_required(login_url='login')
+def student_dashboard(request):
+    # 1. Lấy toàn bộ lịch sử thi của học viên, sắp xếp bài mới nhất lên đầu
+    user_results = ExamResult.objects.filter(user=request.user).order_by('-completed_at')
+    
+    # 2. Tính toán các con số thống kê
+    total_exams = user_results.count()
+    highest_score = user_results.aggregate(Max('score'))['score__max'] or 0
+    passed_exams = user_results.filter(score__gte=120).count() # Giả sử >= 120 là đỗ
+    
+    context = {
+        'results': user_results,
+        'total_exams': total_exams,
+        'highest_score': highest_score,
+        'passed_exams': passed_exams,
+    }
+    
+    return render(request, 'courses/dashboard.html', context)

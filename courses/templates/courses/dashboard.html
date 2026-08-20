@@ -1,161 +1,169 @@
 {% extends 'courses/base.html' %}
-{% block title %}Bảng xếp hạng - Xue Hanyu{% endblock %}
+
+{% block title %}Bảng điều khiển học tập{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    body { background-color: #F8FAFC; font-family: 'Nunito', sans-serif; color: #334155; }
+    
+    /* Header cá nhân hóa */
+    .dashboard-header {
+        background: linear-gradient(135deg, #9B1C1C 0%, #7f1717 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(155, 28, 28, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .avatar-circle {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; font-weight: 900; border: 3px solid rgba(255,255,255,0.5);
+    }
+    
+    /* Thẻ thống kê */
+    .stat-card {
+        background: white; border-radius: 16px; padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+        display: flex; align-items: center; gap: 20px;
+        transition: transform 0.3s ease; height: 100%;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-icon {
+        width: 60px; height: 60px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+    }
+    .icon-blue { background: #E0F2FE; color: #0284C7; }
+    .icon-green { background: #DCFCE7; color: #16A34A; }
+    .icon-gold { background: #FEF9C3; color: #D97706; }
+    
+    /* Bảng lịch sử */
+    .history-section {
+        background: white; border-radius: 16px; padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+        margin-top: 30px;
+    }
+    .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+    .table-custom th { color: #64748B; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; padding: 10px 15px; border-bottom: 2px solid #e2e8f0; }
+    .table-custom td { padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    .table-custom tr td:first-child { border-left: 1px solid #e2e8f0; border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+    .table-custom tr td:last-child { border-right: 1px solid #e2e8f0; border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+    
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; }
+    .bg-passed { background: #DCFCE7; color: #16A34A; }
+    .bg-failed { background: #FEE2E2; color: #EF4444; }
+    
+    .btn-review {
+        background: white; color: #0ea5e9; border: 2px solid #0ea5e9;
+        padding: 6px 15px; border-radius: 20px; font-weight: 700;
+        text-decoration: none; font-size: 0.9rem; transition: all 0.2s;
+        display: inline-block;
+    }
+    .btn-review:hover { background: #0ea5e9; color: white; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* 1. CSS CHUNG BẢNG XẾP HẠNG */
-    .current-user-row { background-color: #fff0f0 !important; border-left: 5px solid #B22222; }
-
-    /* 2. CSS BỤC VINH DANH HIỆN ĐẠI (MỚI) */
-    .podium-wrapper { 
-        display: flex; align-items: flex-end; justify-content: center; 
-        gap: 15px; margin-top: 40px; margin-bottom: 40px; 
-    }
+<div class="container py-4">
     
-    .podium-card {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 30px 10px 15px; /* Để trống phần trên cho Icon chồm lên */
-        text-align: center;
-        position: relative;
-        transition: all 0.3s ease;
-        width: 115px; /* Kích thước nhỏ gọn */
-        border: 2px solid transparent;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-    }
-    
-    .podium-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
-    
-    /* Hiệu ứng viền và bệ đỡ cho từng Top */
-    .podium-1 { width: 135px; border-color: #FFD700; z-index: 3; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2); }
-    .podium-2 { border-color: #BDBDBD; z-index: 2; box-shadow: 0 8px 20px rgba(189, 189, 189, 0.2); }
-    .podium-3 { border-color: #cd7f32; z-index: 1; box-shadow: 0 8px 20px rgba(205, 127, 50, 0.2); }
-    
-    /* Icon nhô lên khỏi thẻ */
-    .rank-icon {
-        font-size: 1.6rem;
-        position: absolute;
-        top: -22px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        z-index: 5;
-    }
-    
-    /* Avatar cắt chữ cái đầu */
-    .avatar-circle {
-        width: 48px; height: 48px;
-        border-radius: 50%;
-        margin: 0 auto 12px;
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-weight: bold; font-size: 1.3rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-    }
-    .avatar-1 { background: linear-gradient(135deg, #FFD700, #FDB931); }
-    .avatar-2 { background: linear-gradient(135deg, #E0E0E0, #9E9E9E); }
-    .avatar-3 { background: linear-gradient(135deg, #E6A171, #C06014); }
-</style>
-
-<div class="container mt-4 mb-5">
-    <!-- Nút chọn trò chơi -->
-    <div class="d-flex justify-content-center mb-4 gap-2 flex-wrap">
-        <a href="?game=quiz_1" class="btn {% if selected_game == 'quiz_1' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Nối từ</a>
-        <a href="?game=quiz_2" class="btn {% if selected_game == 'quiz_2' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Lật thẻ</a>
-        <a href="?game=quiz_3" class="btn {% if selected_game == 'quiz_3' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Viết chữ</a>
-        <a href="?game=quiz_4" class="btn {% if selected_game == 'quiz_4' %}btn-danger fw-bold shadow{% else %}btn-outline-danger{% endif %} rounded-pill px-4">Phát âm</a>
+    <!-- Lời chào & Tóm tắt -->
+    <div class="dashboard-header">
+        <div class="avatar-circle">
+            {{ request.user.username|make_list|first|upper }}
+        </div>
+        <div>
+            <h2 class="fw-bold mb-1" style="font-family: 'Playfair Display', serif;">Xin chào, {{ request.user.username }}!</h2>
+            <p class="mb-0" style="color: #fca5a5; font-size: 1.1rem;">Hành trình chinh phục Hán ngữ của bạn đang rất tuyệt vời.</p>
+        </div>
     </div>
 
-    <!-- BỤC VINH DANH TOP 3 HIỆN ĐẠI -->
-    <h4 class="text-center fw-bold text-uppercase mb-0" style="color: #B22222; letter-spacing: 1px;">Top Vinh Danh</h4>
-    <p class="text-center text-muted small mb-0">{{ selected_game_name }}</p>
-    
-    <div class="podium-wrapper">
-        {% for top in top_3 %}
-        <div class="podium-card podium-{% if forloop.counter == 1 %}1{% elif forloop.counter == 2 %}2{% else %}3{% endif %}" style="order: {% if forloop.counter == 1 %}2{% elif forloop.counter == 2 %}1{% else %}3{% endif %}; cursor: pointer;" title="Bấm vào để thách đấu bài: {{ top.lesson__title_vietnamese }}">
-            
-            <!-- Link ẩn chuyển hướng đến Bài học -->
-            <a href="{% url selected_game top.lesson__id %}" class="stretched-link"></a>
-
-            <!-- Icon vương miện/huy chương nhô lên -->
-            <div class="rank-icon">
-                {% if forloop.counter == 1 %}👑{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
-            </div>
-
-            <!-- Avatar tự động lấy chữ cái đầu (VD: Tiểu Ngữ -> T) -->
-            <div class="avatar-circle avatar-{% if forloop.counter == 1 %}1{% elif forloop.counter == 2 %}2{% else %}3{% endif %} shadow-sm">
-                {{ top.user__first_name|default:top.user__username|slice:":1"|upper }}
-            </div>
-            
-            <h6 class="fw-bold text-truncate mb-1" style="color: #333; font-size: 0.9rem;">
-                {{ top.user__first_name|default:top.user__username }}
-            </h6>
-            
-            <div class="badge bg-danger rounded-pill px-3 py-1 mb-2">{{ top.best_time }}s</div>
-            
-            <div class="small text-muted text-truncate" style="font-size: 0.75rem;">
-                {{ top.lesson__title_vietnamese }}
+    <!-- 3 Thẻ Thống Kê -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="fas fa-file-alt"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1" style="color: #1e293b;">{{ total_exams }}</h5>
+                    <div class="text-muted fw-bold" style="font-size: 0.85rem;">BÀI THI ĐÃ LÀM</div>
+                </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
-
-    <!-- HẠNG CỦA BẠN -->
-    <div class="alert shadow-sm mb-5 d-flex justify-content-between align-items-center" style="background: linear-gradient(to right, #B22222, #E63946); color: white; border-radius: 12px; border: none;">
-        <div class="d-flex align-items-center">
-            <div class="bg-white text-danger rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 45px; height: 45px; font-size: 1.1rem; font-weight: bold;">
-                #{{ user_rank|default:"-" }}
-            </div>
-            <div>
-                <h6 class="fw-bold mb-0 text-white">Thành tích của bạn</h6>
-                {% if personal_best %}
-                    <span class="opacity-75 small text-white" style="font-size: 0.8rem;">Kỷ lục hiện tại: <strong>{{ personal_best }}s</strong></span>
-                {% else %}
-                    <span class="opacity-75 small text-white" style="font-size: 0.8rem;">Bạn chưa tham gia trò chơi này</span>
-                {% endif %}
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon icon-gold"><i class="fas fa-trophy"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1" style="color: #1e293b;">{{ highest_score|floatformat:0 }} <span class="fs-6 text-muted">/ 200</span></h5>
+                    <div class="text-muted fw-bold" style="font-size: 0.85rem;">ĐIỂM CAO NHẤT</div>
+                </div>
             </div>
         </div>
-        <div class="d-none d-md-block" style="font-size: 2rem; opacity: 0.2;">🎯</div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1" style="color: #1e293b;">{{ passed_exams }}</h5>
+                    <div class="text-muted fw-bold" style="font-size: 0.85rem;">SỐ BÀI THI ĐỖ (>=120đ)</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- BẢNG XẾP HẠNG TOP 100 -->
-    <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
-        <div class="card-header bg-dark text-white fw-bold py-3 text-center" style="letter-spacing: 1px;">BẢNG XẾP HẠNG TOP 100</div>
-        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-hover align-middle mb-0 border-0">
-                <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    <!-- Lịch sử làm bài -->
+    <div class="history-section">
+        <h4 class="fw-bold mb-4" style="color: #1e293b;"><i class="fas fa-history me-2 text-muted"></i>Lịch sử làm bài gần đây</h4>
+        
+        {% if results %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
                     <tr>
-                        <th class="text-center py-3" style="width: 10%;">#</th>
-                        <th class="py-3">Học viên</th>
-                        <th class="py-3">Bài học</th>
-                        <th class="text-center py-3">Thời gian</th>
+                        <th>Tên bài thi</th>
+                        <th>Ngày thi</th>
+                        <th>Điểm số</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for entry in leaderboard %}
-                    <tr class="{% if entry.user__username == user.username %}current-user-row fw-bold{% endif %}">
-                        <td class="text-center text-muted fw-bold">{{ forloop.counter }}</td>
+                    {% for item in results %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ item.exam.title }}</td>
+                        <td class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ item.completed_at|date:"d/m/Y H:i" }}</td>
+                        <td><span class="fw-black fs-5">{{ item.score|floatformat:0 }}</span> / 200</td>
                         <td>
-                            <!-- Chữ cái đầu làm avatar mini trong bảng -->
-                            <span class="badge bg-secondary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" style="width: 25px; height: 25px;">
-                                {{ entry.user__first_name|default:entry.user__username|slice:":1"|upper }}
-                            </span>
-                            {{ entry.user__first_name|default:entry.user__username }}
-                            {% if entry.user__username == user.username %}<span class="badge bg-danger ms-2 shadow-sm">Bạn</span>{% endif %}
+                            {% if item.score >= 120 %}
+                                <span class="status-badge bg-passed"><i class="fas fa-check me-1"></i> ĐẠT</span>
+                            {% else %}
+                                <span class="status-badge bg-failed"><i class="fas fa-times me-1"></i> CHƯA ĐẠT</span>
+                            {% endif %}
                         </td>
-                        <td class="small text-muted">{{ entry.lesson__title_vietnamese }}</td>
-                        <td class="text-center fw-bold text-danger">{{ entry.best_time }}s</td>
+                        <td class="text-center">
+                            <a href="{% url 'review_exam' item.id %}" class="btn-review">
+                                Xem lại bài
+                            </a>
+                        </td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="4" class="text-center py-5 text-muted"><span class="fs-2">⏳</span><br>Chưa có dữ liệu xếp hạng.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <!-- Trạng thái trống khi học viên chưa thi bài nào -->
+        <div class="text-center py-5">
+            <i class="fas fa-clipboard-list mb-3" style="font-size: 4rem; color: #cbd5e1;"></i>
+            <h5 class="fw-bold" style="color: #475569;">Bạn chưa có lịch sử làm bài</h5>
+            <p class="text-muted">Hãy bắt đầu làm bài thi đầu tiên để theo dõi tiến độ của mình nhé!</p>
+            <a href="{% url 'exam_list' %}" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Vào trung tâm thi thử</a>
+        </div>
+        {% endif %}
     </div>
+
 </div>
 {% endblock %}

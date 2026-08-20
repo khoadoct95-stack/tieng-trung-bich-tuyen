@@ -75,7 +75,7 @@ class LessonAdmin(admin.ModelAdmin):
                     # Chú ý: Đảm bảo 'chinese', 'pinyin', 'meaning' khớp với models.py của Vocabulary
                     Vocabulary.objects.create(
                         lesson=obj,
-                        chinese=parts[0].strip(),
+                        hanzi=parts[0].strip(),
                         pinyin=parts[1].strip(),
                         meaning=parts[2].strip()
                     )

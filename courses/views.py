@@ -306,9 +306,35 @@ def exam_list(request):
     if request.user.is_authenticated:
         user_results = ExamResult.objects.filter(user=request.user).order_by('-completed_at')
         context['total_exams'] = user_results.count()
-        context['highest_score'] = user_results.aggregate(Max('score'))['score__max'] or 0
+        
+        # BỘ LỌC ĐIỂM CAO NHẤT THEO TỪNG CẤP ĐỘ
+        highest_scores = {}
+        for level in range(1, 7):
+            max_score = user_results.filter(exam__hsk_level=level).aggregate(Max('score'))['score__max']
+            if max_score is not None:
+                highest_scores[level] = max_score
+        
+        context['highest_scores_by_level'] = highest_scores
         context['passed_exams'] = user_results.filter(score__gte=120).count()
-        context['recent_results'] = user_results[:5]  # Chỉ hiển thị 5 bài gần nhất cho gọn
+        context['recent_results'] = user_results[:5]
+
+        # BỘ LỌC HUY HIỆU THÀNH TÍCH
+        badges = []
+        if total_exams >= 1:
+            badges.append({'name': 'Tân binh chăm chỉ', 'icon': 'fa-seedling', 'color': '#10B981', 'desc': 'Hoàn thành bài thi đầu tiên'})
+            
+        if passed_exams >= 3:
+            badges.append({'name': 'Bậc thầy HSK', 'icon': 'fa-graduation-cap', 'color': '#8B5CF6', 'desc': 'Thi đỗ từ 3 bài trở lên'})
+            
+        has_perfect_score = user_results.filter(score=200).exists()
+        if has_perfect_score:
+            badges.append({'name': 'Vua điểm tuyệt đối', 'icon': 'fa-crown', 'color': '#F59E0B', 'desc': 'Đạt điểm tối đa 200/200'})
+        elif user_results.filter(score__gte=180).exists():
+            badges.append({'name': 'Cao thủ Hán ngữ', 'icon': 'fa-fire', 'color': '#EF4444', 'desc': 'Đạt trên 180 điểm'})
+            
+        context['badges'] = badges
+        
+        context['highest_scores_by_level'] = highest_scores
 
     return render(request, 'courses/exam_list.html', context)
 

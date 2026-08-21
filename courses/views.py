@@ -1,6 +1,7 @@
 import os
 import json
 import subprocess
+import pandas as pd  # <-- THÊM THƯ VIỆN PANDAS VÀO ĐÂY
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -111,7 +112,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (MỚI)
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN
 # ==========================================
 @login_required
 def dashboard_view(request):
@@ -143,19 +144,6 @@ def dashboard_view(request):
             better_count = GameHistory.objects.filter(game_type=selected_game).values('user').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
             user_rank = better_count + 1
 
-    active_tab = request.GET.get('tab', 'leaderboard')
-
-    context = {
-        'leaderboard': leaderboard,
-        'top_3': top_3,
-        'selected_game': selected_game,
-        'selected_game_name': selected_game_name,
-        'personal_best': personal_best,
-        'user_rank': user_rank,
-        'active_tab': active_tab,
-    }
-
-    # Thêm đoạn code này để tìm cấp độ HSK cao nhất mà User đã THI ĐỖ (>= 120 điểm)
     highest_hsk = 0
     passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
     if passed_exams.exists():
@@ -171,44 +159,34 @@ def dashboard_view(request):
         'personal_best': personal_best,
         'user_rank': user_rank,
         'active_tab': active_tab,
-        
-        # Đưa biến HSK này ra ngoài giao diện
         'highest_hsk': highest_hsk, 
     }
     return render(request, 'courses/dashboard.html', context)
 
 @login_required
 def profile_view(request):
-    # 1. XỬ LÝ CẬP NHẬT TÊN HIỂN THỊ
     if request.method == 'POST':
         display_name = request.POST.get('display_name', '').strip()
         if display_name:
             request.user.first_name = display_name
             request.user.save()
-            # Nếu bạn có sử dụng messages thì bỏ comment dòng dưới
-            # messages.success(request, 'Cập nhật tên hiển thị thành công!')
             return redirect('profile')
 
-    # 2. LẤY LỊCH SỬ HOẠT ĐỘNG (10 LẦN GẦN NHẤT)
-    # Lưu ý: Thay 'created_at' bằng tên trường thời gian thực tế trong model GameHistory của bạn
     try:
         recent_history = GameHistory.objects.filter(user=request.user).order_by('-id')[:10]
     except Exception:
         recent_history = []
 
-    # 3. TÌM KỶ LỤC CÁ NHÂN TỪNG GAME
     best_quiz_1 = GameHistory.objects.filter(user=request.user, game_type='quiz_1').aggregate(Min('time_taken'))['time_taken__min']
     best_quiz_2 = GameHistory.objects.filter(user=request.user, game_type='quiz_2').aggregate(Min('time_taken'))['time_taken__min']
     best_quiz_3 = GameHistory.objects.filter(user=request.user, game_type='quiz_3').aggregate(Min('time_taken'))['time_taken__min']
     best_quiz_4 = GameHistory.objects.filter(user=request.user, game_type='quiz_4').aggregate(Min('time_taken'))['time_taken__min']
 
-    # 4. TÌM CẤP ĐỘ HSK CAO NHẤT (ĐỂ HIỂN THỊ HUY HIỆU AVATAR)
     highest_hsk = 0
     passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
     if passed_exams.exists():
         highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
 
-    # 5. GỬI RA GIAO DIỆN
     context = {
         'recent_history': recent_history,
         'best_quiz_1': best_quiz_1,
@@ -221,7 +199,7 @@ def profile_view(request):
     return render(request, 'courses/profile.html', context)
 
 # ==========================================
-# 5. WEBHOOK GITHUB (BẢN CHỐNG KẸT LỖI)
+# 5. WEBHOOK GITHUB 
 # ==========================================
 @csrf_exempt
 def github_webhook(request):
@@ -229,20 +207,54 @@ def github_webhook(request):
         project_dir = '/home/xuehanyu/tieng-trung-bich-tuyen'
         wsgi_file = '/var/www/xuehanyu_pythonanywhere_com_wsgi.py'
         try:
-            # Tải toàn bộ bản cập nhật mới nhất từ GitHub
             subprocess.run(['git', 'fetch', '--all'], cwd=project_dir, check=True)
-            # Ép máy chủ xóa bỏ các chỉnh sửa thủ công, đồng bộ 100% theo nhánh main
             subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, check=True)
-            
-            # Khởi động lại web
             subprocess.run(['touch', wsgi_file], check=True)
             return HttpResponse("Updated code successfully")
         except subprocess.CalledProcessError as e:
             return HttpResponse(f"Error: {str(e)}", status=500)
     return HttpResponse("Invalid request", status=400)
 
-# Hàm hiển thị trang làm bài thi HSK
-# Bổ sung json vào thư viện nếu cần (thường Django tự hiểu JSONField)
+# ==========================================
+# 6. QUẢN LÝ ĐỀ THI VÀ CHẤM ĐIỂM
+# ==========================================
+
+# HÀM MỚI: IMPORT EXCEL (BẢN CŨ 40 CÂU)
+@login_required
+def import_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+        
+        # Tạo bài thi mẫu
+        exam = Exam.objects.create(title="Đề thi HSK 1 (Bản cũ)", hsk_level=1)
+        
+        # Đọc dữ liệu, thay thế NaN bằng chuỗi rỗng
+        df = pd.read_excel(excel_file).fillna('')
+        
+        for index, row in df.iterrows():
+            ExamQuestion.objects.create(
+                exam=exam,
+                question_number=row['1. Số thứ tự'],
+                section_type=str(row['2. reading']).strip(), 
+                group_name=str(row['3. Nhóm câu']).strip(),
+                passage_text=str(row['4. Đoạn văn']).strip(),
+                passage_pinyin=str(row['5. Pinyin Đoạn văn']).strip(),
+                content=str(row['6. Câu hỏi']).strip(),
+                content_pinyin=str(row['7. Pinyin Câu hỏi']).strip(),
+                option_a=str(row['8. Nút A']).strip(),
+                option_pinyin_a=str(row['9. Pinyin A']).strip(),
+                option_b=str(row['10. Nút B']).strip(),
+                option_pinyin_b=str(row['11. Pinyin B']).strip(),
+                option_c=str(row['12. Nút C']).strip(),
+                option_pinyin_c=str(row['13. Pinyin C']).strip(),
+                correct_answer=str(row['14. Đáp án']).strip().upper()
+            )
+            
+        messages.success(request, "Import dữ liệu đề thi thành công!")
+        return redirect('exam_list')
+    
+    return render(request, 'admin/import_excel.html')
+
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -250,12 +262,10 @@ def take_exam(request, exam_id):
 
     if request.method == 'POST':
         total_correct = 0
-        user_answers_dict = {} # <-- TẠO CUỐN SỔ TAY LƯU ĐÁP ÁN
+        user_answers_dict = {} 
 
         for q in questions:
             submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
-            
-            # Ghi chép lại học viên đã chọn gì cho câu này
             user_answers_dict[str(q.id)] = submitted_answer 
             
             correct_ans = str(q.correct_answer).strip().upper()
@@ -264,13 +274,12 @@ def take_exam(request, exam_id):
 
         score = total_correct * 5
 
-        # LƯU KẾT QUẢ KÈM THEO CUỐN SỔ TAY ĐÁP ÁN
         result = ExamResult.objects.create(
             user=request.user,
             exam=exam,
             score=score,
             total_correct=total_correct,
-            user_answers=user_answers_dict,  # <--- BẮT BUỘC PHẢI CÓ DẤU PHẨY NÀY
+            user_answers=user_answers_dict, 
             time_spent=0
         )
 
@@ -279,9 +288,6 @@ def take_exam(request, exam_id):
 
     return render(request, 'courses/take_exam.html', {'exam': exam, 'questions': questions})
 
-# ==========================================
-# HÀM MỚI: XEM LẠI CHI TIẾT BÀI LÀM
-# ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
@@ -289,15 +295,12 @@ def review_exam(request, result_id):
     questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
 
     for q in questions:
-        # Lấy đáp án học viên chọn (Nếu rỗng thì tự động ép về chuỗi rỗng '')
         raw_user = result.user_answers.get(str(q.id), '')
         q.user_ans = str(raw_user).strip().upper() if raw_user else ''
         
-        # Lấy đáp án đúng chuẩn (Chống lỗi NoneType từ Database)
         raw_correct = q.correct_answer
         q.correct_ans = str(raw_correct).strip().upper() if raw_correct else ''
         
-        # Chấm lại trạng thái (Chỉ đúng khi có chọn đáp án VÀ chọn chính xác)
         q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 
     return render(request, 'courses/review_exam.html', {
@@ -306,18 +309,13 @@ def review_exam(request, result_id):
         'result': result
     })
 
-
-# HÀM HIỂN THỊ KẾT QUẢ ĐIỂM SỐ
 @login_required(login_url='login')
 def exam_result(request, result_id):
-    # Chỉ cho phép học viên xem điểm của chính mình
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
     
-    # Tính tỉ lệ phần trăm làm đúng
     total_questions = ExamQuestion.objects.filter(exam=result.exam).count()
     percentage = int((result.total_correct / total_questions) * 100) if total_questions > 0 else 0
     
-    # Đánh giá Đỗ / Trượt (Chuẩn HSK 1: >= 120 điểm là Đỗ)
     is_passed = result.score >= 120
 
     return render(request, 'courses/exam_result.html', {
@@ -327,7 +325,6 @@ def exam_result(request, result_id):
         'is_passed': is_passed
     })
 
-# Hàm hiển thị danh sách các đề thi
 def exam_list(request):
     search_query = request.GET.get('q', '').strip()
     level_filter = request.GET.get('level', '')
@@ -344,7 +341,6 @@ def exam_list(request):
     }
 
     if request.user.is_authenticated:
-        # 1. Gắn điểm kỷ lục của học viên vào từng thẻ đề thi
         exams = exams.annotate(
             user_max_score=Max('examresult__score', filter=Q(examresult__user=request.user))
         )
@@ -357,7 +353,6 @@ def exam_list(request):
         context['passed_exams'] = passed_exams
         context['recent_results'] = user_results[:5]
 
-        # 2. Tính điểm cao nhất theo từng cấp độ
         highest_scores = {}
         for level in range(1, 7):
             max_score = user_results.filter(exam__hsk_level=level).aggregate(Max('score'))['score__max']
@@ -365,7 +360,6 @@ def exam_list(request):
                 highest_scores[level] = max_score
         context['highest_scores_by_level'] = highest_scores
 
-        # 3. Tính toán Huy hiệu
         badges = []
         if total_exams >= 1:
             badges.append({'name': 'Tân binh chăm chỉ', 'icon': 'fa-seedling', 'color': '#10B981', 'desc': 'Hoàn thành bài thi đầu tiên'})
@@ -379,7 +373,6 @@ def exam_list(request):
             badges.append({'name': 'Cao thủ Hán ngữ', 'icon': 'fa-fire', 'color': '#EF4444', 'desc': 'Đạt trên 180 điểm'})
         context['badges'] = badges
 
-        # 4. CHUẨN BỊ DỮ LIỆU VẼ BIỂU ĐỒ (Dạng JSON)
         chrono_results = ExamResult.objects.filter(user=request.user).order_by('completed_at')
         chart_data = {}
         for res in chrono_results:
@@ -393,18 +386,16 @@ def exam_list(request):
             
         context['chart_data_json'] = json.dumps(chart_data)
 
-    context['exams'] = exams # Cập nhật danh sách đề thi đã gắn max_score
+    context['exams'] = exams 
     return render(request, 'courses/exam_list.html', context)
 
 @login_required(login_url='login')
 def student_dashboard(request):
-    # 1. Lấy toàn bộ lịch sử thi của học viên, sắp xếp bài mới nhất lên đầu
     user_results = ExamResult.objects.filter(user=request.user).order_by('-completed_at')
     
-    # 2. Tính toán các con số thống kê
     total_exams = user_results.count()
     highest_score = user_results.aggregate(Max('score'))['score__max'] or 0
-    passed_exams = user_results.filter(score__gte=120).count() # Giả sử >= 120 là đỗ
+    passed_exams = user_results.filter(score__gte=120).count()
     
     context = {
         'results': user_results,

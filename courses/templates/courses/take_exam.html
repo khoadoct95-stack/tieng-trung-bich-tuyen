@@ -113,7 +113,7 @@
     .opt-label:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: #fff; border-color: #cbd5e1; }
     .opt-radio:checked + .opt-label { border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); }
     
-    /* FIX: DÀN TRẢI KHU VỰC CHỌN ĐÁP ÁN A-F */
+    /* DÀN TRẢI KHU VỰC CHỌN ĐÁP ÁN A-F */
     .af-options-wrapper {
         display: flex;
         flex-wrap: wrap;
@@ -137,7 +137,7 @@
     .circle-label:hover { border-color: #94A3B8; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); color: var(--text-main); }
     .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); }
 
-    /* CẮT 3 ẢNH NÚT BẤM (Câu 1-5) */
+    /* CẮT 3 ẢNH NÚT BẤM (Câu 1-5, 6-10) */
     .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 2px solid transparent; border-radius: 16px; transition: all 0.3s ease; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
     .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); }
@@ -166,7 +166,7 @@
             <form id="exam-form" action="" method="POST">
                 {% csrf_token %}
 
-                {% regroup questions by question_group as grouped_questions %}
+                {% regroup questions by group_name as grouped_questions %}
                 
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
@@ -206,10 +206,20 @@
                             
                             <!-- RỔ ĐÁP ÁN DÙNG CHUNG -->
                             {% if forloop.first %}
-                                {% if q.question_number == 11 or q.question_number == 21 or q.question_number == 26 or q.question_number == 31 %}
+                                {% if q.question_number == 11 or q.question_number == 21 or q.question_number == 26 or q.question_number == 31 or q.question_number == 36 %}
                                     <div class="shared-pool">
                                         {% if q.passage_text %}
-                                            <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                            <!-- Nếu đoạn văn chứa A B C D E F (Rổ chữ) -->
+                                            {% if 'A' in q.passage_text and 'B' in q.passage_text %}
+                                                <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                            {% else %}
+                                                <!-- Nếu là đoạn văn bản thông thường (VD: Câu 36-40) -->
+                                                <div class="chinese-text mb-2">{{ q.passage_text|linebreaksbr }}</div>
+                                            {% endif %}
+                                        {% endif %}
+                                        
+                                        {% if q.passage_pinyin %}
+                                            <div class="pinyin-text mb-3" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
                                         {% endif %}
                                         
                                         {% if q.image %}
@@ -231,28 +241,26 @@
                                 <div class="q-header-inline">
                                     <div class="q-number-text">{{ q.question_number }}.</div>
                                     <div class="q-content-area w-100">
-                                        <!-- FIX: Loại bỏ chữ "Nghe Audio chọn ảnh" bằng template tag -->
-                                        {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                                            {% if q.passage_pinyin %}
-                                                <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
-                                            {% endif %}
-                                            <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
-                                        {% endif %}
                                         
                                         {% if q.content_pinyin %}
                                             <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
                                         {% endif %}
                                         
                                         {% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' %}
-                                            <div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>
+                                            <div class="chinese-text fw-bold">{{ q.content|safe|linebreaksbr }}</div>
+                                        {% endif %}
+                                        
+                                        <!-- Nếu câu hỏi là 1 ảnh đơn (VD: Nghe 1-5, Đọc 21-25) -->
+                                        {% if q.image and q.question_number <= 10 or q.question_number >= 21 and q.question_number <= 25 %}
+                                            <img src="{{ q.image.url }}" class="img-frame mt-3" alt="Question Image">
                                         {% endif %}
                                     </div>
                                 </div>
 
-                                <!-- KHU VỰC LỰA CHỌN ĐÁP ÁN (Không chứa Tiếng Việt) -->
+                                <!-- KHU VỰC LỰA CHỌN ĐÁP ÁN -->
                                 <div class="mt-2">
-                                    <!-- DẠNG NỐI A-F (Đã được dàn trải đẹp mắt) -->
-                                    {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
+                                    <!-- 1. DẠNG NỐI A-F -->
+                                    {% if q.group_name == "Câu 11-15" or q.group_name == "Câu 21-25" or q.group_name == "Câu 26-30" or q.group_name == "Câu 31-35" %}
                                         <div class="af-options-wrapper mt-3">
                                             {% for opt in "ABCDEF"|make_list %}
                                                 <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
@@ -260,8 +268,25 @@
                                             {% endfor %}
                                         </div>
                                     
-                                    <!-- DẠNG CẮT 3 ẢNH -->
-                                    {% elif q.image %}
+                                    <!-- 2. DẠNG ĐÚNG/SAI -->
+                                    {% elif q.group_name == "Câu 1-5" or q.group_name == "Câu 21-25" and not q.option_a %}
+                                        <div class="d-flex gap-4">
+                                            <div class="w-50">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_TRUE" value="TRUE" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                <label class="opt-label justify-content-center" for="q{{ q.id }}_TRUE">
+                                                    <span class="fw-bold fs-3 text-success">√</span>
+                                                </label>
+                                            </div>
+                                            <div class="w-50">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_FALSE" value="FALSE" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                <label class="opt-label justify-content-center" for="q{{ q.id }}_FALSE">
+                                                    <span class="fw-bold fs-3 text-danger">×</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                    <!-- 3. DẠNG CẮT 3 ẢNH -->
+                                    {% elif q.group_name == "Câu 6-10" and q.image %}
                                         <div class="row g-4 mt-1">
                                             <div class="col-4">
                                                 <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
@@ -286,42 +311,42 @@
                                             </div>
                                         </div>
                                     
-                                    <!-- DẠNG CHỈ CÓ TEXT -->
+                                    <!-- 4. DẠNG CHỈ CÓ TEXT (3 Lựa chọn) -->
                                     {% else %}
                                         <div class="row g-3 mt-1">
-                                            {% if q.option_a or q.option_a_pinyin %}
+                                            {% if q.option_a or q.option_pinyin_a %}
                                             <div class="col-md-4">
                                                 <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
                                                 <label class="opt-label" for="q{{ q.id }}_A_txt">
                                                     <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
                                                     <div>
-                                                        {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                        {% if q.option_pinyin_a %}<div class="pinyin-text small">{{ q.option_pinyin_a }}</div>{% endif %}
                                                         <div class="chinese-text">{{ q.option_a }}</div>
                                                     </div>
                                                 </label>
                                             </div>
                                             {% endif %}
                                             
-                                            {% if q.option_b or q.option_b_pinyin %}
+                                            {% if q.option_b or q.option_pinyin_b %}
                                             <div class="col-md-4">
                                                 <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
                                                 <label class="opt-label" for="q{{ q.id }}_B_txt">
                                                     <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
                                                     <div>
-                                                        {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                        {% if q.option_pinyin_b %}<div class="pinyin-text small">{{ q.option_pinyin_b }}</div>{% endif %}
                                                         <div class="chinese-text">{{ q.option_b }}</div>
                                                     </div>
                                                 </label>
                                             </div>
                                             {% endif %}
 
-                                            {% if q.option_c or q.option_c_pinyin %}
+                                            {% if q.option_c or q.option_pinyin_c %}
                                             <div class="col-md-4">
                                                 <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
                                                 <label class="opt-label" for="q{{ q.id }}_C_txt">
                                                     <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
                                                     <div>
-                                                        {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                        {% if q.option_pinyin_c %}<div class="pinyin-text small">{{ q.option_pinyin_c }}</div>{% endif %}
                                                         <div class="chinese-text">{{ q.option_c }}</div>
                                                     </div>
                                                 </label>
@@ -342,14 +367,14 @@
             <div class="sticky-sidebar">
                 <div class="panel-box text-center">
                     <p class="text-uppercase fw-bold text-muted mb-2 small">Thời gian còn lại</p>
-                    <div class="timer-display" id="countdown">{{ exam.duration_minutes }}:00</div>
+                    <div class="timer-display" id="countdown">{{ exam.duration_minutes|default:40 }}:00</div>
                 </div>
 
-                {% if exam.listening_audio %}
+                {% if exam.audio_file %}
                 <div class="panel-box">
                     <p class="fw-bold mb-3" style="font-size: 1.1rem;"><i class="fas fa-headphones" style="color: var(--primary-color);"></i> Băng ghi âm</p>
                     <audio controls class="w-100" style="height: 45px;">
-                        <source src="{{ exam.listening_audio.url }}" type="audio/mpeg">
+                        <source src="{{ exam.audio_file.url }}" type="audio/mpeg">
                     </audio>
                 </div>
                 {% endif %}
@@ -384,9 +409,8 @@
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Phần đếm ngược thời gian (Chỉ dùng cho take_exam, nếu ở review_exam có báo lỗi nhẹ ở console thì bỏ qua không sao)
     if (document.getElementById('countdown')) {
-        let timeInSeconds = {{ exam.duration_minutes|default:0 }} * 60;
+        let timeInSeconds = {{ exam.duration_minutes|default:40 }} * 60;
         function startTimer() {
             let display = document.getElementById('countdown');
             let timer = setInterval(function () {
@@ -420,20 +444,12 @@
         document.getElementById('exam-form').submit();
     }
 
-    // ==========================================
-    // BỘ QUÉT RỔ ĐÁP ÁN (PHIÊN BẢN TỐI THƯỢNG)
-    // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
         
         sharedTexts.forEach(function(el) {
-            // 1. Lấy nội dung nguyên thủy
             let rawText = el.innerText || el.textContent;
-            
-            // Thay thế toàn bộ dấu xuống dòng, tab, khoảng trắng kép, và ĐẶC BIỆT là khoảng trắng full-width của tiếng Trung
-let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
-            
-            // 3. Bộ lọc Regex xịn: Tìm chữ A-F đứng đầu, theo sau là dấu chấm/khoảng trắng
+            let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
             let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
             let match;
             let html = '<div class="shared-options-grid">';
@@ -451,7 +467,6 @@ let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').tr
             }
             html += '</div>';
             
-            // 4. Quyết định hiển thị
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
             } else { 

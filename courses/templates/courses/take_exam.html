@@ -89,7 +89,7 @@
     .shared-crop-window:hover { transform: scale(1.02); border-color: #93c5fd; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
     .crop-badge { position: absolute; top: 10px; left: 10px; background: var(--primary-color); color: white; font-weight: 900; font-size: 1.1rem; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10; box-shadow: 0 4px 10px rgba(155, 28, 28, 0.4); }
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
-    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -200%; }
+    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
 
     /* KHUNG ẢNH CHUNG (Dành cho HSK 3.0) */
     .img-frame {
@@ -99,19 +99,13 @@
         image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;
     }
 
-    /* CSS RIÊNG BẢO VỆ ẢNH ĐƠN ĐỀ CŨ (Câu 1-5, 21-25) KHÔNG BỊ NHÒE */
+    /* CSS RIÊNG BẢO VỆ ẢNH ĐƠN ĐỀ CŨ KHÔNG BỊ NHÒE */
     .img-frame-old {
-        max-width: 100%; /* KHÔNG DÙNG width: 100% để giữ đúng độ phân giải gốc của ảnh nhỏ */
-        height: auto; 
-        max-height: 250px; 
-        object-fit: contain; 
-        display: block; 
-        margin: 15px auto; 
-        border-radius: 12px;
-        background: #ffffff;
+        max-width: 100%; height: auto; max-height: 250px; 
+        object-fit: contain; display: block; margin: 15px auto; 
+        border-radius: 12px; background: #ffffff;
         box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
-        padding: 8px; /* Khung viền ảnh thẻ tinh tế */
-        border: 1px solid var(--border-color);
+        padding: 8px; border: 1px solid var(--border-color);
         image-rendering: crisp-edges;
     }
 
@@ -158,23 +152,19 @@
                 {% csrf_token %}
 
                 <!-- ========================================== -->
-                <!-- NHÁNH 1: GIAO DIỆN DÀNH CHO ĐỀ HSK 1 BẢN CŨ (40 CÂU) -->
+                <!-- NHÁNH 1: GIAO DIỆN ÉP CHUẨN CHO ĐỀ HSK 1 BẢN CŨ -->
                 <!-- ========================================== -->
                 {% if exam.exam_type == 'old' %}
                     {% for q in questions %}
                         
-                        <!-- 1. ĐỀ MỤC LỚN (Nghe / Đọc) -->
+                        <!-- 1. ĐỀ MỤC LỚN -->
                         {% if q.question_number == 1 %}
-                            <div class="text-center mt-3 mb-5">
-                                <div class="hsk-major-title">一、听 力</div>
-                            </div>
+                            <div class="text-center mt-3 mb-5"><div class="hsk-major-title">一、听 力</div></div>
                         {% elif q.question_number == 21 %}
-                            <div class="text-center mt-5 mb-5 pt-5 border-top">
-                                <div class="hsk-major-title">二、阅 读</div>
-                            </div>
+                            <div class="text-center mt-5 mb-5 pt-5 border-top"><div class="hsk-major-title">二、阅 读</div></div>
                         {% endif %}
 
-                        <!-- 2. ĐỀ MỤC NHỎ (Phần 1, 2, 3, 4) -->
+                        <!-- 2. ĐỀ MỤC NHỎ -->
                         {% if q.question_number == 1 or q.question_number == 21 %}
                             <div class="text-center mb-4 mt-2"><div class="hsk-part-title">第一部分</div></div>
                         {% elif q.question_number == 6 or q.question_number == 26 %}
@@ -185,23 +175,19 @@
                             <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第四部分</div></div>
                         {% endif %}
 
-                        <!-- 3. HIỂN THỊ RỔ ĐÁP ÁN (Dùng chung cho 5 câu trong nhóm) -->
+                        <!-- 3. RỔ ĐÁP ÁN (Ép chỉ hiện ở câu 11, 26, 31) -->
                         {% ifchanged q.group_name %}
                             {% if q.group_name and q.group_name != 'nan' and q.group_name != 'None' %}
                                 <div class="mb-4 text-center">
                                     <div class="hsk-group-range d-inline-block">
-                                        {% if 'Câu' in q.group_name %}
-                                            第 {{ q.group_name|slice:"4:" }} 题
-                                        {% else %}
-                                            {{ q.group_name }}
-                                        {% endif %}
+                                        {% if 'Câu' in q.group_name %}第 {{ q.group_name|slice:"4:" }} 题{% else %}{{ q.group_name }}{% endif %}
                                     </div>
                                 </div>
                             {% endif %}
 
-                            {% if q.passage_text and q.passage_text != 'nan' or q.image and not q.option_a %}
-                                {% if q.correct_answer|upper != 'TRUE' and q.correct_answer|upper != 'FALSE' %}
+                            {% if q.question_number == 11 or q.question_number == 26 or q.question_number == 31 %}
                                 <div class="shared-pool shadow-sm">
+                                    <!-- Rổ Chữ -->
                                     {% if q.passage_text and q.passage_text != 'nan' %}
                                         {% if 'A' in q.passage_text and 'B' in q.passage_text %}
                                             <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
@@ -213,7 +199,8 @@
                                         {% endif %}
                                     {% endif %}
 
-                                    {% if q.image and not q.option_a %}
+                                    <!-- Rổ Ảnh A-F (Chỉ cho câu 11 và 26) -->
+                                    {% if q.image and q.question_number != 31 %}
                                         <div class="shared-img-grid mt-3">
                                             <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}" alt="A"></div>
                                             <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ q.image.url }}" alt="B"></div>
@@ -224,11 +211,10 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                {% endif %}
                             {% endif %}
                         {% endifchanged %}
 
-                        <!-- 4. KHUNG CÂU HỎI TỪNG CÂU -->
+                        <!-- 4. KHUNG CÂU HỎI & NỘI DUNG -->
                         <div class="q-card" id="q{{ q.question_number }}">
                             <div class="q-header-inline">
                                 <div class="q-number-text">{{ q.question_number }}.</div>
@@ -242,30 +228,28 @@
                                         <div class="chinese-text fw-bold text-start">{{ q.content|safe|linebreaksbr }}</div>
                                     {% endif %}
                                     
-                                    <!-- ẢNH ĐƠN (Đã được bọc class img-frame-old chuyên biệt để không bị vỡ ảnh) -->
+                                    <!-- HIỂN THỊ ẢNH NGUYÊN BẢN CHO CÂU 1-5 VÀ 21-25 -->
                                     {% if q.image %}
-                                        {% if q.correct_answer|upper == 'TRUE' or q.correct_answer|upper == 'FALSE' %}
-                                            <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
-                                        {% elif q.option_a and q.option_a != 'nan' and 'Hình' not in q.option_a %}
+                                        {% if q.question_number <= 5 or q.question_number >= 21 and q.question_number <= 25 %}
                                             <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
                                         {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
 
-                            <!-- 5. KHU VỰC LỰA CHỌN ĐÁP ÁN -->
+                            <!-- 5. TỰ ĐỘNG PHÂN LOẠI NÚT ĐÁP ÁN THEO SỐ CÂU (KHÔNG DỰA VÀO EXCEL NỮA) -->
                             <div class="mt-2">
                                 
-                                <!-- Dạng Đúng / Sai -->
-                                {% if q.correct_answer|upper == 'TRUE' or q.correct_answer|upper == 'FALSE' %}
-                                    <div class="d-flex gap-4">
-                                        <div class="w-50">
+                                <!-- Dạng True/False (Câu 1-5, 21-25) -->
+                                {% if q.question_number <= 5 or q.question_number >= 21 and q.question_number <= 25 %}
+                                    <div class="d-flex gap-4 justify-content-center mt-3">
+                                        <div style="flex: 1; max-width: 250px;">
                                             <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_TRUE" value="TRUE" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
                                             <label class="opt-label justify-content-center" for="q{{ q.id }}_TRUE">
                                                 <span class="fw-bold fs-3 text-success">√ Đúng</span>
                                             </label>
                                         </div>
-                                        <div class="w-50">
+                                        <div style="flex: 1; max-width: 250px;">
                                             <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_FALSE" value="FALSE" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
                                             <label class="opt-label justify-content-center" for="q{{ q.id }}_FALSE">
                                                 <span class="fw-bold fs-3 text-danger">× Sai</span>
@@ -273,17 +257,9 @@
                                         </div>
                                     </div>
 
-                                <!-- Dạng Rổ A-F -->
-                                {% elif not q.option_a or q.option_a == 'nan' %}
-                                    <div class="af-options-wrapper mt-3">
-                                        {% for opt in "ABCDEF"|make_list %}
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
-                                        {% endfor %}
-                                    </div>
-
-                                <!-- Dạng Cắt 3 ẢNH -->
-                                {% elif q.image and 'Hình' in q.option_a %}
+                                <!-- Dạng Cắt 3 ẢNH (Câu 6-10) -->
+                                {% elif q.question_number >= 6 and q.question_number <= 10 %}
+                                    {% if q.image %}
                                     <div class="row g-4 mt-1">
                                         <div class="col-4">
                                             <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
@@ -307,8 +283,18 @@
                                             </label>
                                         </div>
                                     </div>
+                                    {% endif %}
                                 
-                                <!-- Dạng Text A B C -->
+                                <!-- Dạng Rổ A-F (Câu 11-15, 26-35) -->
+                                {% elif q.question_number >= 11 and q.question_number <= 15 or q.question_number >= 26 and q.question_number <= 35 %}
+                                    <div class="af-options-wrapper mt-3">
+                                        {% for opt in "ABCDEF"|make_list %}
+                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})" required>
+                                            <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                        {% endfor %}
+                                    </div>
+
+                                <!-- Dạng Text A B C (Câu 16-20, 36-40) -->
                                 {% else %}
                                     <div class="row g-3 mt-1">
                                         {% if q.option_a and q.option_a != 'nan' %}
@@ -527,7 +513,7 @@
             </form>
         </div>
 
-        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN -->
+        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN (Dùng chung cho cả 2 loại) -->
         <div class="col-xl-3 col-lg-4">
             <div class="sticky-sidebar">
                 <div class="panel-box text-center">

@@ -138,7 +138,7 @@
                                 </div>
                             {% endif %}
 
-                            <!-- 4. MỞ RỔ ĐÁP ÁN -->
+                            <!-- 4. MỞ RỔ ĐÁP ÁN BẰNG ĐÚNG SỐ CÂU -->
                             {% if q_num == 11 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="shared-pool shadow-sm">
                                     
@@ -345,8 +345,6 @@
                                         <div class="shared-pool">
                                             {% if q.passage_text and q.passage_text != 'nan' %}
                                                 <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
-                                                
-                                                <!-- ĐÃ FIX: TRUYỀN PINYIN ẨN VÀO NHÁNH 3.0 ĐỂ JS QUÉT -->
                                                 <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin|default:"" }}</div>
                                             {% endif %}
                                             
@@ -546,7 +544,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        // HÀM BÓC TÁCH MỚI: Cực kỳ thông minh, không cần khoảng trắng vẫn bắt chuẩn xác A-F
+        
+        // HÀM BÓC TÁCH THÔNG MINH CHO CẢ HÁN VÀ PINYIN
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -570,9 +569,26 @@
             
             let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
             let pinyinDict = {};
+            
             if (pinyinEl) {
-                let rawPinyin = pinyinEl.innerText || pinyinEl.textContent;
-                pinyinDict = parseOptions(rawPinyin);
+                let rawPinyin = pinyinEl.textContent || pinyinEl.innerText;
+                let hasLetters = /([A-F])[.、:：\s]+/.test(rawPinyin);
+                
+                // NẾU CÓ CHỮ A, B, C TRONG PINYIN THÌ QUÉT BÌNH THƯỜNG
+                if (hasLetters) {
+                    pinyinDict = parseOptions(rawPinyin);
+                } 
+                // NẾU KHÔNG CÓ CHỮ A, B, C (TRƯỜNG HỢP TRONG ẢNH EXCEL CỦA BẠN) -> Cắt theo dấu xuống dòng
+                else {
+                    let pinyinLines = rawPinyin.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                    let letters = Object.keys(textDict).sort(); // Lấy danh sách các chữ cái đã bóc được từ phần Hán ('A', 'B', 'C'...)
+                    
+                    for (let i = 0; i < letters.length; i++) {
+                        if (pinyinLines[i]) {
+                            pinyinDict[letters[i]] = pinyinLines[i];
+                        }
+                    }
+                }
             }
 
             let html = '<div class="shared-options-grid">';

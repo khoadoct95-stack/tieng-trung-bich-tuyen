@@ -5,7 +5,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    /* ... (CSS Y hệt như file take_exam_hsk1_old.html ở trên, bạn copy y xì đúc khối CSS từ root đến btn-submit:hover để vào đây nhé, tôi cắt bớt cho gọn tin nhắn) ... */
     :root { --primary-color: #9B1C1C; --primary-light: #fef2f2; --bg-color: #F1F5F9; --card-bg: #FFFFFF; --border-color: #E2E8F0; --text-main: #334155; --text-muted: #64748B; --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04); --shadow-hover: 0 10px 25px rgba(155, 28, 28, 0.15); }
     body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
     .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; color: #0f172a; line-height: 1.7; white-space: pre-wrap; }
@@ -114,18 +113,25 @@
                                 <div class="q-header-inline">
                                     <div class="q-number-text">{{ q.question_number }}.</div>
                                     <div class="q-content-area w-100">
+                                        
+                                        <!-- PHẦN XỬ LÝ KẸP DÒNG (INTERLEAVING) CHO ĐOẠN VĂN MẪU -->
                                         {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                                            {% if q.passage_pinyin %}
-                                                <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
-                                            {% endif %}
-                                            <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
+                                            <div class="interleave-group passage-group border-bottom mb-3 pb-3">
+                                                <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
+                                                <div class="raw-chinese" style="display: none;">{{ q.passage_text|default:""|linebreaksbr }}</div>
+                                                <div class="interleaved-output"></div>
+                                            </div>
                                         {% endif %}
-                                        {% if q.content_pinyin %}
-                                            <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
+                                        
+                                        <!-- PHẦN XỬ LÝ KẸP DÒNG (INTERLEAVING) CHO CÂU HỎI CHÍNH -->
+                                        {% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' or q.content_pinyin and q.content_pinyin != 'nan' %}
+                                            <div class="interleave-group content-group">
+                                                <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
+                                                <div class="raw-chinese" style="display: none;">{% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' %}{{ q.content|linebreaksbr }}{% endif %}</div>
+                                                <div class="interleaved-output"></div>
+                                            </div>
                                         {% endif %}
-                                        {% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' %}
-                                            <div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>
-                                        {% endif %}
+                                        
                                     </div>
                                 </div>
 
@@ -182,7 +188,6 @@
             </form>
         </div>
 
-        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN (COPY Y CHANG CỘT PHẢI CỦA FILE OLD SANG ĐÂY LÀ ĐƯỢC) -->
         <div class="col-xl-3 col-lg-4">
             <div class="sticky-sidebar">
                 <div class="panel-box text-center">
@@ -211,7 +216,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- BẠN COPY NGUYÊN SI TOÀN BỘ KHỐI <script> Ở FILE OLD DÁN VÀO ĐÂY VÌ 2 FILE DÙNG CHUNG 1 BỘ JAVASCRIPT XỬ LÝ! -->
 <script>
     function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
     function scrollToQ(qNumber) { const el = document.getElementById('q' + qNumber); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -247,6 +251,54 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // --- 1. HÀM KẸP DÒNG CHO CÂU HỎI VÀ ĐOẠN VĂN ---
+        document.querySelectorAll('.interleave-group').forEach(function(group) {
+            let pinyinRaw = group.querySelector('.raw-pinyin');
+            let chineseRaw = group.querySelector('.raw-chinese');
+            let output = group.querySelector('.interleaved-output');
+            
+            if (output) {
+                let pHtml = pinyinRaw ? pinyinRaw.innerHTML : "";
+                let cHtml = chineseRaw ? chineseRaw.innerHTML : "";
+                
+                // Tách các thẻ <br> thành các phần tử mảng riêng biệt
+                let pLines = pHtml.split(/<br\s*\/?>/i).map(s => {
+                    let t = document.createElement('div'); t.innerHTML = s; 
+                    let text = (t.textContent || t.innerText || "").trim();
+                    return text === 'nan' ? "" : text;
+                });
+                
+                let cLines = cHtml.split(/<br\s*\/?>/i).map(s => {
+                    let t = document.createElement('div'); t.innerHTML = s; 
+                    let text = (t.textContent || t.innerText || "").trim();
+                    return text === 'nan' ? "" : text;
+                });
+                
+                let maxLines = Math.max(pLines.length, cLines.length);
+                let isContentGroup = group.classList.contains('content-group');
+                let cClass = isContentGroup ? "chinese-text fw-bold" : "chinese-text";
+                
+                let html = '';
+                for(let i = 0; i < maxLines; i++) {
+                    let pStr = i < pLines.length ? pLines[i] : "";
+                    let cStr = i < cLines.length ? cLines[i] : "";
+                    
+                    if (pStr || cStr) {
+                        html += '<div style="margin-bottom: 12px;">'; // Khoảng cách giữa các khối câu
+                        if (pStr) {
+                            html += `<div class="pinyin-text" style="color: #64748B; margin-bottom: 2px;">${pStr}</div>`;
+                        }
+                        if (cStr) {
+                            html += `<div class="${cClass}" style="line-height: 1.5; margin-bottom: 0;">${cStr}</div>`;
+                        }
+                        html += '</div>';
+                    }
+                }
+                output.innerHTML = html;
+            }
+        });
+
+        // --- 2. HÀM XỬ LÝ RỔ ĐÁP ÁN (Dùng chung cũ) ---
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -265,6 +317,7 @@
         sharedTexts.forEach(function(el) {
             let rawText = el.innerText || el.textContent;
             let textDict = parseOptions(rawText);
+            
             let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
             let pinyinDict = {};
             

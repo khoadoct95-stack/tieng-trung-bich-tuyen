@@ -382,15 +382,15 @@ def import_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
         
-        # 1. Hứng loại đề từ giao diện 
-        exam_type_from_form = request.POST.get('exam_type', 'new')
+        # 1. Hứng chuẩn xác dữ liệu từ Form (Tên đề & Loại đề)
+        exam_type_form = request.POST.get('exam_type', 'new')
+        exam_title_form = request.POST.get('exam_title', 'Đề thi HSK 1')
         
-        # 2. Tạo đề thi mới và GÁN NHÃN LOẠI ĐỀ
-        exam_title = f"Đề thi HSK 1 ({'Bản cũ' if exam_type_from_form == 'old' else '3.0'})"
+        # 2. Tạo đề thi mới và GÁN ĐÚNG NHÃN
         exam = Exam.objects.create(
-            title=exam_title, 
+            title=exam_title_form, 
             hsk_level=1,
-            exam_type=exam_type_from_form 
+            exam_type=exam_type_form # Dòng then chốt để Web biết cũ hay mới
         )
         
         # 3. Đọc dữ liệu từ file Excel
@@ -415,7 +415,7 @@ def import_excel(request):
                 correct_answer=str(row['14. Đáp án']).strip().upper()
             )
             
-        messages.success(request, f"Đã Import thành công {exam_title}!")
+        messages.success(request, f"Đã Import thành công: {exam_title_form}!")
         return redirect('exam_list')
     
     return render(request, 'admin/import_excel.html')

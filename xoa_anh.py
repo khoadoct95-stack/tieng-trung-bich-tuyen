@@ -4,7 +4,7 @@ from PIL import Image
 
 # ================= CẤU HÌNH =================
 # Thay đổi đường dẫn tới thư mục chứa ảnh giải nén của bạn
-FOLDER_PATH = r"C:\Users\Khoa\Downloads\Tat_ca_anh_tu_Word" 
+FOLDER_PATH = r"C:\Users\Khoa\Desktop\TiengTrungBichTuyen\Tat_ca_anh_tu_Word" 
 
 # Kích thước ngưỡng để nghi ngờ là rác (bạn có thể để cao lên một chút cũng không sợ mất ảnh)
 MIN_WIDTH = 60   

@@ -26,7 +26,7 @@
     
     .exam-container { max-width: 1500px; margin: 0 auto; padding: 40px 20px; }
 
-    /* TIÊU ĐỀ PHÂN CẤP HIỆN ĐẠI (MODERN HIERARCHY) */
+    /* TIÊU ĐỀ PHÂN CẤP HIỆN ĐẠI */
     .hsk-major-title { 
         display: inline-block;
         font-family: 'Noto Sans SC', sans-serif; 
@@ -58,7 +58,7 @@
 
     .q-group-wrapper { position: relative; margin-bottom: 35px; }
 
-    /* THẺ CÂU HỎI (Thiết kế nổi bật, mềm mại) */
+    /* THẺ CÂU HỎI */
     .q-card {
         background: var(--card-bg); 
         border: 1px solid rgba(255,255,255,0.5);
@@ -71,7 +71,6 @@
     
     .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
 
-    /* RỔ ĐÁP ÁN DÙNG CHUNG */
     .shared-pool {
         position: sticky; top: 15px; z-index: 99;
         background: rgba(255, 255, 255, 0.95); 
@@ -81,7 +80,6 @@
         padding: 20px 25px; border-radius: 16px; margin-bottom: 30px;
     }
 
-    /* ẢNH & LƯỚI CẮT 6 ẢNH (Khung hiện đại) */
     .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .shared-crop-window { 
         width: 100%; padding-top: 75%; position: relative; overflow: hidden; 
@@ -91,9 +89,9 @@
     .shared-crop-window:hover { transform: scale(1.02); border-color: #93c5fd; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
     .crop-badge { position: absolute; top: 10px; left: 10px; background: var(--primary-color); color: white; font-weight: 900; font-size: 1.1rem; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10; box-shadow: 0 4px 10px rgba(155, 28, 28, 0.4); }
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
-    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
+    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -200%; }
 
-    /* KHUNG ẢNH NỔI BẬT CHO ẢNH ĐƠN */
+    /* KHUNG ẢNH CHUNG (Dành cho HSK 3.0) */
     .img-frame {
         width: 100%; max-height: 280px; object-fit: contain; display: block; margin: 0 auto;
         border-radius: 16px; background: #ffffff;
@@ -101,43 +99,37 @@
         image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;
     }
 
-    /* RỔ ĐÁP ÁN TEXT (Dạng Thẻ) */
+    /* CSS RIÊNG BẢO VỆ ẢNH ĐƠN ĐỀ CŨ (Câu 1-5, 21-25) KHÔNG BỊ NHÒE */
+    .img-frame-old {
+        max-width: 100%; /* KHÔNG DÙNG width: 100% để giữ đúng độ phân giải gốc của ảnh nhỏ */
+        height: auto; 
+        max-height: 250px; 
+        object-fit: contain; 
+        display: block; 
+        margin: 15px auto; 
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+        padding: 8px; /* Khung viền ảnh thẻ tinh tế */
+        border: 1px solid var(--border-color);
+        image-rendering: crisp-edges;
+    }
+
     .shared-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
     .shared-opt-item { background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
     .shared-opt-letter { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); background: var(--primary-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; margin-right: 15px; }
 
-    /* NÚT LỰA CHỌN CƠ BẢN */
     .opt-radio, .circle-radio { display: none; }
     
     .opt-label { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; background: #f8fafc; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
     .opt-label:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: #fff; border-color: #cbd5e1; }
     .opt-radio:checked + .opt-label { border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); }
     
-    /* DÀN TRẢI KHU VỰC CHỌN ĐÁP ÁN A-F */
-    .af-options-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly; 
-        align-items: center;
-        background: #f8fafc; 
-        padding: 20px;
-        border-radius: 16px;
-        border: 1px dashed #cbd5e1;
-    }
-
-    .circle-label { 
-        display: inline-flex; justify-content: center; align-items: center; 
-        width: 50px; height: 50px; 
-        border: 2px solid var(--border-color); border-radius: 50%; 
-        cursor: pointer; font-weight: 800; font-size: 1.25rem; color: var(--text-muted); 
-        transition: all 0.3s ease; background: #fff; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-        margin: 0; 
-    }
+    .af-options-wrapper { display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px dashed #cbd5e1; }
+    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 50px; height: 50px; border: 2px solid var(--border-color); border-radius: 50%; cursor: pointer; font-weight: 800; font-size: 1.25rem; color: var(--text-muted); transition: all 0.3s ease; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin: 0; }
     .circle-label:hover { border-color: #94A3B8; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); color: var(--text-main); }
     .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); }
 
-    /* CẮT 3 ẢNH NÚT BẤM */
     .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 2px solid transparent; border-radius: 16px; transition: all 0.3s ease; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
     .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); }
@@ -145,7 +137,6 @@
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
 
-    /* ĐIỀU KHIỂN BÊN PHẢI */
     .sticky-sidebar { position: sticky; top: 25px; }
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; box-shadow: var(--shadow-soft); margin-bottom: 25px; }
     .timer-display { font-size: 3rem; font-weight: 900; color: var(--primary-color); text-align: center; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }
@@ -196,8 +187,6 @@
 
                         <!-- 3. HIỂN THỊ RỔ ĐÁP ÁN (Dùng chung cho 5 câu trong nhóm) -->
                         {% ifchanged q.group_name %}
-                            
-                            <!-- Đề mục vừa: Câu 1-5, Câu 31-35... -->
                             {% if q.group_name and q.group_name != 'nan' and q.group_name != 'None' %}
                                 <div class="mb-4 text-center">
                                     <div class="hsk-group-range d-inline-block">
@@ -210,26 +199,20 @@
                                 </div>
                             {% endif %}
 
-                            <!-- Rổ chứa Hình hoặc Chữ -->
                             {% if q.passage_text and q.passage_text != 'nan' or q.image and not q.option_a %}
-                                <!-- Chỉ hiện rổ nếu không phải loại Đúng/Sai -->
                                 {% if q.correct_answer|upper != 'TRUE' and q.correct_answer|upper != 'FALSE' %}
                                 <div class="shared-pool shadow-sm">
-                                    
-                                    <!-- Đoạn văn / Rổ Text A-F -->
                                     {% if q.passage_text and q.passage_text != 'nan' %}
                                         {% if 'A' in q.passage_text and 'B' in q.passage_text %}
                                             <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
                                         {% else %}
                                             <div class="chinese-text mb-2">{{ q.passage_text|safe|linebreaksbr }}</div>
                                         {% endif %}
-                                        
                                         {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
                                             <div class="pinyin-text mb-3" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
                                         {% endif %}
                                     {% endif %}
 
-                                    <!-- Rổ Ảnh A-F -->
                                     {% if q.image and not q.option_a %}
                                         <div class="shared-img-grid mt-3">
                                             <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}" alt="A"></div>
@@ -249,22 +232,22 @@
                         <div class="q-card" id="q{{ q.question_number }}">
                             <div class="q-header-inline">
                                 <div class="q-number-text">{{ q.question_number }}.</div>
-                                <div class="q-content-area w-100">
+                                <div class="q-content-area w-100 text-center">
                                     
                                     {% if q.content_pinyin and q.content_pinyin != 'nan' %}
-                                        <div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>
+                                        <div class="pinyin-text text-start">{{ q.content_pinyin|linebreaksbr }}</div>
                                     {% endif %}
                                     
                                     {% if q.content and q.content != 'nan' and 'Nghe Audio' not in q.content %}
-                                        <div class="chinese-text fw-bold">{{ q.content|safe|linebreaksbr }}</div>
+                                        <div class="chinese-text fw-bold text-start">{{ q.content|safe|linebreaksbr }}</div>
                                     {% endif %}
                                     
-                                    <!-- Ảnh đơn (Chỉ hiện cho câu hỏi dạng Đúng/Sai hoặc Trắc nghiệm thường) -->
+                                    <!-- ẢNH ĐƠN (Đã được bọc class img-frame-old chuyên biệt để không bị vỡ ảnh) -->
                                     {% if q.image %}
                                         {% if q.correct_answer|upper == 'TRUE' or q.correct_answer|upper == 'FALSE' %}
-                                            <img src="{{ q.image.url }}" class="img-frame mt-3" alt="Question Image">
+                                            <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
                                         {% elif q.option_a and q.option_a != 'nan' and 'Hình' not in q.option_a %}
-                                            <img src="{{ q.image.url }}" class="img-frame mt-3" alt="Question Image">
+                                            <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
                                         {% endif %}
                                     {% endif %}
                                 </div>
@@ -441,7 +424,6 @@
                                     <div class="q-header-inline">
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
-                                            <!-- FIX: Loại bỏ chữ "Nghe Audio chọn ảnh" bằng template tag -->
                                             {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
                                                 {% if q.passage_pinyin %}
                                                     <div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
@@ -459,9 +441,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- KHU VỰC LỰA CHỌN ĐÁP ÁN (Không chứa Tiếng Việt) -->
+                                    <!-- KHU VỰC LỰA CHỌN ĐÁP ÁN -->
                                     <div class="mt-2">
-                                        <!-- DẠNG NỐI A-F (Đã được dàn trải đẹp mắt) -->
                                         {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
                                             <div class="af-options-wrapper mt-3">
                                                 {% for opt in "ABCDEF"|make_list %}
@@ -470,7 +451,6 @@
                                                 {% endfor %}
                                             </div>
                                         
-                                        <!-- DẠNG CẮT 3 ẢNH -->
                                         {% elif q.image %}
                                             <div class="row g-4 mt-1">
                                                 <div class="col-4">
@@ -496,7 +476,6 @@
                                                 </div>
                                             </div>
                                         
-                                        <!-- DẠNG CHỈ CÓ TEXT -->
                                         {% else %}
                                             <div class="row g-3 mt-1">
                                                 {% if q.option_a or q.option_a_pinyin %}
@@ -548,7 +527,7 @@
             </form>
         </div>
 
-        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN (Dùng chung cho cả 2 loại) -->
+        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN -->
         <div class="col-xl-3 col-lg-4">
             <div class="sticky-sidebar">
                 <div class="panel-box text-center">

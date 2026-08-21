@@ -105,7 +105,7 @@
                     {% for q in questions %}
                         {% with q_num=q.question_number|add:"0" %}
                             
-                            <!-- BỘ HÃM PHANH (WRAPPER): Đóng nhóm cũ, mở nhóm mới mỗi 5 câu -->
+                            <!-- BỘ HÃM PHANH (WRAPPER) -->
                             {% if q_num == 1 or q_num == 6 or q_num == 11 or q_num == 16 or q_num == 21 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 {% if not forloop.first %}</div>{% endif %}
                                 <div class="q-group-wrapper">
@@ -138,7 +138,7 @@
                                 </div>
                             {% endif %}
 
-                            <!-- 4. MỞ RỔ ĐÁP ÁN BẰNG ĐÚNG SỐ CÂU -->
+                            <!-- 4. MỞ RỔ ĐÁP ÁN -->
                             {% if q_num == 11 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="shared-pool shadow-sm">
                                     
@@ -147,9 +147,7 @@
                                         {% if q.passage_text and q.passage_text != 'nan' %}
                                             {% if 'A' in q.passage_text and 'B' in q.passage_text %}
                                                 <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
-                                                {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
-                                                    <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin }}</div>
-                                                {% endif %}
+                                                <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin|default:"" }}</div>
                                             {% else %}
                                                 <div class="chinese-text mb-2">{{ q.passage_text|safe|linebreaksbr }}</div>
                                                 {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
@@ -207,7 +205,7 @@
                                 <!-- 6. NÚT ĐÁP ÁN -->
                                 <div class="mt-2">
                                     
-                                    <!-- Dạng True/False (Câu 1-5, 21-25) -->
+                                    <!-- Dạng True/False -->
                                     {% if q_num <= 5 or q_num >= 21 and q_num <= 25 %}
                                         <div class="d-flex gap-4 justify-content-center mt-3">
                                             <div style="flex: 1; max-width: 250px;">
@@ -224,7 +222,7 @@
                                             </div>
                                         </div>
 
-                                    <!-- Dạng Cắt 3 ẢNH (Câu 6-10) -->
+                                    <!-- Dạng Cắt 3 ẢNH -->
                                     {% elif q_num >= 6 and q_num <= 10 %}
                                         {% if q.image %}
                                         <div class="row g-4 mt-1">
@@ -252,7 +250,7 @@
                                         </div>
                                         {% endif %}
                                     
-                                    <!-- Dạng Rổ A-F Trải dài -->
+                                    <!-- Dạng Rổ A-F -->
                                     {% elif q_num >= 11 and q_num <= 15 or q_num >= 26 and q_num <= 40 %}
                                         <div class="af-options-wrapper mt-3">
                                             {% for opt in "ABCDEF"|make_list %}
@@ -348,12 +346,10 @@
                                             {% if q.passage_text and q.passage_text != 'nan' %}
                                                 <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
                                                 
-                                                <!-- ĐÃ BỔ SUNG PINYIN ẨN CHO NHÁNH HSK 3.0 TẠI ĐÂY -->
-                                                {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
-                                                    <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin }}</div>
-                                                {% endif %}
-                                                
+                                                <!-- ĐÃ FIX: TRUYỀN PINYIN ẨN VÀO NHÁNH 3.0 ĐỂ JS QUÉT -->
+                                                <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin|default:"" }}</div>
                                             {% endif %}
+                                            
                                             {% if q.image %}
                                                 <div class="shared-img-grid">
                                                     <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}" alt="A"></div>
@@ -550,49 +546,57 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // HÀM BÓC TÁCH MỚI: Cực kỳ thông minh, không cần khoảng trắng vẫn bắt chuẩn xác A-F
+        function parseOptions(text) {
+            let dict = {};
+            if (!text) return dict;
+            let cleanText = text.replace(/[\r\n\t\u3000]+/g, ' ').trim();
+            let parts = cleanText.split(/([A-F])[.、:：\s]+/);
+            for (let i = 1; i < parts.length; i += 2) {
+                let letter = parts[i].trim();
+                let content = parts[i+1] ? parts[i+1].trim() : "";
+                if (['A','B','C','D','E','F'].includes(letter)) {
+                    dict[letter] = content;
+                }
+            }
+            return dict;
+        }
+
         let sharedTexts = document.querySelectorAll('.format-shared-options');
         
         sharedTexts.forEach(function(el) {
             let rawText = el.innerText || el.textContent;
-            let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
-            let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
+            let textDict = parseOptions(rawText);
             
-            // JAVASCRIPT ĐÃ UPDATE: Dùng querySelector để "tóm" chính xác Pinyin bất chấp cấu trúc HTML
             let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
             let pinyinDict = {};
             if (pinyinEl) {
                 let rawPinyin = pinyinEl.innerText || pinyinEl.textContent;
-                let cleanPinyin = rawPinyin.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
-                let pinyinRegex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
-                let pinyinMatch;
-                while ((pinyinMatch = pinyinRegex.exec(cleanPinyin)) !== null) {
-                    pinyinDict[pinyinMatch[1].trim()] = pinyinMatch[2].trim();
-                }
+                pinyinDict = parseOptions(rawPinyin);
             }
 
-            let match;
             let html = '<div class="shared-options-grid">';
             let found = false;
             
-            while ((match = regex.exec(cleanText)) !== null) {
-                found = true;
-                let letter = match[1].trim();
-                let content = match[2].trim();
-                let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #64748B; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
-
-                html += `
-                    <div class="shared-opt-item shadow-sm">
-                        <div class="shared-opt-letter">${letter}</div>
-                        <div>
-                            ${pinyinHtml}
-                            <div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${content}</div>
-                        </div>
-                    </div>`;
-            }
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+                if (textDict[letter]) {
+                    found = true;
+                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #64748B; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
+                    html += `
+                        <div class="shared-opt-item shadow-sm">
+                            <div class="shared-opt-letter">${letter}</div>
+                            <div>
+                                ${pinyinHtml}
+                                <div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${textDict[letter]}</div>
+                            </div>
+                        </div>`;
+                }
+            });
             html += '</div>';
             
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
+                el.style.display = 'none'; 
                 if (pinyinEl) pinyinEl.style.display = 'none';
             } else { 
                 el.style.display = 'block'; 

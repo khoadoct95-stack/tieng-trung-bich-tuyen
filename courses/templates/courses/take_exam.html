@@ -36,7 +36,17 @@
     .q-header-inline { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 25px; }
     .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
 
-    .shared-pool { position: sticky; top: 15px; z-index: 99; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(191, 219, 254, 0.5); padding: 20px 25px; border-radius: 16px; margin-bottom: 30px; }
+    /* ĐÃ FIX RỔ ĐÁP ÁN: Bỏ "position: sticky" để không bị trượt đè lên câu hỏi khác */
+    .shared-pool { 
+        position: relative; 
+        background: #ffffff; 
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); 
+        border: 1px solid var(--border-color); 
+        padding: 20px 25px; 
+        border-radius: 16px; 
+        margin-bottom: 30px; 
+    }
+    
     .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 12px; background-color: #fff; border: 2px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: transform 0.3s, border-color 0.3s; }
     .shared-crop-window:hover { transform: scale(1.02); border-color: #93c5fd; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
@@ -113,7 +123,7 @@
                                 <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第四部分</div></div>
                             {% endif %}
 
-                            <!-- 3. PHẠM VI CÂU (ĐÃ FIX: Canh trái giống y hệt HSK 3.0) -->
+                            <!-- 3. PHẠM VI CÂU -->
                             {% if q_num == 1 or q_num == 6 or q_num == 11 or q_num == 16 or q_num == 21 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="mb-4">
                                     <div class="hsk-group-range">
@@ -130,7 +140,6 @@
                                     {% if q_num == 31 or q_num == 36 %}
                                         {% if q.passage_text and q.passage_text != 'nan' %}
                                             {% if 'A' in q.passage_text and 'B' in q.passage_text %}
-                                                <!-- Đã Fix: Đưa Pinyin vào vùng ẩn để JS tự động quét và ghép -->
                                                 <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
                                                 {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
                                                     <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin }}</div>
@@ -189,7 +198,7 @@
                                     </div>
                                 </div>
 
-                                <!-- 6. NÚT ĐÁP ÁN (Chia theo khoảng câu siêu chính xác) -->
+                                <!-- 6. NÚT ĐÁP ÁN -->
                                 <div class="mt-2">
                                     
                                     <!-- Dạng True/False (Câu 1-5, 21-25) -->
@@ -237,7 +246,7 @@
                                         </div>
                                         {% endif %}
                                     
-                                    <!-- Dạng Rổ A-F Trải dài (Câu 11-15 và CẢ 26 đến 40) -->
+                                    <!-- Dạng Rổ A-F Trải dài -->
                                     {% elif q_num >= 11 and q_num <= 15 or q_num >= 26 and q_num <= 40 %}
                                         <div class="af-options-wrapper mt-3">
                                             {% for opt in "ABCDEF"|make_list %}
@@ -246,7 +255,7 @@
                                             {% endfor %}
                                         </div>
 
-                                    <!-- Dạng Text A B C (Câu 16-20) -->
+                                    <!-- Dạng Text A B C -->
                                     {% else %}
                                         <div class="row g-3 mt-1">
                                             {% if q.option_a and q.option_a != 'nan' %}
@@ -526,7 +535,6 @@
         document.getElementById('exam-form').submit();
     }
 
-    // BỘ QUÉT RỔ ĐÁP ÁN (ĐÃ UPDATE: KẾT HỢP XỬ LÝ CẢ CHỮ HÁN LẪN PINYIN)
     document.addEventListener("DOMContentLoaded", function() {
         let sharedTexts = document.querySelectorAll('.format-shared-options');
         
@@ -535,7 +543,6 @@
             let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
             let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
             
-            // Tìm và xử lý Pinyin đi kèm (nếu có)
             let pinyinEl = el.nextElementSibling;
             let pinyinDict = {};
             if (pinyinEl && pinyinEl.classList.contains('format-shared-pinyin')) {
@@ -556,8 +563,6 @@
                 found = true;
                 let letter = match[1].trim();
                 let content = match[2].trim();
-                
-                // Lấy pinyin tương ứng để nhúng chung vào nút
                 let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #64748B; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
 
                 html += `
@@ -571,7 +576,6 @@
             }
             html += '</div>';
             
-            // Xóa rổ thô và hiển thị rổ đẹp
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
                 if (pinyinEl && pinyinEl.classList.contains('format-shared-pinyin')) {

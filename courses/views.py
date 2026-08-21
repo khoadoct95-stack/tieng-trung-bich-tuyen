@@ -112,7 +112,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (MỚI)
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN
 # ==========================================
 @login_required
 def dashboard_view(request):
@@ -217,6 +217,9 @@ def github_webhook(request):
     return HttpResponse("Invalid request", status=400)
 
 
+# ==========================================
+# 6. LÀM BÀI THI & TRẠM PHÂN LUỒNG TEMPLATE
+# ==========================================
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -248,10 +251,35 @@ def take_exam(request, exam_id):
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
         return redirect('exam_result', result_id=result.id)
 
-    return render(request, 'courses/take_exam.html', {'exam': exam, 'questions': questions})
+    context = {
+        'exam': exam, 
+        'questions': questions
+    }
+
+    # THAY ĐỔI LỚN TẠI ĐÂY: TRẠM PHÂN LUỒNG
+    if exam.hsk_level == 1:
+        if exam.exam_type == 'old':
+            return render(request, 'courses/take_exam_hsk1_old.html', context)
+        else:
+            return render(request, 'courses/take_exam_hsk1_new.html', context)
+            
+    elif exam.hsk_level == 2:
+        if exam.exam_type == 'old':
+            return render(request, 'courses/take_exam_hsk2_old.html', context)
+        else:
+            return render(request, 'courses/take_exam_hsk2_new.html', context)
+            
+    elif exam.hsk_level == 3:
+        if exam.exam_type == 'old':
+            return render(request, 'courses/take_exam_hsk3_old.html', context)
+        else:
+            return render(request, 'courses/take_exam_hsk3_new.html', context)
+
+    # Nếu không khớp trường hợp nào ở trên, load giao diện mặc định
+    return render(request, 'courses/take_exam_hsk1_new.html', context)
 
 # ==========================================
-# HÀM MỚI: XEM LẠI CHI TIẾT BÀI LÀM
+# 7. XEM LẠI CHI TIẾT BÀI LÀM
 # ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
@@ -274,8 +302,9 @@ def review_exam(request, result_id):
         'result': result
     })
 
-
-# HÀM HIỂN THỊ KẾT QUẢ ĐIỂM SỐ
+# ==========================================
+# 8. KẾT QUẢ VÀ DANH SÁCH BÀI THI
+# ==========================================
 @login_required(login_url='login')
 def exam_result(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
@@ -292,7 +321,6 @@ def exam_result(request, result_id):
         'is_passed': is_passed
     })
 
-# Hàm hiển thị danh sách các đề thi
 def exam_list(request):
     search_query = request.GET.get('q', '').strip()
     level_filter = request.GET.get('level', '')
@@ -375,25 +403,25 @@ def student_dashboard(request):
     return render(request, 'courses/dashboard.html', context)
 
 # ==========================================
-# 6. QUẢN LÝ UPLOAD ĐỀ THI
+# 9. UPLOAD ĐỀ THI (IMPORT EXCEL)
 # ==========================================
 @login_required
 def import_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
         
-        # 1. Hứng chuẩn xác dữ liệu từ Form (Tên đề & Loại đề)
         exam_type_form = request.POST.get('exam_type', 'new')
-        exam_title_form = request.POST.get('exam_title', 'Đề thi HSK 1')
+        exam_title_form = request.POST.get('exam_title', 'Đề thi HSK')
+        hsk_level_form = request.POST.get('hsk_level', 1)
+        duration_form = request.POST.get('duration', 40)
         
-        # 2. Tạo đề thi mới và GÁN ĐÚNG NHÃN
         exam = Exam.objects.create(
             title=exam_title_form, 
-            hsk_level=1,
-            exam_type=exam_type_form # Dòng then chốt để Web biết cũ hay mới
+            hsk_level=hsk_level_form,
+            duration_minutes=duration_form,
+            exam_type=exam_type_form 
         )
         
-        # 3. Đọc dữ liệu từ file Excel
         df = pd.read_excel(excel_file).fillna('')
         
         for index, row in df.iterrows():

@@ -72,6 +72,9 @@ class Exam(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Mô tả đề thi")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Bổ sung 1 trường này để nhận diện: HSK Mới hay HSK Cũ
+    exam_type = models.CharField(max_length=10, default='new', choices=[('new', 'HSK 3.0'), ('old', 'HSK Bản cũ')])
+
     def __str__(self):
         return self.title
 

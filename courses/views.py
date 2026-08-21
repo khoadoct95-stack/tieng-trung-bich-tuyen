@@ -1,7 +1,7 @@
 import os
 import json
 import subprocess
-import pandas as pd  # <-- THÊM THƯ VIỆN PANDAS VÀO ĐÂY
+import pandas as pd
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -112,7 +112,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (MỚI)
 # ==========================================
 @login_required
 def dashboard_view(request):
@@ -144,11 +144,6 @@ def dashboard_view(request):
             better_count = GameHistory.objects.filter(game_type=selected_game).values('user').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
             user_rank = better_count + 1
 
-    highest_hsk = 0
-    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
-    if passed_exams.exists():
-        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
-
     active_tab = request.GET.get('tab', 'leaderboard')
 
     context = {
@@ -159,8 +154,14 @@ def dashboard_view(request):
         'personal_best': personal_best,
         'user_rank': user_rank,
         'active_tab': active_tab,
-        'highest_hsk': highest_hsk, 
     }
+
+    highest_hsk = 0
+    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
+    if passed_exams.exists():
+        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
+
+    context['highest_hsk'] = highest_hsk
     return render(request, 'courses/dashboard.html', context)
 
 @login_required
@@ -215,45 +216,6 @@ def github_webhook(request):
             return HttpResponse(f"Error: {str(e)}", status=500)
     return HttpResponse("Invalid request", status=400)
 
-# ==========================================
-# 6. QUẢN LÝ ĐỀ THI VÀ CHẤM ĐIỂM
-# ==========================================
-
-# HÀM MỚI: IMPORT EXCEL (BẢN CŨ 40 CÂU)
-@login_required
-def import_excel(request):
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        excel_file = request.FILES['excel_file']
-        
-        # Tạo bài thi mẫu
-        exam = Exam.objects.create(title="Đề thi HSK 1 (Bản cũ)", hsk_level=1)
-        
-        # Đọc dữ liệu, thay thế NaN bằng chuỗi rỗng
-        df = pd.read_excel(excel_file).fillna('')
-        
-        for index, row in df.iterrows():
-            ExamQuestion.objects.create(
-                exam=exam,
-                question_number=row['1. Số thứ tự'],
-                section_type=str(row['2. reading']).strip(), 
-                group_name=str(row['3. Nhóm câu']).strip(),
-                passage_text=str(row['4. Đoạn văn']).strip(),
-                passage_pinyin=str(row['5. Pinyin Đoạn văn']).strip(),
-                content=str(row['6. Câu hỏi']).strip(),
-                content_pinyin=str(row['7. Pinyin Câu hỏi']).strip(),
-                option_a=str(row['8. Nút A']).strip(),
-                option_pinyin_a=str(row['9. Pinyin A']).strip(),
-                option_b=str(row['10. Nút B']).strip(),
-                option_pinyin_b=str(row['11. Pinyin B']).strip(),
-                option_c=str(row['12. Nút C']).strip(),
-                option_pinyin_c=str(row['13. Pinyin C']).strip(),
-                correct_answer=str(row['14. Đáp án']).strip().upper()
-            )
-            
-        messages.success(request, "Import dữ liệu đề thi thành công!")
-        return redirect('exam_list')
-    
-    return render(request, 'admin/import_excel.html')
 
 @login_required(login_url='login')
 def take_exam(request, exam_id):
@@ -262,7 +224,7 @@ def take_exam(request, exam_id):
 
     if request.method == 'POST':
         total_correct = 0
-        user_answers_dict = {} 
+        user_answers_dict = {}
 
         for q in questions:
             submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
@@ -279,7 +241,7 @@ def take_exam(request, exam_id):
             exam=exam,
             score=score,
             total_correct=total_correct,
-            user_answers=user_answers_dict, 
+            user_answers=user_answers_dict,
             time_spent=0
         )
 
@@ -288,6 +250,9 @@ def take_exam(request, exam_id):
 
     return render(request, 'courses/take_exam.html', {'exam': exam, 'questions': questions})
 
+# ==========================================
+# HÀM MỚI: XEM LẠI CHI TIẾT BÀI LÀM
+# ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
@@ -309,6 +274,8 @@ def review_exam(request, result_id):
         'result': result
     })
 
+
+# HÀM HIỂN THỊ KẾT QUẢ ĐIỂM SỐ
 @login_required(login_url='login')
 def exam_result(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
@@ -325,6 +292,7 @@ def exam_result(request, result_id):
         'is_passed': is_passed
     })
 
+# Hàm hiển thị danh sách các đề thi
 def exam_list(request):
     search_query = request.GET.get('q', '').strip()
     level_filter = request.GET.get('level', '')
@@ -405,3 +373,49 @@ def student_dashboard(request):
     }
     
     return render(request, 'courses/dashboard.html', context)
+
+# ==========================================
+# 6. QUẢN LÝ UPLOAD ĐỀ THI
+# ==========================================
+@login_required
+def import_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+        
+        # 1. Hứng loại đề từ giao diện 
+        exam_type_from_form = request.POST.get('exam_type', 'new')
+        
+        # 2. Tạo đề thi mới và GÁN NHÃN LOẠI ĐỀ
+        exam_title = f"Đề thi HSK 1 ({'Bản cũ' if exam_type_from_form == 'old' else '3.0'})"
+        exam = Exam.objects.create(
+            title=exam_title, 
+            hsk_level=1,
+            exam_type=exam_type_from_form 
+        )
+        
+        # 3. Đọc dữ liệu từ file Excel
+        df = pd.read_excel(excel_file).fillna('')
+        
+        for index, row in df.iterrows():
+            ExamQuestion.objects.create(
+                exam=exam,
+                question_number=row['1. Số thứ tự'],
+                section_type=str(row['2. Phần thi']).strip(), 
+                group_name=str(row['3. Nhóm câu']).strip(),
+                passage_text=str(row['4. Đoạn văn']).strip(),
+                passage_pinyin=str(row['5. Pinyin Đoạn văn']).strip(),
+                content=str(row['6. Câu hỏi']).strip(),
+                content_pinyin=str(row['7. Pinyin Câu hỏi']).strip(),
+                option_a=str(row['8. Nút A']).strip(),
+                option_pinyin_a=str(row['9. Pinyin A']).strip(),
+                option_b=str(row['10. Nút B']).strip(),
+                option_pinyin_b=str(row['11. Pinyin B']).strip(),
+                option_c=str(row['12. Nút C']).strip(),
+                option_pinyin_c=str(row['13. Pinyin C']).strip(),
+                correct_answer=str(row['14. Đáp án']).strip().upper()
+            )
+            
+        messages.success(request, f"Đã Import thành công {exam_title}!")
+        return redirect('exam_list')
+    
+    return render(request, 'admin/import_excel.html')

@@ -36,7 +36,7 @@
     .q-header-inline { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 25px; }
     .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
 
-    /* ĐÃ KHÔI PHỤC STICKY: Rổ ảnh sẽ trượt theo màn hình nhưng sẽ tự dừng lại khi hết nhóm câu */
+    /* BỘ HÃM PHANH RỔ ẢNH STICKY */
     .shared-pool { 
         position: sticky; top: 15px; z-index: 99; 
         background: rgba(255, 255, 255, 0.95); 
@@ -139,7 +139,7 @@
                                 </div>
                             {% endif %}
 
-                            <!-- 4. MỞ RỔ ĐÁP ÁN -->
+                            <!-- 4. MỞ RỔ ĐÁP ÁN BẰNG ĐÚNG SỐ CÂU -->
                             {% if q_num == 11 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="shared-pool shadow-sm">
                                     
@@ -347,8 +347,14 @@
                                 {% if forloop.first %}
                                     {% if q.question_number == 11 or q.question_number == 21 or q.question_number == 26 or q.question_number == 31 %}
                                         <div class="shared-pool">
-                                            {% if q.passage_text %}
+                                            {% if q.passage_text and q.passage_text != 'nan' %}
                                                 <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                                
+                                                <!-- ĐÃ BỔ SUNG PINYIN ẨN CHO NHÁNH HSK 3.0 TẠI ĐÂY -->
+                                                {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
+                                                    <div class="format-shared-pinyin" style="display: none;">{{ q.passage_pinyin }}</div>
+                                                {% endif %}
+                                                
                                             {% endif %}
                                             {% if q.image %}
                                                 <div class="shared-img-grid">

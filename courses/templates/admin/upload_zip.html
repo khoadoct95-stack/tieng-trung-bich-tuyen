@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2>🖼️ Gắn ảnh hàng loạt từ file ZIP</h2>
+    
+    <div class="alert alert-info mt-3" style="font-size: 0.95rem;">
+        <strong>Quy tắc đặt tên file trong ZIP:</strong><br>
+        - Ảnh câu thường (1-5, 21-25): <code>q1.jpg</code>, <code>q2.jpg</code>...<br>
+        - Rổ 3 hình (A,B,C): <code>q6_A.jpg</code>, <code>q6_B.jpg</code>, <code>q6_C.jpg</code>...<br>
+        - Rổ 6 hình (A-F): <code>q11_A.jpg</code>... <code>q11_F.jpg</code>.<br>
+        <span class="text-danger">Hệ thống sẽ tự động ghép các hình lẻ lại với nhau!</span>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label class="fw-bold">1. Chọn Đề thi cần gắn ảnh:</label>
+            <select name="exam_id" class="form-control" required>
+                <option value="">-- Chọn đề thi --</option>
+                {% for exam in exams %}
+                    <option value="{{ exam.id }}">{{ exam.title }} (HSK {{ exam.hsk_level }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="fw-bold">2. Tải lên file ZIP (.zip):</label>
+            <input type="file" name="zip_file" class="form-control" accept=".zip" required>
+        </div>
+
+        <button type="submit" class="btn btn-info text-white fw-bold px-4 py-2" style="width: 100%;">
+            🚀 Bắt đầu Ghép & Gắn Ảnh
+        </button>
+    </form>
+    
+    {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

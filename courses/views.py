@@ -2,6 +2,11 @@ import os
 import json
 import subprocess
 import pandas as pd
+import zipfile
+import re
+from io import BytesIO
+from PIL import Image
+from django.core.files.base import ContentFile
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -216,7 +221,6 @@ def github_webhook(request):
             return HttpResponse(f"Error: {str(e)}", status=500)
     return HttpResponse("Invalid request", status=400)
 
-
 # ==========================================
 # 6. LÀM BÀI THI & TRẠM PHÂN LUỒNG TEMPLATE
 # ==========================================
@@ -256,7 +260,6 @@ def take_exam(request, exam_id):
         'questions': questions
     }
 
-    # THAY ĐỔI LỚN TẠI ĐÂY: TRẠM PHÂN LUỒNG
     if exam.hsk_level == 1:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk1_old.html', context)
@@ -275,7 +278,6 @@ def take_exam(request, exam_id):
         else:
             return render(request, 'courses/take_exam_hsk3_new.html', context)
 
-    # Nếu không khớp trường hợp nào ở trên, load giao diện mặc định
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 
 # ==========================================
@@ -447,3 +449,103 @@ def import_excel(request):
         return redirect('exam_list')
     
     return render(request, 'admin/import_excel.html')
+
+# ==========================================
+# 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT
+# ==========================================
+@login_required
+def upload_exam_images_zip(request):
+    if request.method == 'POST':
+        exam_id = request.POST.get('exam_id')
+        zip_file = request.FILES.get('zip_file')
+        
+        if not exam_id or not zip_file:
+            messages.error(request, "Vui lòng chọn đề thi và file ZIP.")
+            return redirect('upload_exam_images_zip')
+            
+        exam = get_object_or_404(Exam, id=exam_id)
+        
+        image_groups = {}
+        single_images = {}
+
+        try:
+            with zipfile.ZipFile(zip_file, 'r') as z:
+                for filename in z.namelist():
+                    if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                        # Bỏ qua các file ẩn của Mac/Windows
+                        if '__MACOSX' in filename or filename.startswith('.'):
+                            continue
+                            
+                        clean_name = filename.split('/')[-1]
+                        
+                        match_group = re.match(r'^q(\d+)_([A-F])\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
+                        if match_group:
+                            q_num = match_group.group(1)
+                            letter = match_group.group(2).upper()
+                            if q_num not in image_groups:
+                                image_groups[q_num] = {}
+                            image_groups[q_num][letter] = z.read(filename)
+                            continue
+                            
+                        match_single = re.match(r'^q(\d+)\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
+                        if match_single:
+                            q_num = match_single.group(1)
+                            single_images[q_num] = z.read(filename)
+
+                # Lưu ảnh đơn
+                for q_num, file_data in single_images.items():
+                    question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+                    if question:
+                        question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
+
+                # Tự động ghép ảnh nhóm
+                for q_num, letters_dict in image_groups.items():
+                    question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+                    if not question:
+                        continue
+
+                    if 'A' in letters_dict and 'B' in letters_dict and 'C' in letters_dict and 'D' not in letters_dict:
+                        imgA = Image.open(BytesIO(letters_dict['A'])).convert('RGB')
+                        imgB = Image.open(BytesIO(letters_dict['B'])).convert('RGB')
+                        imgC = Image.open(BytesIO(letters_dict['C'])).convert('RGB')
+                        
+                        w, h = imgA.size
+                        imgB = imgB.resize((w, h))
+                        imgC = imgC.resize((w, h))
+                        
+                        composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
+                        composite.paste(imgA, (0, 0))
+                        composite.paste(imgB, (w, 0))
+                        composite.paste(imgC, (w * 2, 0))
+                        
+                        img_io = BytesIO()
+                        composite.save(img_io, format='JPEG', quality=90)
+                        question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+
+                    elif all(k in letters_dict for k in ['A', 'B', 'C', 'D', 'E', 'F']):
+                        imgs = {k: Image.open(BytesIO(letters_dict[k])).convert('RGB') for k in ['A','B','C','D','E','F']}
+                        w, h = imgs['A'].size
+                        for k in imgs:
+                            imgs[k] = imgs[k].resize((w, h))
+                            
+                        composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
+                        composite.paste(imgs['A'], (0, 0))
+                        composite.paste(imgs['B'], (w, 0))
+                        composite.paste(imgs['C'], (0, h))
+                        composite.paste(imgs['D'], (w, h))
+                        composite.paste(imgs['E'], (0, h * 2))
+                        composite.paste(imgs['F'], (w, h * 2))
+                        
+                        img_io = BytesIO()
+                        composite.save(img_io, format='JPEG', quality=90)
+                        question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+
+            messages.success(request, "🎉 Đã gắn và tự động ghép ảnh thành công từ file ZIP!")
+            return redirect('exam_list')
+            
+        except Exception as e:
+            messages.error(request, f"Lỗi xử lý file ZIP: {str(e)}")
+            return redirect('upload_exam_images_zip')
+
+    exams = Exam.objects.all().order_by('-id')
+    return render(request, 'admin/upload_zip.html', {'exams': exams})

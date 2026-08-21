@@ -1,26 +1,20 @@
 {% extends "admin/change_list.html" %}
-{% load i18n %}
 
 {% block object-tools-items %}
-    <!-- Nút Vắt ảnh từ Word -->
+    <!-- Nút 1: Import file Excel tạo khung đề thi -->
     <li>
-        <a href="extract-images/" class="addlink" style="background-color: #ffc107; color: black;">
-            ✂️ Vắt ảnh từ Word
-        </a>
-    </li>
-
-    <!-- Nút Upload Excel -->
-    <li>
-        <a href="import-excel/" class="addlink" style="background-color: #28a745; color: white;">
+        <a href="{% url 'import_excel' %}" style="background-color: #10B981; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; text-decoration: none;">
             📥 Import Đề thi (Excel)
         </a>
     </li>
-    
-    <!-- Nút Gắn ảnh ZIP -->
+
+    <!-- Nút 2: Upload file ZIP để tự động gắn & ghép ảnh -->
     <li>
-        <a href="bulk-upload-images/" class="addlink" style="background-color: #0dcaf0; color: black;">
+        <a href="{% url 'upload_exam_images_zip' %}" style="background-color: #0284c7; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold; text-decoration: none;">
             🖼️ Gắn ảnh hàng loạt (ZIP)
         </a>
     </li>
+
+    <!-- Nút Thêm Exam mặc định của Django Admin (Add exam) -->
     {{ block.super }}
 {% endblock %}

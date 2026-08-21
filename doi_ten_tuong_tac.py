@@ -3,7 +3,7 @@ from PIL import Image
 
 # ================= CẤU HÌNH =================
 # Đường dẫn thư mục chứa ảnh (sau khi đã gắp "rổ ảnh" ra ngoài)
-FOLDER_PATH = r"C:\Users\Khoa\Desktop\TiengTrungBichTuyen\Tat_ca_anh_tu_Word"
+FOLDER_PATH = r"C:\Users\Khoa\Downloads\ilovepdf_images-extracted"
 # ============================================
 
 def doi_ten_tuong_tac(folder_path):

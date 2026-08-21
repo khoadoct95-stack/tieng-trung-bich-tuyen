@@ -89,190 +89,207 @@
                 {% csrf_token %}
 
                 <!-- ========================================== -->
-                <!-- NHÁNH 1: GIAO DIỆN ÉP CHUẨN CHO ĐỀ HSK 1 BẢN CŨ -->
+                <!-- NHÁNH 1: BẢO VỆ CHỐNG LỖI CHO ĐỀ HSK 1 BẢN CŨ -->
                 <!-- ========================================== -->
                 {% if exam.exam_type == 'old' %}
                     {% for q in questions %}
-                        
-                        {% if q.question_number == 1 %}
-                            <div class="text-center mt-3 mb-5"><div class="hsk-major-title">一、听 力</div></div>
-                        {% elif q.question_number == 21 %}
-                            <div class="text-center mt-5 mb-5 pt-5 border-top"><div class="hsk-major-title">二、阅 读</div></div>
-                        {% endif %}
+                        <!-- ÉP KIỂU SỐ (ĐẢM BẢO KHÔNG BAO GIỜ LỖI NHẬN DIỆN KHOẢNG CÂU) -->
+                        {% with q_num=q.question_number|add:"0" %}
+                            
+                            <!-- 1. ĐỀ MỤC LỚN -->
+                            {% if q_num == 1 %}
+                                <div class="text-center mt-3 mb-5"><div class="hsk-major-title">一、听 力</div></div>
+                            {% elif q_num == 21 %}
+                                <div class="text-center mt-5 mb-5 pt-5 border-top"><div class="hsk-major-title">二、阅 读</div></div>
+                            {% endif %}
 
-                        {% if q.question_number == 1 or q.question_number == 21 %}
-                            <div class="text-center mb-4 mt-2"><div class="hsk-part-title">第一部分</div></div>
-                        {% elif q.question_number == 6 or q.question_number == 26 %}
-                            <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第二部分</div></div>
-                        {% elif q.question_number == 11 or q.question_number == 31 %}
-                            <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第三部分</div></div>
-                        {% elif q.question_number == 16 or q.question_number == 36 %}
-                            <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第四部分</div></div>
-                        {% endif %}
+                            <!-- 2. ĐỀ MỤC NHỎ -->
+                            {% if q_num == 1 or q_num == 21 %}
+                                <div class="text-center mb-4 mt-2"><div class="hsk-part-title">第一部分</div></div>
+                            {% elif q_num == 6 or q_num == 26 %}
+                                <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第二部分</div></div>
+                            {% elif q_num == 11 or q_num == 31 %}
+                                <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第三部分</div></div>
+                            {% elif q_num == 16 or q_num == 36 %}
+                                <div class="text-center mb-4 mt-5"><div class="hsk-part-title">第四部分</div></div>
+                            {% endif %}
 
-                        <!-- 3. RỔ ĐÁP ÁN: BẬT MỞ Ở CÂU 11, 26 (Ảnh) VÀ 31, 36 (Văn bản) -->
-                        {% ifchanged q.group_name %}
-                            {% if q.group_name and q.group_name != 'nan' and q.group_name != 'None' %}
+                            <!-- 3. PHẠM VI CÂU (Ép cứng luôn không cần gọi từ Excel) -->
+                            {% if q_num == 1 or q_num == 6 or q_num == 11 or q_num == 16 or q_num == 21 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="mb-4 text-center">
                                     <div class="hsk-group-range d-inline-block">
-                                        {% if 'Câu' in q.group_name %}第 {{ q.group_name|slice:"4:" }} 题{% else %}{{ q.group_name }}{% endif %}
+                                        第 {{ q_num }}—{{ q_num|add:4 }} 题
                                     </div>
                                 </div>
                             {% endif %}
 
-                            {% if q.question_number == 11 or q.question_number == 26 or q.question_number == 31 or q.question_number == 36 %}
+                            <!-- 4. MỞ RỔ ĐÁP ÁN BẰNG ĐÚNG SỐ CÂU -->
+                            {% if q_num == 11 or q_num == 26 or q_num == 31 or q_num == 36 %}
                                 <div class="shared-pool shadow-sm">
-                                    <!-- Rổ Chữ (Dành cho câu 31 và 36) -->
-                                    {% if q.passage_text and q.passage_text != 'nan' %}
-                                        {% if 'A' in q.passage_text and 'B' in q.passage_text %}
-                                            <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                    
+                                    <!-- RỔ CHỮ CHO CÂU 31 VÀ 36 -->
+                                    {% if q_num == 31 or q_num == 36 %}
+                                        {% if q.passage_text and q.passage_text != 'nan' %}
+                                            {% if 'A' in q.passage_text and 'B' in q.passage_text %}
+                                                <div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>
+                                            {% else %}
+                                                <div class="chinese-text mb-2">{{ q.passage_text|safe|linebreaksbr }}</div>
+                                            {% endif %}
+                                            
+                                            {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
+                                                <div class="pinyin-text mb-3" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
+                                            {% endif %}
                                         {% else %}
-                                            <div class="chinese-text mb-2">{{ q.passage_text|safe|linebreaksbr }}</div>
-                                        {% endif %}
-                                        {% if q.passage_pinyin and q.passage_pinyin != 'nan' %}
-                                            <div class="pinyin-text mb-3" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>
+                                            <div class="alert alert-warning text-center fw-bold mb-0">⚠️ Cảnh báo: File Excel đang thiếu dữ liệu Đoạn văn (Passage) ở câu {{ q_num }}</div>
                                         {% endif %}
                                     {% endif %}
 
-                                    <!-- Rổ Ảnh A-F (Dành cho câu 11 và 26) -->
-                                    {% if q.image and q.question_number == 11 or q.image and q.question_number == 26 %}
-                                        <div class="shared-img-grid mt-3">
-                                            <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}" alt="A"></div>
-                                            <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ q.image.url }}" alt="B"></div>
-                                            <div class="shared-crop-window pos-C"><span class="crop-badge">C</span><img src="{{ q.image.url }}" alt="C"></div>
-                                            <div class="shared-crop-window pos-D"><span class="crop-badge">D</span><img src="{{ q.image.url }}" alt="D"></div>
-                                            <div class="shared-crop-window pos-E"><span class="crop-badge">E</span><img src="{{ q.image.url }}" alt="E"></div>
-                                            <div class="shared-crop-window pos-F"><span class="crop-badge">F</span><img src="{{ q.image.url }}" alt="F"></div>
-                                        </div>
+                                    <!-- RỔ ẢNH A-F CHO CÂU 11 VÀ 26 -->
+                                    {% if q_num == 11 or q_num == 26 %}
+                                        {% if q.image %}
+                                            <div class="shared-img-grid mt-3">
+                                                <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}" alt="A"></div>
+                                                <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ q.image.url }}" alt="B"></div>
+                                                <div class="shared-crop-window pos-C"><span class="crop-badge">C</span><img src="{{ q.image.url }}" alt="C"></div>
+                                                <div class="shared-crop-window pos-D"><span class="crop-badge">D</span><img src="{{ q.image.url }}" alt="D"></div>
+                                                <div class="shared-crop-window pos-E"><span class="crop-badge">E</span><img src="{{ q.image.url }}" alt="E"></div>
+                                                <div class="shared-crop-window pos-F"><span class="crop-badge">F</span><img src="{{ q.image.url }}" alt="F"></div>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-danger text-center fw-bold mb-0">
+                                                🚨 RỔ ẢNH CHƯA HIỆN!<br>Bạn chưa Upload ảnh Rổ vào câu {{ q_num }}. Vui lòng vào trang Admin, tìm câu {{ q_num }} và Upload file ảnh "q{{ q_num }}.jpg" nhé!
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             {% endif %}
-                        {% endifchanged %}
 
-                        <!-- 4. KHUNG CÂU HỎI -->
-                        <div class="q-card" id="q{{ q.question_number }}">
-                            <div class="q-header-inline">
-                                <div class="q-number-text">{{ q.question_number }}.</div>
-                                <div class="q-content-area w-100 text-center">
-                                    
-                                    {% if q.content_pinyin and q.content_pinyin != 'nan' %}
-                                        <div class="pinyin-text text-start">{{ q.content_pinyin|linebreaksbr }}</div>
-                                    {% endif %}
-                                    
-                                    {% if q.content and q.content != 'nan' and 'Nghe Audio' not in q.content %}
-                                        <div class="chinese-text fw-bold text-start">{{ q.content|safe|linebreaksbr }}</div>
-                                    {% endif %}
-                                    
-                                    {% if q.image %}
-                                        {% if q.question_number <= 5 or q.question_number >= 21 and q.question_number <= 25 %}
-                                            <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- 5. TỰ ĐỘNG PHÂN LOẠI NÚT ĐÁP ÁN -->
-                            <div class="mt-2">
-                                
-                                <!-- Dạng True/False (Câu 1-5, 21-25) -->
-                                {% if q.question_number <= 5 or q.question_number >= 21 and q.question_number <= 25 %}
-                                    <div class="d-flex gap-4 justify-content-center mt-3">
-                                        <div style="flex: 1; max-width: 250px;">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_TRUE" value="TRUE" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="opt-label justify-content-center" for="q{{ q.id }}_TRUE">
-                                                <span class="fw-bold fs-3 text-success">√ Đúng</span>
-                                            </label>
-                                        </div>
-                                        <div style="flex: 1; max-width: 250px;">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_FALSE" value="FALSE" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="opt-label justify-content-center" for="q{{ q.id }}_FALSE">
-                                                <span class="fw-bold fs-3 text-danger">× Sai</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                <!-- Dạng Cắt 3 ẢNH (Câu 6-10) -->
-                                {% elif q.question_number >= 6 and q.question_number <= 10 %}
-                                    {% if q.image %}
-                                    <div class="row g-4 mt-1">
-                                        <div class="col-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="auto-crop-btn" for="q{{ q.id }}_A">
-                                                <div class="crop-window show-part-A"><img src="{{ q.image.url }}" alt="A"></div>
-                                                <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
-                                            </label>
-                                        </div>
-                                        <div class="col-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="auto-crop-btn" for="q{{ q.id }}_B">
-                                                <div class="crop-window show-part-B"><img src="{{ q.image.url }}" alt="B"></div>
-                                                <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
-                                            </label>
-                                        </div>
-                                        <div class="col-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="auto-crop-btn" for="q{{ q.id }}_C">
-                                                <div class="crop-window show-part-C"><img src="{{ q.image.url }}" alt="C"></div>
-                                                <div class="text-center mt-3 fw-bold text-dark fs-5">C</div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                
-                                <!-- Dạng Rổ A-F Trải dài (Câu 11-15 và CẢ 26 đến 40) -->
-                                {% elif q.question_number >= 11 and q.question_number <= 15 or q.question_number >= 26 and q.question_number <= 40 %}
-                                    <div class="af-options-wrapper mt-3">
-                                        {% for opt in "ABCDEF"|make_list %}
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
-                                        {% endfor %}
-                                    </div>
-
-                                <!-- Dạng Text A B C (Câu 16-20) -->
-                                {% else %}
-                                    <div class="row g-3 mt-1">
-                                        {% if q.option_a and q.option_a != 'nan' %}
-                                        <div class="col-md-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="opt-label" for="q{{ q.id }}_A_txt">
-                                                <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
-                                                <div>
-                                                    {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_a }}</div>
-                                                </div>
-                                            </label>
-                                        </div>
+                            <!-- 5. KHUNG CÂU HỎI -->
+                            <div class="q-card" id="q{{ q_num }}">
+                                <div class="q-header-inline">
+                                    <div class="q-number-text">{{ q_num }}.</div>
+                                    <div class="q-content-area w-100 text-center">
+                                        
+                                        {% if q.content_pinyin and q.content_pinyin != 'nan' %}
+                                            <div class="pinyin-text text-start">{{ q.content_pinyin|linebreaksbr }}</div>
                                         {% endif %}
                                         
-                                        {% if q.option_b and q.option_b != 'nan' %}
-                                        <div class="col-md-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="opt-label" for="q{{ q.id }}_B_txt">
-                                                <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
-                                                <div>
-                                                    {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_b }}</div>
-                                                </div>
-                                            </label>
-                                        </div>
+                                        {% if q.content and q.content != 'nan' and 'Nghe Audio' not in q.content %}
+                                            <div class="chinese-text fw-bold text-start">{{ q.content|safe|linebreaksbr }}</div>
                                         {% endif %}
-
-                                        {% if q.option_c and q.option_c != 'nan' %}
-                                        <div class="col-md-4">
-                                            <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})" required>
-                                            <label class="opt-label" for="q{{ q.id }}_C_txt">
-                                                <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
-                                                <div>
-                                                    {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_c }}</div>
-                                                </div>
-                                            </label>
-                                        </div>
+                                        
+                                        <!-- HÌNH ẢNH CỦA CÂU 1-5 VÀ 21-25 -->
+                                        {% if q.image %}
+                                            {% if q_num <= 5 or q_num >= 21 and q_num <= 25 %}
+                                                <img src="{{ q.image.url }}" class="img-frame-old" alt="Question Image">
+                                            {% endif %}
                                         {% endif %}
                                     </div>
-                                {% endif %}
+                                </div>
+
+                                <!-- 6. NÚT ĐÁP ÁN (Chia theo khoảng câu siêu chính xác) -->
+                                <div class="mt-2">
+                                    
+                                    <!-- Dạng True/False (Câu 1-5, 21-25) -->
+                                    {% if q_num <= 5 or q_num >= 21 and q_num <= 25 %}
+                                        <div class="d-flex gap-4 justify-content-center mt-3">
+                                            <div style="flex: 1; max-width: 250px;">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_TRUE" value="TRUE" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="opt-label justify-content-center" for="q{{ q.id }}_TRUE">
+                                                    <span class="fw-bold fs-3 text-success">√ Đúng</span>
+                                                </label>
+                                            </div>
+                                            <div style="flex: 1; max-width: 250px;">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_FALSE" value="FALSE" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="opt-label justify-content-center" for="q{{ q.id }}_FALSE">
+                                                    <span class="fw-bold fs-3 text-danger">× Sai</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                    <!-- Dạng Cắt 3 ẢNH (Câu 6-10) -->
+                                    {% elif q_num >= 6 and q_num <= 10 %}
+                                        {% if q.image %}
+                                        <div class="row g-4 mt-1">
+                                            <div class="col-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="auto-crop-btn" for="q{{ q.id }}_A">
+                                                    <div class="crop-window show-part-A"><img src="{{ q.image.url }}" alt="A"></div>
+                                                    <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
+                                                </label>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="auto-crop-btn" for="q{{ q.id }}_B">
+                                                    <div class="crop-window show-part-B"><img src="{{ q.image.url }}" alt="B"></div>
+                                                    <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
+                                                </label>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="auto-crop-btn" for="q{{ q.id }}_C">
+                                                    <div class="crop-window show-part-C"><img src="{{ q.image.url }}" alt="C"></div>
+                                                    <div class="text-center mt-3 fw-bold text-dark fs-5">C</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    
+                                    <!-- Dạng Rổ A-F Trải dài (Câu 11-15 và CẢ 26 đến 40) -->
+                                    {% elif q_num >= 11 and q_num <= 15 or q_num >= 26 and q_num <= 40 %}
+                                        <div class="af-options-wrapper mt-3">
+                                            {% for opt in "ABCDEF"|make_list %}
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                            {% endfor %}
+                                        </div>
+
+                                    <!-- Dạng Text A B C (Câu 16-20) -->
+                                    {% else %}
+                                        <div class="row g-3 mt-1">
+                                            {% if q.option_a and q.option_a != 'nan' %}
+                                            <div class="col-md-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="opt-label" for="q{{ q.id }}_A_txt">
+                                                    <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
+                                                    <div>
+                                                        {% if q.option_a_pinyin and q.option_a_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text">{{ q.option_a }}</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if q.option_b and q.option_b != 'nan' %}
+                                            <div class="col-md-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="opt-label" for="q{{ q.id }}_B_txt">
+                                                    <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
+                                                    <div>
+                                                        {% if q.option_b_pinyin and q.option_b_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text">{{ q.option_b }}</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+
+                                            {% if q.option_c and q.option_c != 'nan' %}
+                                            <div class="col-md-4">
+                                                <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q_num }})" required>
+                                                <label class="opt-label" for="q{{ q.id }}_C_txt">
+                                                    <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
+                                                    <div>
+                                                        {% if q.option_c_pinyin and q.option_c_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text">{{ q.option_c }}</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                        {% endwith %}
                     {% endfor %}
 
                 <!-- ========================================== -->
@@ -385,7 +402,7 @@
                                                     <label class="opt-label" for="q{{ q.id }}_A_txt">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
                                                         <div>
-                                                            {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                            {% if q.option_a_pinyin and q.option_a_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
                                                             <div class="chinese-text">{{ q.option_a }}</div>
                                                         </div>
                                                     </label>
@@ -397,7 +414,7 @@
                                                     <label class="opt-label" for="q{{ q.id }}_B_txt">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
                                                         <div>
-                                                            {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                            {% if q.option_b_pinyin and q.option_b_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
                                                             <div class="chinese-text">{{ q.option_b }}</div>
                                                         </div>
                                                     </label>
@@ -409,7 +426,7 @@
                                                     <label class="opt-label" for="q{{ q.id }}_C_txt">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
                                                         <div>
-                                                            {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                            {% if q.option_c_pinyin and q.option_c_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
                                                             <div class="chinese-text">{{ q.option_c }}</div>
                                                         </div>
                                                     </label>

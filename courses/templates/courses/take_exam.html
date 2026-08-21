@@ -251,8 +251,10 @@
                                         {% endif %}
                                         
                                         <!-- Nếu câu hỏi là 1 ảnh đơn (VD: Nghe 1-5, Đọc 21-25) -->
-                                        {% if q.image and q.question_number <= 10 or q.question_number >= 21 and q.question_number <= 25 %}
+                                        {% if q.image %}
+                                            {% if q.question_number <= 10 or q.question_number >= 21 and q.question_number <= 25 %}
                                             <img src="{{ q.image.url }}" class="img-frame mt-3" alt="Question Image">
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 </div>

@@ -36,7 +36,6 @@
     .q-header-inline { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 25px; }
     .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
 
-    /* BỘ HÃM PHANH RỔ ẢNH STICKY */
     .shared-pool { 
         position: sticky; top: 15px; z-index: 99; 
         background: rgba(255, 255, 255, 0.95); 
@@ -108,8 +107,8 @@
                             
                             <!-- BỘ HÃM PHANH (WRAPPER): Đóng nhóm cũ, mở nhóm mới mỗi 5 câu -->
                             {% if q_num == 1 or q_num == 6 or q_num == 11 or q_num == 16 or q_num == 21 or q_num == 26 or q_num == 31 or q_num == 36 %}
-                                {% if not forloop.first %}</div>{% endif %} <!-- Đóng q-group-wrapper trước đó -->
-                                <div class="q-group-wrapper"> <!-- Mở q-group-wrapper mới -->
+                                {% if not forloop.first %}</div>{% endif %}
+                                <div class="q-group-wrapper">
                             {% endif %}
                             
                             <!-- 1. ĐỀ MỤC LỚN -->
@@ -308,7 +307,6 @@
                                 </div>
                             </div>
 
-                            <!-- BỘ HÃM PHANH (WRAPPER): Đóng nhóm câu cuối cùng -->
                             {% if forloop.last %}</div>{% endif %}
                         {% endwith %}
                     {% endfor %}
@@ -559,9 +557,10 @@
             let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
             let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
             
-            let pinyinEl = el.nextElementSibling;
+            // JAVASCRIPT ĐÃ UPDATE: Dùng querySelector để "tóm" chính xác Pinyin bất chấp cấu trúc HTML
+            let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
             let pinyinDict = {};
-            if (pinyinEl && pinyinEl.classList.contains('format-shared-pinyin')) {
+            if (pinyinEl) {
                 let rawPinyin = pinyinEl.innerText || pinyinEl.textContent;
                 let cleanPinyin = rawPinyin.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
                 let pinyinRegex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
@@ -594,13 +593,11 @@
             
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
-                if (pinyinEl && pinyinEl.classList.contains('format-shared-pinyin')) {
-                    pinyinEl.style.display = 'none';
-                }
+                if (pinyinEl) pinyinEl.style.display = 'none';
             } else { 
                 el.style.display = 'block'; 
                 el.classList.add('chinese-text', 'mb-2'); 
-                if (pinyinEl && pinyinEl.classList.contains('format-shared-pinyin')) {
+                if (pinyinEl) {
                     pinyinEl.style.display = 'block';
                     pinyinEl.classList.add('pinyin-text', 'mb-3');
                     pinyinEl.style.color = '#64748B';

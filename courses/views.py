@@ -405,7 +405,7 @@ def student_dashboard(request):
     return render(request, 'courses/dashboard.html', context)
 
 # ==========================================
-# 9. UPLOAD ĐỀ THI (IMPORT EXCEL)
+# 9. UPLOAD ĐỀ THI (IMPORT EXCEL) - BẢN ĐỌC THEO VỊ TRÍ
 # ==========================================
 @login_required
 def import_excel(request):
@@ -424,29 +424,45 @@ def import_excel(request):
             exam_type=exam_type_form 
         )
         
+        # Đọc file Excel và lấp đầy ô trống
         df = pd.read_excel(excel_file).fillna('')
-        df.columns = df.columns.str.strip()
+        
+        # Đảm bảo file có ít nhất 14 cột để không bị lỗi
+        if len(df.columns) < 14:
+            messages.error(request, "❌ File Excel của bạn không đủ 14 cột chuẩn! Vui lòng kiểm tra lại.")
+            exam.delete()
+            return redirect('import_excel')
         
         for index, row in df.iterrows():
-            ExamQuestion.objects.create(
-                exam=exam,
-                question_number=row['1. Số thứ tự'],
-                section_type=str(row['2. Phần thi']).strip(), 
-                group_name=str(row['3. Nhóm câu']).strip(),
-                passage_text=str(row['4. Đoạn văn']).strip(),
-                passage_pinyin=str(row['5. Pinyin Đoạn văn']).strip(),
-                content=str(row['6. Câu hỏi']).strip(),
-                content_pinyin=str(row['7. Pinyin Câu hỏi']).strip(),
-                option_a=str(row['8. Nút A']).strip(),
-                option_pinyin_a=str(row['9. Pinyin A']).strip(),
-                option_b=str(row['10. Nút B']).strip(),
-                option_pinyin_b=str(row['11. Pinyin B']).strip(),
-                option_c=str(row['12. Nút C']).strip(),
-                option_pinyin_c=str(row['13. Pinyin C']).strip(),
-                correct_answer=str(row['14. Đáp án']).strip().upper()
-            )
+            # Bỏ qua nếu dòng đó trống (không có số thứ tự)
+            if str(row.iloc[0]).strip() == '':
+                continue
+                
+            try:
+                ExamQuestion.objects.create(
+                    exam=exam,
+                    question_number=row.iloc[0],              # Cột 1 (Vị trí 0)
+                    section_type=str(row.iloc[1]).strip(),    # Cột 2
+                    group_name=str(row.iloc[2]).strip(),      # Cột 3
+                    passage_text=str(row.iloc[3]).strip(),    # Cột 4
+                    passage_pinyin=str(row.iloc[4]).strip(),  # Cột 5
+                    content=str(row.iloc[5]).strip(),         # Cột 6
+                    content_pinyin=str(row.iloc[6]).strip(),  # Cột 7
+                    option_a=str(row.iloc[7]).strip(),        # Cột 8
+                    option_pinyin_a=str(row.iloc[8]).strip(), # Cột 9
+                    option_b=str(row.iloc[9]).strip(),        # Cột 10
+                    option_pinyin_b=str(row.iloc[10]).strip(),# Cột 11
+                    option_c=str(row.iloc[11]).strip(),       # Cột 12
+                    option_pinyin_c=str(row.iloc[12]).strip(),# Cột 13
+                    correct_answer=str(row.iloc[13]).strip().upper() # Cột 14
+                )
+            except Exception as e:
+                # Nếu có dòng nào bị lỗi, báo ngay ra màn hình để biết đường sửa
+                messages.error(request, f"❌ Lỗi ở dòng {index + 2} trong Excel: {str(e)}")
+                exam.delete() # Xóa đề thi vừa tạo dở dang
+                return redirect('import_excel')
             
-        messages.success(request, f"Đã Import thành công: {exam_title_form}!")
+        messages.success(request, f"🎉 Đã Import thành công: {exam_title_form}!")
         return redirect('exam_list')
     
     return render(request, 'admin/import_excel.html')

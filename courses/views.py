@@ -425,6 +425,7 @@ def import_excel(request):
         )
         
         df = pd.read_excel(excel_file).fillna('')
+        df.columns = df.columns.str.strip()
         
         for index, row in df.iterrows():
             ExamQuestion.objects.create(

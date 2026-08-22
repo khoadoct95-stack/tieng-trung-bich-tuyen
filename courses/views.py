@@ -441,23 +441,23 @@ def import_excel(request):
             try:
                 ExamQuestion.objects.create(
                     exam=exam,
-                    question_number=row.iloc[0],              # Cột 1 (Vị trí 0)
+                    question_number=row.iloc[0],              # Cột 1
                     section_type=str(row.iloc[1]).strip(),    # Cột 2
-                    group_name=str(row.iloc[2]).strip(),      # Cột 3
+                    question_group=str(row.iloc[2]).strip(),  # Cột 3 (Đã sửa: question_group)
                     passage_text=str(row.iloc[3]).strip(),    # Cột 4
                     passage_pinyin=str(row.iloc[4]).strip(),  # Cột 5
                     content=str(row.iloc[5]).strip(),         # Cột 6
                     content_pinyin=str(row.iloc[6]).strip(),  # Cột 7
                     option_a=str(row.iloc[7]).strip(),        # Cột 8
-                    option_pinyin_a=str(row.iloc[8]).strip(), # Cột 9
+                    option_a_pinyin=str(row.iloc[8]).strip(), # Cột 9 (Đã sửa: option_a_pinyin)
                     option_b=str(row.iloc[9]).strip(),        # Cột 10
-                    option_pinyin_b=str(row.iloc[10]).strip(),# Cột 11
+                    option_b_pinyin=str(row.iloc[10]).strip(),# Cột 11 (Đã sửa: option_b_pinyin)
                     option_c=str(row.iloc[11]).strip(),       # Cột 12
-                    option_pinyin_c=str(row.iloc[12]).strip(),# Cột 13
+                    option_c_pinyin=str(row.iloc[12]).strip(),# Cột 13 (Đã sửa: option_c_pinyin)
                     correct_answer=str(row.iloc[13]).strip().upper() # Cột 14
                 )
             except Exception as e:
-                # Nếu có dòng nào bị lỗi, báo ngay ra màn hình để biết đường sửa
+                # Nếu có dòng nào bị lỗi, báo ngay ra màn hình
                 messages.error(request, f"❌ Lỗi ở dòng {index + 2} trong Excel: {str(e)}")
                 exam.delete() # Xóa đề thi vừa tạo dở dang
                 return redirect('import_excel')

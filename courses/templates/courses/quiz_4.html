@@ -27,7 +27,8 @@
     .mic-btn:hover { background: #dc3545; color: white; transform: scale(1.1); }
     .mic-btn.listening {
         background: #dc3545; color: white;
-        animation: pulseMic 1.5s infinite; pointer-events: none;
+        animation: pulseMic 1.2s infinite; 
+        /* Không khóa nút nữa để học viên có thể bấm chốt */
     }
 
     @keyframes pulseMic {
@@ -56,12 +57,12 @@
         <p class="meaning-display mt-3" id="meaning-display">Ý nghĩa</p>
 
         <div class="mt-5 d-flex justify-content-center align-items-center gap-4">
-            <button class="mic-btn" id="mic-btn" onclick="startListening()">🎤</button>
-            <!-- NÚT BỎ QUA -->
+            <!-- Đổi sang hàm toggle để bật/tắt -->
+            <button class="mic-btn" id="mic-btn" onclick="toggleListening()">🎤</button>
             <button class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" style="height: 50px;" onclick="skipVocab()">⏭️ Bỏ qua</button>
         </div>
         
-        <div class="result-text text-secondary" id="result-text">Bấm Micro và đọc tiếng Trung</div>
+        <div class="result-text text-secondary" id="result-text">Bấm 🎤 để đọc -> Bấm 🛑 để chốt điểm</div>
     </div>
 
     <!-- Màn hình hoàn thành -->
@@ -87,24 +88,76 @@
     let startTime, timerInterval;
     let timeTaken = 0; 
 
+    // Biến trạng thái cho việc Thu âm thủ công
+    let isListening = false;
+    let currentTranscript = "";
+    let isSkipping = false; // Cờ báo hiệu đang bỏ qua để không chấm điểm oan
+
     // Cài đặt AI thu âm giọng nói của Trình duyệt
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN'; // Nhận diện tiếng Trung
-        recognition.interimResults = false;
+        recognition.lang = 'zh-CN'; 
+        recognition.interimResults = true; // Hiện chữ realtime để học viên nhìn thấy
         recognition.maxAlternatives = 1;
 
         recognition.onresult = function(event) {
-            const speechResult = event.results[0][0].transcript.trim();
-            checkPronunciation(speechResult);
+            let speech = "";
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                speech += event.results[i][0].transcript;
+            }
+            currentTranscript = speech;
+            
+            // Chỉ cập nhật giao diện nếu đang ở trạng thái thu âm
+            if (isListening) {
+                document.getElementById('result-text').innerText = "Đang nghe: " + currentTranscript + " (Bấm 🛑 để chốt)";
+                document.getElementById('result-text').className = "result-text text-primary";
+            }
         };
         
+        // Khi thu âm dừng (Do người dùng tự bấm Stop hoặc AI tự ngắt vì im lặng quá lâu)
         recognition.onend = function() {
+            isListening = false;
+            document.getElementById('mic-btn').innerHTML = "🎤";
             document.getElementById('mic-btn').classList.remove('listening');
+            
+            // Nếu bấm Bỏ qua thì không chấm điểm
+            if (isSkipping) {
+                isSkipping = false;
+                return; 
+            }
+            
+            checkPronunciation(currentTranscript);
         };
+    }
+
+    // Nút Bật/Tắt Micro
+    function toggleListening() {
+        if (!recognition) {
+            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Google Chrome.");
+            return;
+        }
+
+        const micBtn = document.getElementById('mic-btn');
+        const resultEl = document.getElementById('result-text');
+
+        if (isListening) {
+            // HỌC VIÊN CHỦ ĐỘNG BẤM CHỐT ĐIỂM
+            // Lệnh stop() sẽ ép trình duyệt kết thúc thu âm và gọi hàm onend ngay lập tức
+            recognition.stop(); 
+            resultEl.innerText = "Đang chấm điểm...";
+        } else {
+            // HỌC VIÊN BẮT ĐẦU ĐỌC
+            currentTranscript = "";
+            isListening = true;
+            micBtn.innerHTML = "🛑";
+            micBtn.classList.add('listening');
+            resultEl.innerText = "Đang nghe... (Đọc xong bấm 🛑 để chốt)";
+            resultEl.className = "result-text text-primary";
+            recognition.start();
+        }
     }
 
     function startTimer() {
@@ -128,49 +181,59 @@
             return;
         }
 
-        currentVocab = queue.shift(); // Lấy từ đầu tiên
+        currentVocab = queue.shift(); 
         
         document.getElementById('hanzi-display').innerText = currentVocab.hanzi;
         document.getElementById('pinyin-display').innerText = currentVocab.pinyin;
         document.getElementById('meaning-display').innerText = currentVocab.meaning;
-        document.getElementById('result-text').innerText = "Bấm Micro để đọc";
+        
+        document.getElementById('result-text').innerText = "Bấm 🎤 để đọc -> Bấm 🛑 để chốt";
         document.getElementById('result-text').className = "result-text text-secondary";
+        
+        // Reset trạng thái
+        currentTranscript = "";
+        isListening = false;
+        document.getElementById('mic-btn').innerHTML = "🎤";
+        document.getElementById('mic-btn').classList.remove('listening');
     }
 
-    // Bắt đầu thu âm
-    function startListening() {
-        if (!recognition) {
-            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Google Chrome.");
-            return;
-        }
-        document.getElementById('result-text').innerText = "Đang nghe...";
-        document.getElementById('result-text').className = "result-text text-primary";
-        document.getElementById('mic-btn').classList.add('listening');
-        recognition.start();
-    }
-
-    // Kiểm tra kết quả
+    // CHẤM ĐIỂM ĐỘ CHÍNH XÁC CAO
     function checkPronunciation(speechText) {
         const resultEl = document.getElementById('result-text');
         
-        // So sánh chữ thu được với chữ Hán của từ vựng
-        // Dùng includes để châm chước các câu dài do AI thu được
-        if (speechText.includes(currentVocab.hanzi) || currentVocab.hanzi.includes(speechText)) {
-            resultEl.innerText = `Chính xác! (${speechText})`;
+        if (!speechText || speechText.trim() === "") {
+            resultEl.innerText = "Không nghe thấy gì, vui lòng thử lại!";
+            resultEl.className = "result-text text-danger";
+            return;
+        }
+
+        // BỘ LỌC ĐẶC BIỆT: Gỡ bỏ mọi dấu cách, dấu câu, ký tự đặc biệt do AI tạo ra
+        let cleanSpeech = speechText.replace(/[。，！？、.,!?\s]/g, "").trim();
+        let targetHanzi = currentVocab.hanzi.replace(/[。，！？、.,!?\s]/g, "").trim();
+
+        // Kiểm tra bao hàm (Cho phép đúng 1 phần trong cụm hoặc dư chữ)
+        if (cleanSpeech.includes(targetHanzi) || targetHanzi.includes(cleanSpeech)) {
+            resultEl.innerText = `Chính xác! (${cleanSpeech})`;
             resultEl.className = "result-text text-success";
-            setTimeout(loadNextVocab, 1000); // Tự chuyển qua từ mới
+            
+            // Chuyển màn siêu nhanh (0.3 giây) để tiết kiệm thời gian đua top
+            setTimeout(loadNextVocab, 300); 
         } else {
-            resultEl.innerText = `Sai rồi. Bạn đọc là: ${speechText}`;
+            resultEl.innerText = `Sai rồi. Bạn đọc là: ${cleanSpeech}`;
             resultEl.className = "result-text text-danger";
         }
     }
 
-    // TÍNH NĂNG BỎ QUA
+    // BỎ QUA TỪ
     function skipVocab() {
         if (currentVocab) {
-            queue.push(currentVocab); // Nhét lại xuống cuối
-            if(recognition) recognition.stop();
-            loadNextVocab(); // Chuyển từ mới ngay lập tức
+            queue.push(currentVocab); 
+            isSkipping = true;
+            if (isListening && recognition) {
+                recognition.stop(); // Ngắt mic ngay lập tức
+            } else {
+                loadNextVocab(); 
+            }
         }
     }
 

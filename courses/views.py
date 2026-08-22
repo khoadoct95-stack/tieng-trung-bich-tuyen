@@ -117,7 +117,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (Đã nâng cấp Bộ lọc)
 # ==========================================
 @login_required
 def dashboard_view(request):
@@ -125,14 +125,29 @@ def dashboard_view(request):
     game_names = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    leaderboard_query = GameHistory.objects.filter(game_type=selected_game)\
-        .values('user__username', 'user__first_name', 'lesson__id', 'lesson__title_vietnamese')\
+    # 1. LẤY DỮ LIỆU GIÁO TRÌNH & BÀI HỌC CHO BỘ LỌC
+    curriculums = Curriculum.objects.prefetch_related('lessons').all()
+    selected_curriculum = request.GET.get('curriculum', '')
+    selected_lesson = request.GET.get('lesson', '')
+
+    # 2. XÂY DỰNG LƯỚI LỌC DỮ LIỆU
+    query_filter = Q(game_type=selected_game)
+    
+    if selected_curriculum:
+        query_filter &= Q(lesson__curriculum_id=selected_curriculum)
+    if selected_lesson:
+        query_filter &= Q(lesson_id=selected_lesson)
+
+    # 3. TRUY VẤN BẢNG XẾP HẠNG (Gom nhóm theo Bài học và User)
+    leaderboard_query = GameHistory.objects.filter(query_filter)\
+        .values('user__username', 'user__first_name', 'lesson__id', 'lesson__title_vietnamese', 'lesson__curriculum__title')\
         .annotate(best_time=Min('time_taken'))\
         .order_by('best_time')
         
     leaderboard = list(leaderboard_query[:100])
     top_3 = leaderboard[:3]
     
+    # 4. TÌM THỨ HẠNG CỦA BẢN THÂN
     user_rank = None
     personal_best = None
     
@@ -143,15 +158,25 @@ def dashboard_view(request):
             break
             
     if not user_rank:
-        pb_query = GameHistory.objects.filter(user=request.user, game_type=selected_game).aggregate(best=Min('time_taken'))['best']
+        pb_query = GameHistory.objects.filter(query_filter & Q(user=request.user)).aggregate(best=Min('time_taken'))['best']
         if pb_query:
             personal_best = pb_query
-            better_count = GameHistory.objects.filter(game_type=selected_game).values('user').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
+            # Đếm xem có bao nhiêu người giỏi hơn mình trong bộ lọc này
+            better_count = GameHistory.objects.filter(query_filter).values('user', 'lesson').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
             user_rank = better_count + 1
 
     active_tab = request.GET.get('tab', 'leaderboard')
 
+    # Phần thành tích HSK giữ nguyên
+    highest_hsk = 0
+    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
+    if passed_exams.exists():
+        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
+
     context = {
+        'curriculums': curriculums,
+        'selected_curriculum_id': int(selected_curriculum) if selected_curriculum.isdigit() else '',
+        'selected_lesson_id': int(selected_lesson) if selected_lesson.isdigit() else '',
         'leaderboard': leaderboard,
         'top_3': top_3,
         'selected_game': selected_game,
@@ -159,14 +184,8 @@ def dashboard_view(request):
         'personal_best': personal_best,
         'user_rank': user_rank,
         'active_tab': active_tab,
+        'highest_hsk': highest_hsk,
     }
-
-    highest_hsk = 0
-    passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
-    if passed_exams.exists():
-        highest_hsk = passed_exams.aggregate(Max('exam__hsk_level'))['exam__hsk_level__max']
-
-    context['highest_hsk'] = highest_hsk
     return render(request, 'courses/dashboard.html', context)
 
 @login_required

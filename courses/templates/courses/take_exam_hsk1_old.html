@@ -74,18 +74,18 @@
 {% block content %}
 <div class="exam-container">
     
-    <!-- ================= THÔNG TIN CẤP ĐỘ VÀ TÊN ĐỀ THI ================= -->
-    <div class="text-center mb-5">
-        <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> CẤP ĐỘ HSK {{ exam.hsk_level }}</div>
-        <h1 class="exam-main-title">{{ exam.title }}</h1>
-    </div>
-
-    <!-- ĐẢO CỘT TRÊN MOBILE: Sidebar lên trước (order-1), Câu hỏi xuống sau (order-2) -->
+    <!-- ĐẢO CỘT TRÊN MOBILE -->
     <div class="row">
         <!-- ================= CỘT TRÁI (CÂU HỎI) ================= -->
         <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
             
-            <!-- BẢNG KỶ LỤC CHUI VÀO CỘT TRÁI -->
+            <!-- THÔNG TIN CẤP ĐỘ VÀ TÊN ĐỀ THI (Đã được chuyển vào trong Cột trái) -->
+            <div class="text-center mb-5 mt-2">
+                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> CẤP ĐỘ HSK {{ exam.hsk_level }}</div>
+                <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
+            <!-- BẢNG KỶ LỤC -->
             <div class="q-card mb-4" style="padding: 20px 35px;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="text-center w-50" style="border-right: 2px dashed #cbd5e1;">
@@ -99,7 +99,6 @@
                 </div>
             </div>
 
-            <!-- FORM ĐỀ THI -->
             <form id="exam-form" action="" method="POST">
                 {% csrf_token %}
                 {% for q in questions %}

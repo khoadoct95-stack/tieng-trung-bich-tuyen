@@ -74,17 +74,17 @@
 {% block content %}
 <div class="exam-container">
     
-    <!-- ================= THÔNG TIN CẤP ĐỘ VÀ TÊN ĐỀ THI ================= -->
-    <div class="text-center mb-5">
-        <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> CẤP ĐỘ HSK {{ exam.hsk_level }}</div>
-        <h1 class="exam-main-title">{{ exam.title }}</h1>
-    </div>
-
-    <!-- SỬ DỤNG ORDER ĐỂ ĐẢO CỘT TRÊN MOBILE: Sidebar lên trước (order-1), Câu hỏi xuống sau (order-2) -->
+    <!-- SỬ DỤNG ORDER ĐỂ ĐẢO CỘT TRÊN MOBILE -->
     <div class="row">
         <!-- ================= CỘT TRÁI (CÂU HỎI) ================= -->
         <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
             
+            <!-- THÔNG TIN CẤP ĐỘ VÀ TÊN ĐỀ THI ĐÃ ĐƯỢC CHUYỂN VÀO TRONG CỘT TRÁI ĐỂ CĂN GIỮA ĐỒNG BỘ -->
+            <div class="text-center mb-5 mt-2">
+                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> CẤP ĐỘ HSK {{ exam.hsk_level }}</div>
+                <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
             <!-- BẢNG KỶ LỤC -->
             <div class="q-card mb-4" style="padding: 20px 35px;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -231,7 +231,7 @@
         <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
             <div class="sticky-sidebar">
                 
-                <!-- Nhóm Thời gian và Audio (Nằm ngang trên tablet/mobile lớn, dọc trên PC) -->
+                <!-- Nhóm Thời gian và Audio -->
                 <div class="d-flex flex-column flex-sm-row flex-lg-column gap-3 mb-3">
                     <div class="panel-box text-center flex-fill mb-0">
                         <p class="text-uppercase fw-bold text-muted mb-2 small">Thời gian còn lại</p>
@@ -245,7 +245,7 @@
                     {% endif %}
                 </div>
 
-                <!-- Lưới tiến độ (Tự động giấu vào trong Nút bấm trên Mobile) -->
+                <!-- Lưới tiến độ ẩn/hiện trên Mobile -->
                 <div class="panel-box">
                     <button class="btn btn-outline-secondary w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse">
                         <i class="fas fa-list me-2"></i> Hiện / Ẩn Bảng Tiến Độ

@@ -274,11 +274,20 @@ def take_exam(request, exam_id):
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
         return redirect('exam_result', result_id=result.id)
 
+    # --- TÍNH NĂNG MỚI: TÌM KỶ LỤC CÁ NHÂN & KỶ LỤC SERVER ---
+    # Tìm điểm cao nhất của User hiện tại cho đề này
+    personal_best = ExamResult.objects.filter(exam=exam, user=request.user).aggregate(Max('score'))['score__max']
+    # Tìm điểm cao nhất của Toàn bộ hệ thống cho đề này
+    global_best = ExamResult.objects.filter(exam=exam).aggregate(Max('score'))['score__max']
+
     context = {
         'exam': exam, 
-        'questions': questions
+        'questions': questions,
+        'personal_best': personal_best if personal_best is not None else "--",
+        'global_best': global_best if global_best is not None else "--"
     }
 
+    # TRẠM PHÂN LUỒNG TEMPLATE
     if exam.hsk_level == 1:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk1_old.html', context)

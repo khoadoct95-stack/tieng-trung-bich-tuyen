@@ -65,8 +65,36 @@
         .sticky-sidebar { position: relative; top: 0; margin-bottom: 20px; }
         .panel-box { padding: 15px; margin-bottom: 15px; }
         .timer-display { font-size: 2.5rem; }
-        .q-card { padding: 20px; }
+        .q-card { padding: 18px; margin-bottom: 15px; }
         .exam-main-title { font-size: 1.6rem; }
+        
+        /* 1. Tối ưu Rổ đáp án (Chống che khuất màn hình) */
+        .shared-pool { 
+            position: relative; /* Quan trọng nhất: Tắt bám dính trên điện thoại */
+            top: 0; 
+            padding: 12px; 
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+        
+        /* 2. Thu gọn lưới hình ảnh và văn bản */
+        .shared-options-grid {
+            grid-template-columns: 1fr; /* Xếp dọc các đáp án chữ để dễ đọc hơn */
+            gap: 10px;
+        }
+        .shared-img-grid { 
+            gap: 8px; /* Ép sát các ảnh lại */
+        }
+        .shared-opt-item { padding: 8px 12px; }
+        .shared-opt-letter { width: 32px; height: 32px; font-size: 1rem; margin-right: 10px; }
+        .shared-opt-text { font-size: 1.15rem !important; }
+        
+        /* 3. Thu gọn kích thước chữ và nút bấm chung */
+        .chinese-text { font-size: 1.25rem; } 
+        .pinyin-text { font-size: 1rem; }
+        .circle-label { width: 42px; height: 42px; font-size: 1.1rem; margin: 5px; }
+        .opt-label { padding: 10px 15px; }
+        .q-number-text { font-size: 1.3rem; }
     }
 </style>
 {% endblock %}

@@ -119,6 +119,16 @@
         z-index: 20;
         line-height: 1.5;
     }
+    .record {
+        position: absolute;
+        top: 15px; right: 20px;
+        color: #d97706; 
+        font-weight: bold;
+        font-size: 1.1rem;
+        z-index: 20;
+        text-align: right;
+        line-height: 1.4;
+    }
 
     #end-screen {
         display: none; 
@@ -151,7 +161,6 @@
                     <div class="col-md-5">
                         <select id="level-select" class="form-select form-select-lg mb-3">
                             <option value="">-- Chơi theo Cấp độ (Trộn toàn bộ) --</option>
-                            <!-- Đã cập nhật biến curriculums_data mới -->
                             {% for c in curriculums_data %}
                             <option value="{{ c.title }}">{{ c.title }} ({{ c.vocab_count }} từ)</option>
                             {% endfor %}
@@ -160,7 +169,6 @@
                     <div class="col-md-5">
                         <select id="lesson-select" class="form-select form-select-lg mb-3">
                             <option value="">-- Hoặc ôn tập theo Bài học --</option>
-                            <!-- Đã cập nhật biến lessons_data mới -->
                             {% for l in lessons_data %}
                             <option value="{{ l.id }}">{{ l.curriculum_title }} - Bài {{ l.order }} ({{ l.vocab_count }} từ)</option>
                             {% endfor %}
@@ -177,13 +185,14 @@
         </div>
 
         <div id="game-container" style="display: none;">
-            <!-- Góc hiển thị điểm -->
             <div class="stats">
                 Thẻ đã diệt: <span id="score" style="color: #2563eb; font-size: 1.4rem;">0</span> <br>
                 Tiến độ: <span id="progress" style="color: #059669;">0/0</span> <br>
                 Thời gian: <span id="time-display" style="color: #d97706;">0s</span>
             </div>
-            <!-- Đã xóa phần hiển thị Kỷ lục máy chủ ở góc phải -->
+            
+            <!-- ĐÃ KHÔI PHỤC KỶ LỤC TRONG GAME -->
+            <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> thẻ<br><small>(bởi <span id="top-scorer">-</span>)</small></div>
             
             <div id="game-area">
                 <div id="defender">⚔️</div>
@@ -241,6 +250,28 @@
         return letters + tones;
     }
 
+    // ĐÃ KHÔI PHỤC HÀM TẢI KỶ LỤC
+    async function fetchTopRecord() {
+        try {
+            const response = await fetch('/api/save-game-record/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ score: 0, time_taken: 0, level: currentLevel, lesson_id: currentLesson })
+            });
+            const data = await response.json();
+            if(data.status === 'success' && data.top_score > 0) {
+                document.getElementById('top-score').innerText = data.top_score;
+                document.getElementById('top-scorer').innerText = data.top_scorer;
+            } else {
+                document.getElementById('top-score').innerText = 0;
+                document.getElementById('top-scorer').innerText = '-';
+            }
+        } catch (error) {}
+    }
+
     async function startGame() {
         const level = document.getElementById('level-select').value;
         const lesson = document.getElementById('lesson-select').value;
@@ -284,6 +315,9 @@
             document.getElementById('score').innerText = score;
             document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
             document.getElementById('time-display').innerText = `0s`;
+
+            // Gọi API lấy Kỷ lục hiện tại lên màn hình
+            fetchTopRecord();
 
             timerInterval = setInterval(() => {
                 secondsPlayed++;
@@ -445,7 +479,6 @@
         
         if (score > 0) {
             try {
-                // Vẫn lưu ngầm kết quả tiến độ học tập vào database, chỉ không hiển thị Bảng xếp hạng ra ngoài
                 await fetch('/api/save-game-record/', {
                     method: 'POST',
                     headers: {
@@ -463,6 +496,10 @@
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';
         document.getElementById('setup-screen').style.display = 'block';
+        
+        // Reset Kỷ lục để nếu chọn bài khác sẽ lấy lại data mới
+        document.getElementById('top-score').innerText = 0;
+        document.getElementById('top-scorer').innerText = '-';
     }
 </script>
 {% endblock %}

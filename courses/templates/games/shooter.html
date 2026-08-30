@@ -1,0 +1,425 @@
+{% extends 'base.html' %} 
+
+{% block title %}Ngự Kiếm Phá Tự - Giải Trí{% endblock %}
+
+{% block content %}
+<style>
+    /* CSS CHO GAME */
+    #game-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        height: 600px;
+        background: #0f172a;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 15px;
+        border: 4px solid #334155;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    #game-area {
+        width: 100%;
+        height: 80%;
+        position: relative;
+    }
+    /* Thẻ chữ Hán rơi */
+    .word-card {
+        position: absolute;
+        width: 90px;
+        height: 90px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 3px solid #fbbf24;
+        border-radius: 12px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+        transition: top 0.1s linear;
+    }
+    .word-card .hanzi { font-size: 32px; font-weight: bold; color: #9B1C1C; line-height: 1.2; }
+    .word-card .meaning { font-size: 13px; color: #475569; padding: 0 2px; }
+    
+    /* Người bảo vệ (Tháp/Kiếm) */
+    #defender {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70px;
+        height: 70px;
+        background: url('https://cdn-icons-png.flaticon.com/512/7592/7592984.png') center/cover;
+        z-index: 10;
+    }
+    /* Tia Laser */
+    .laser {
+        position: absolute;
+        width: 6px;
+        background: #38bdf8;
+        box-shadow: 0 0 15px #38bdf8;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        transition: all 0.15s;
+    }
+    
+    /* Bảng điều khiển */
+    #control-panel {
+        height: 20%;
+        background: #1e293b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+    #pinyin-input {
+        width: 60%;
+        font-size: 28px;
+        padding: 12px;
+        text-align: center;
+        border-radius: 30px;
+        border: 3px solid #38bdf8;
+        outline: none;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-weight: bold;
+    }
+    #pinyin-input:focus {
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+    
+    .stats {
+        position: absolute;
+        top: 15px; left: 15px;
+        color: white; font-weight: bold;
+        font-size: 1.2rem;
+        z-index: 20;
+    }
+    .record {
+        position: absolute;
+        top: 15px; right: 15px;
+        color: #fbbf24; font-weight: bold;
+        font-size: 1.1rem;
+        z-index: 20;
+        text-align: right;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="text-center mb-4 mt-2">⚔️ Ngự Kiếm Phá Tự</h2>
+        
+        <!-- KHU VỰC CHỌN CHẾ ĐỘ -->
+        <div class="card mb-4 shadow-sm" id="setup-screen">
+            <div class="card-body text-center py-5">
+                <h4 class="mb-4" style="color: var(--primary-red);">Chuẩn bị chiến đấu</h4>
+                <div class="row justify-content-center">
+                    <div class="col-md-5">
+                        <select id="level-select" class="form-select form-select-lg mb-3">
+                            <option value="">-- Chơi theo Cấp độ (Trộn toàn bộ) --</option>
+                            {% for c in curriculums %}
+                            <option value="{{ c.title }}">{{ c.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <select id="lesson-select" class="form-select form-select-lg mb-3">
+                            <option value="">-- Hoặc ôn tập theo Bài học --</option>
+                            {% for l in lessons %}
+                            <option value="{{ l.id }}">{{ l.curriculum.title }} - Bài {{ l.order }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-custom-primary btn-lg mt-3 px-5 py-2" onclick="startGame()">
+                    <i class="fas fa-rocket me-2"></i> Bắt đầu
+                </button>
+                <p class="text-muted mt-3 mb-0">
+                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi. Quy ước thanh điệu: Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mǎ = ma3, mā = ma).</small>
+                </p>
+            </div>
+        </div>
+
+        <!-- KHU VỰC GAME -->
+        <div id="game-container" style="display: none;">
+            <div class="stats">Điểm: <span id="score" style="color: #38bdf8;">0</span> <br> Sinh lực: <span id="hp">3</span> ❤️</div>
+            <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> <br><small>(bởi <span id="top-scorer">-</span>)</small></div>
+            
+            <div id="game-area">
+                <div id="defender"></div>
+            </div>
+            
+            <div id="control-panel">
+                <input type="text" id="pinyin-input" placeholder="Gõ Pinyin (VD: hao3) rồi Enter..." autocomplete="off">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let vocabList = [];
+    let activeCards = [];
+    let score = 0;
+    let hp = 3;
+    let gameInterval, spawnInterval;
+    let gameSpeed = 50; // Tốc độ cập nhật khung hình
+    let dropSpeed = 1.5; // Tốc độ rơi ban đầu
+    let spawnRate = 2500; // Thời gian sinh thẻ ban đầu (ms)
+    let startTime;
+    let currentLevel = '';
+    let currentLesson = '';
+
+    const pinyinMap = {
+        'ā':'a', 'á':'a2', 'ǎ':'a3', 'à':'a4',
+        'ē':'e', 'é':'e2', 'ě':'e3', 'è':'e4',
+        'ī':'i', 'í':'i2', 'ǐ':'i3', 'ì':'i4',
+        'ō':'o', 'ó':'o2', 'ǒ':'o3', 'ò':'o4',
+        'ū':'u', 'ú':'u2', 'ǔ':'u3', 'ù':'u4',
+        'ǖ':'v', 'ǘ':'v2', 'ǚ':'v3', 'ǜ':'v4', 'ü':'v'
+    };
+
+    function normalizePinyin(pinyin) {
+        let res = pinyin.toLowerCase().replace(/\s+/g, '');
+        for (let k in pinyinMap) {
+            res = res.replace(new RegExp(k, 'g'), pinyinMap[k]);
+        }
+        return res;
+    }
+
+    async function startGame() {
+        const level = document.getElementById('level-select').value;
+        const lesson = document.getElementById('lesson-select').value;
+        
+        if(!level && !lesson) {
+            alert("Chiến binh vui lòng chọn Cấp độ hoặc Bài học trước khi xuất trận!"); return;
+        }
+
+        currentLevel = level;
+        currentLesson = lesson;
+
+        let url = `/api/get-vocab-game/?`;
+        if(lesson) url += `lesson_id=${lesson}`;
+        else if(level) url += `level=${level}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            vocabList = data.vocabularies;
+
+            if(vocabList.length === 0) {
+                alert("Khu vực này hiện chưa có từ vựng nào!"); return;
+            }
+
+            vocabList.forEach(v => {
+                v.targetPinyin = normalizePinyin(v.pinyin);
+            });
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('pinyin-input').focus();
+            
+            // Reset các chỉ số
+            score = 0; hp = 3; dropSpeed = 1.5; spawnRate = 2500;
+            document.getElementById('score').innerText = score;
+            document.getElementById('hp').innerText = hp;
+            startTime = Date.now();
+            activeCards = [];
+
+            // Gọi API lấy kỷ lục hiện tại
+            fetchTopRecord();
+
+            spawnInterval = setInterval(spawnCard, spawnRate);
+            gameInterval = setInterval(updateGame, gameSpeed);
+
+        } catch (error) {
+            console.error("Lỗi khi tải từ vựng:", error);
+            alert("Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại!");
+        }
+    }
+
+    async function fetchTopRecord() {
+        // Chỉ lấy kỷ lục, gửi score=0 để không lưu lịch sử ảo
+        try {
+            const response = await fetch('/api/save-game-record/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Django yêu cầu token này cho POST request
+                },
+                body: JSON.stringify({
+                    score: 0,
+                    time_taken: 0,
+                    level: currentLevel,
+                    lesson_id: currentLesson
+                })
+            });
+            const data = await response.json();
+            if(data.status === 'success' && data.top_score > 0) {
+                document.getElementById('top-score').innerText = data.top_score;
+                document.getElementById('top-scorer').innerText = data.top_scorer;
+            }
+        } catch (error) {
+            console.log("Không lấy được kỷ lục:", error);
+        }
+    }
+
+    function spawnCard() {
+        if(vocabList.length === 0) return;
+        const word = vocabList[Math.floor(Math.random() * vocabList.length)];
+        
+        const card = document.createElement('div');
+        card.className = 'word-card';
+        card.innerHTML = `<div class="hanzi">${word.hanzi}</div><div class="meaning">${word.meaning}</div>`;
+        
+        const gameArea = document.getElementById('game-area');
+        const maxX = gameArea.clientWidth - 90; // Trừ đi chiều rộng của thẻ
+        card.style.left = Math.floor(Math.random() * maxX) + 'px';
+        card.style.top = '0px';
+        
+        card.dataset.pinyin = word.targetPinyin;
+        
+        gameArea.appendChild(card);
+        activeCards.push(card);
+    }
+
+    function updateGame() {
+        const gameAreaHeight = document.getElementById('game-area').clientHeight;
+        
+        for (let i = activeCards.length - 1; i >= 0; i--) {
+            let card = activeCards[i];
+            let top = parseFloat(card.style.top || 0);
+            top += dropSpeed;
+            card.style.top = top + 'px';
+            
+            if (top > gameAreaHeight - 70) { // Chạm tới người bảo vệ
+                card.remove();
+                activeCards.splice(i, 1);
+                hp--;
+                document.getElementById('hp').innerText = hp;
+                
+                // Hiệu ứng màn hình chớp đỏ khi mất máu
+                const gameContainer = document.getElementById('game-container');
+                gameContainer.style.borderColor = '#ef4444';
+                setTimeout(() => gameContainer.style.borderColor = '#334155', 200);
+
+                if(hp <= 0) gameOver();
+            }
+        }
+    }
+
+    document.getElementById('pinyin-input').addEventListener('input', function(e) {
+        const inputVal = this.value.toLowerCase().trim();
+        if(!inputVal) return;
+
+        // Tìm thẻ thấp nhất (gần chạm đất nhất) khớp với Pinyin
+        let targetIndex = -1;
+        let maxTop = -1;
+
+        for(let i=0; i<activeCards.length; i++) {
+            if(activeCards[i].dataset.pinyin === inputVal) {
+                let currentTop = parseFloat(activeCards[i].style.top || 0);
+                if (currentTop > maxTop) {
+                    maxTop = currentTop;
+                    targetIndex = i;
+                }
+            }
+        }
+
+        if (targetIndex !== -1) {
+            shootLaser(activeCards[targetIndex], targetIndex);
+            this.value = '';
+        }
+    });
+
+    function shootLaser(targetCard, index) {
+        const laser = document.createElement('div');
+        laser.className = 'laser';
+        
+        const defender = document.getElementById('defender');
+        const defenderRect = defender.getBoundingClientRect();
+        const targetRect = targetCard.getBoundingClientRect();
+        const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
+        
+        // Tính toán vị trí tia laser
+        const defenderCenter = defenderRect.left + (defenderRect.width / 2) - gameAreaRect.left;
+        const targetCenter = targetRect.left + (targetRect.width / 2) - gameAreaRect.left;
+        
+        laser.style.bottom = '70px';
+        laser.style.left = defenderCenter + 'px';
+        laser.style.height = (gameAreaRect.bottom - targetRect.bottom - 70) + 'px';
+        
+        // Nghiêng laser nếu mục tiêu không ở chính giữa
+        const angle = Math.atan2(targetCenter - defenderCenter, gameAreaRect.bottom - targetRect.bottom) * 180 / Math.PI;
+        laser.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+        laser.style.transformOrigin = 'bottom center';
+
+        document.getElementById('game-area').appendChild(laser);
+        
+        // Xóa thẻ khỏi danh sách ngay để không bắn đúp
+        activeCards.splice(index, 1);
+
+        setTimeout(() => {
+            laser.remove();
+            
+            // Hiệu ứng nổ
+            targetCard.innerHTML = '💥';
+            targetCard.style.backgroundColor = 'transparent';
+            targetCard.style.borderColor = 'transparent';
+            targetCard.style.boxShadow = 'none';
+            targetCard.style.fontSize = '40px';
+            
+            setTimeout(() => targetCard.remove(), 150);
+
+            score++;
+            document.getElementById('score').innerText = score;
+            
+            // Tăng độ khó mỗi 5 điểm
+            if(score % 5 === 0) {
+                dropSpeed += 0.2; // Rơi nhanh hơn
+                if(spawnRate > 800) {
+                    clearInterval(spawnInterval);
+                    spawnRate -= 150; // Ra quân nhanh hơn
+                    spawnInterval = setInterval(spawnCard, spawnRate);
+                }
+            }
+        }, 100);
+    }
+
+    async function gameOver() {
+        clearInterval(gameInterval);
+        clearInterval(spawnInterval);
+        document.getElementById('pinyin-input').blur();
+        
+        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+        
+        alert(`THUA CUỘC! Bạn đã phá được ${score} thẻ trong ${timeTaken} giây!`);
+        
+        // Gửi kết quả lên máy chủ
+        if (score > 0) {
+            try {
+                await fetch('/api/save-game-record/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        score: score,
+                        time_taken: timeTaken,
+                        level: currentLevel,
+                        lesson_id: currentLesson
+                    })
+                });
+            } catch (error) {
+                console.error("Lỗi khi lưu điểm:", error);
+            }
+        }
+        
+        // Reset màn hình
+        document.getElementById('game-area').innerHTML = '<div id="defender"></div>';
+        activeCards = [];
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'block';
+    }
+</script>
+{% endblock %}

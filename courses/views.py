@@ -649,24 +649,32 @@ def api_save_game_record(request):
         if lesson_id:
             lesson_obj = Lesson.objects.filter(id=lesson_id).first()
         
-        # 1. Lưu thành tích mới nhất của người dùng
-        GameHistory.objects.create(
-            user=request.user,
-            game_type='shooter', # Định danh cho Game 1
-            score=score,
-            time_taken=time_taken,
-            level=level,
-            lesson=lesson_obj
-        )
+        # Chỉ lưu lịch sử nếu score > 0 (tránh lưu lịch sử rác khi vừa vào game gọi API kiểm tra kỷ lục)
+        if score > 0:
+            GameHistory.objects.create(
+                user=request.user,
+                game_type='shooter', 
+                score=score,
+                time_taken=time_taken,
+                level=level,
+                lesson=lesson_obj
+            )
         
-        # 2. Tìm người đang giữ kỷ lục (Top 1) của Cấp độ/Bài học này
+        # Tìm người đang giữ kỷ lục (Top 1)
         if lesson_obj:
             top_record = GameHistory.objects.filter(game_type='shooter', lesson=lesson_obj).order_by('-score', 'time_taken').first()
         else:
             top_record = GameHistory.objects.filter(game_type='shooter', level=level).order_by('-score', 'time_taken').first()
         
-        # 3. Trả dữ liệu kỷ lục gia về để hiển thị trên bảng điện tử của Game
-        top_scorer = top_record.user.username if top_record else "Chưa có"
+        # ====================================================
+        # ĐIỂM CHỈNH SỬA LẤY TÊN HIỂN THỊ THAY VÌ USERNAME
+        # ====================================================
+        if top_record:
+            # Ưu tiên lấy Tên hiển thị (first_name), nếu người dùng chưa cài đặt thì mới dự phòng lấy Username
+            top_scorer = top_record.user.first_name if top_record.user.first_name else top_record.user.username
+        else:
+            top_scorer = "Chưa có"
+
         top_score = top_record.score if top_record else 0
         top_time = top_record.time_taken if top_record else 0
 

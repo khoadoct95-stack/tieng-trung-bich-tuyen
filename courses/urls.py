@@ -43,4 +43,5 @@ urlpatterns = [
     
     # 3. Đường dẫn API để lưu kỷ lục điểm số (ẩn dưới nền)
     path('api/save-game-record/', views.api_save_game_record, name='api_save_game_record'),
+    path('games/gau-truc/', views.game_panda_view, name='game_panda'),
 ]

@@ -635,7 +635,8 @@ def api_get_vocab_for_game(request):
 @login_required
 def api_save_game_record(request):
     """
-    API lưu trữ Kỷ lục người chơi và trả về Kỷ lục cao nhất hiện tại của Server
+    API lưu trữ Kỷ lục người chơi và trả về Kỷ lục cao nhất hiện tại của Server.
+    Hỗ trợ cả Ngự Kiếm (shooter) và Gấu Trúc (panda).
     """
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -643,34 +644,31 @@ def api_save_game_record(request):
         time_taken = data.get('time_taken', 0)
         level = data.get('level', '')
         lesson_id = data.get('lesson_id', '')
+        
+        # Thêm dòng này để nhận diện Game nào đang gửi điểm
+        game_type = data.get('game_type', 'shooter')
 
-        # Kiểm tra nếu người chơi đang chơi theo Bài học cụ thể
         lesson_obj = None
         if lesson_id:
             lesson_obj = Lesson.objects.filter(id=lesson_id).first()
         
-        # Chỉ lưu lịch sử nếu score > 0 (tránh lưu lịch sử rác khi vừa vào game gọi API kiểm tra kỷ lục)
         if score > 0:
             GameHistory.objects.create(
                 user=request.user,
-                game_type='shooter', 
+                game_type=game_type,  # Lưu đúng loại game
                 score=score,
                 time_taken=time_taken,
                 level=level,
                 lesson=lesson_obj
             )
         
-        # Tìm người đang giữ kỷ lục (Top 1)
+        # Tìm người đang giữ kỷ lục cho đúng loại game đó
         if lesson_obj:
-            top_record = GameHistory.objects.filter(game_type='shooter', lesson=lesson_obj).order_by('-score', 'time_taken').first()
+            top_record = GameHistory.objects.filter(game_type=game_type, lesson=lesson_obj).order_by('-score', 'time_taken').first()
         else:
-            top_record = GameHistory.objects.filter(game_type='shooter', level=level).order_by('-score', 'time_taken').first()
+            top_record = GameHistory.objects.filter(game_type=game_type, level=level).order_by('-score', 'time_taken').first()
         
-        # ====================================================
-        # ĐIỂM CHỈNH SỬA LẤY TÊN HIỂN THỊ THAY VÌ USERNAME
-        # ====================================================
         if top_record:
-            # Ưu tiên lấy Tên hiển thị (first_name), nếu người dùng chưa cài đặt thì mới dự phòng lấy Username
             top_scorer = top_record.user.first_name if top_record.user.first_name else top_record.user.username
         else:
             top_scorer = "Chưa có"
@@ -686,3 +684,33 @@ def api_save_game_record(request):
         })
         
     return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def game_panda_view(request):
+    """
+    Hiển thị giao diện của Game 2: Gấu Trúc Vượt Ải
+    """
+    curriculums = Curriculum.objects.all()
+    lessons = Lesson.objects.all().order_by('curriculum', 'order')
+    
+    curriculums_data = []
+    for c in curriculums:
+        count = Vocabulary.objects.filter(level=c.title).count()
+        curriculums_data.append({'title': c.title, 'vocab_count': count})
+        
+    lessons_data = []
+    for l in lessons:
+        count = l.vocabularies.count()
+        lessons_data.append({
+            'id': l.id,
+            'curriculum_title': l.curriculum.title,
+            'order': l.order,
+            'vocab_count': count
+        })
+    
+    context = {
+        'curriculums_data': curriculums_data,
+        'lessons_data': lessons_data
+    }
+    return render(request, 'games/panda.html', context)

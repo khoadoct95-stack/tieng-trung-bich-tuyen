@@ -1,0 +1,507 @@
+{% extends 'courses/base.html' %} 
+
+{% block title %}Gấu Trúc Vượt Ải - Giải Trí{% endblock %}
+
+{% block content %}
+<style>
+    /* ==========================================================
+       GIAO DIỆN GAME 2: RỪNG TRÚC (BAMBOO FOREST)
+       ========================================================== */
+    #game-container {
+        position: relative;
+        width: 100%;
+        max-width: 1000px; 
+        height: 550px; /* Thấp hơn ngự kiếm một chút vì là game chạy ngang */
+        /* Nền sương mù rừng trúc */
+        background: linear-gradient(to bottom, #dcfce7 0%, #86efac 100%);
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 4px solid #16a34a;
+        box-shadow: 0 15px 40px rgba(22, 163, 74, 0.3), inset 0 0 50px rgba(255, 255, 255, 0.5); 
+    }
+    
+    #game-area {
+        width: 100%;
+        height: 80%;
+        position: relative;
+    }
+
+    /* MẶT ĐẤT */
+    #ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        background: #14532d;
+        border-top: 5px solid #166534;
+        z-index: 5;
+    }
+    
+    /* GẤU TRÚC */
+    #panda {
+        position: absolute;
+        bottom: 35px; /* Đứng trên mặt đất */
+        left: 80px;
+        font-size: 70px;
+        z-index: 10;
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        user-select: none;
+        filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+    }
+    /* Hiệu ứng Gấu Trúc Nhảy */
+    .jump {
+        transform: translateY(-160px) rotate(15deg);
+    }
+    
+    /* CHƯỚNG NGẠI VẬT (BỤI TRÚC & NGHĨA TIẾNG VIỆT) */
+    .obstacle {
+        position: absolute;
+        bottom: 35px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 8;
+        user-select: none;
+    }
+    
+    .obstacle .meaning-bubble {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #16a34a;
+        border-radius: 10px;
+        padding: 8px 15px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #064e3b;
+        margin-bottom: -5px; /* Kéo gần lại bụi trúc */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 200px;
+        white-space: normal;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .obstacle .bamboo-icon {
+        font-size: 65px;
+        filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+    }
+
+    /* BẢNG ĐIỀU KHIỂN & Ô NHẬP LIỆU CHỮ HÁN */
+    #control-panel {
+        height: 20%;
+        background: rgba(20, 83, 45, 0.9);
+        border-top: 3px solid #064e3b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+    #hanzi-input {
+        width: 60%;
+        font-size: 32px;
+        padding: 12px;
+        text-align: center;
+        border-radius: 50px;
+        border: 2px solid #4ade80;
+        outline: none;
+        background-color: #ffffff;
+        color: #064e3b; 
+        font-weight: bold;
+        font-family: 'Noto Serif SC', serif;
+        box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+        transition: all 0.3s;
+    }
+    #hanzi-input::placeholder { color: #94a3b8; font-size: 20px; font-family: Arial, sans-serif; }
+    #hanzi-input:focus {
+        border-color: #22c55e;
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.7);
+    }
+    
+    .shake-error {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.6) !important;
+    }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* BẢNG THỐNG KÊ (HUD) */
+    .hud-box {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(4px);
+        border: 2px solid #86efac;
+        border-radius: 10px;
+        padding: 10px 15px;
+        z-index: 20;
+    }
+    .stats {
+        position: absolute;
+        top: 15px; left: 20px;
+        color: #064e3b; 
+        font-size: 1.05rem;
+        line-height: 1.6;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .record {
+        position: absolute;
+        top: 15px; right: 20px;
+        color: #064e3b; 
+        font-size: 1.05rem;
+        text-align: right;
+        line-height: 1.5;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* MÀN HÌNH KẾT THÚC */
+    #end-screen {
+        display: none; 
+        position: absolute; 
+        top:0; left:0; right:0; bottom:0; 
+        background: rgba(20, 83, 45, 0.85); 
+        backdrop-filter: blur(6px);
+        z-index: 100; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center;
+    }
+    .end-board {
+        background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+        padding: 40px 60px;
+        border-radius: 20px;
+        text-align: center;
+        border: 4px solid #22c55e;
+        box-shadow: 0 0 40px rgba(34, 197, 94, 0.5);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-11"> 
+        <h2 class="text-center mb-4 mt-2" style="font-family: 'Playfair Display', serif; color: #166534;">🐼 Gấu Trúc Vượt Ải</h2>
+        
+        <div class="card mb-4 shadow-sm" id="setup-screen">
+            <div class="card-body text-center py-5">
+                <h4 class="mb-4" style="color: #16a34a;">Chuẩn bị khởi hành</h4>
+                <div class="row justify-content-center">
+                    <div class="col-md-5">
+                        <select id="level-select" class="form-select form-select-lg mb-3">
+                            <option value="">-- Chơi theo Cấp độ (Trộn toàn bộ) --</option>
+                            {% for c in curriculums_data %}
+                            <option value="{{ c.title }}">{{ c.title }} ({{ c.vocab_count }} từ)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <select id="lesson-select" class="form-select form-select-lg mb-3">
+                            <option value="">-- Hoặc ôn tập theo Bài học --</option>
+                            {% for l in lessons_data %}
+                            <option value="{{ l.id }}">{{ l.curriculum_title }} - Bài {{ l.order }} ({{ l.vocab_count }} từ)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success btn-lg mt-3 px-5 py-2 fw-bold" onclick="startGame()">
+                    <i class="fas fa-play me-2"></i> Bắt đầu chạy
+                </button>
+                <p class="text-muted mt-3 mb-0">
+                    <small><b>Cách chơi:</b> Chướng ngại vật sẽ hiển thị <b class="text-success">Nghĩa Tiếng Việt</b>. <br>Bạn phải dùng bàn phím gõ đúng <b class="text-danger">CHỮ HÁN</b> tương ứng và ấn ENTER để Gấu trúc nhảy qua.</small>
+                </p>
+            </div>
+        </div>
+
+        <div id="game-container" style="display: none;">
+            <div class="hud-box stats">
+                Vượt qua: <span id="score" style="color: #16a34a; font-weight: 900; font-size: 1.3rem;">0</span> <br>
+                Tiến độ: <span id="progress" style="color: #059669; font-weight: bold;">0/0</span> <br>
+                Thời gian: <span id="time-display" style="color: #d97706; font-weight: bold;">0s</span>
+            </div>
+            
+            <div class="hud-box record">
+                <span style="color: #64748b; font-size: 0.9rem;">KỶ LỤC MÁY CHỦ</span><br>
+                <span id="top-score" style="color: #d97706; font-weight: 900; font-size: 1.5rem;">0</span> thẻ<br>
+                <small style="color: #475569;">(bởi <span id="top-scorer" style="color: #16a34a;">-</span>)</small>
+            </div>
+            
+            <div id="game-area">
+                <div id="ground"></div>
+                <div id="panda">🐼</div>
+                <!-- Chướng ngại vật sẽ sinh ra ở đây -->
+            </div>
+            
+            <div id="control-panel">
+                <input type="text" id="hanzi-input" placeholder="Gõ Chữ Hán (VD: 你好) rồi ENTER..." autocomplete="off">
+            </div>
+
+            <div id="end-screen">
+                <div class="end-board">
+                    <h2 style="color: #16a34a; margin-bottom: 20px;">Về Đích Thành Công! 🏁</h2>
+                    <h4 class="mb-3" style="color: #334155;">Số bụi trúc đã nhảy qua: <span id="final-score" style="color: #d97706; font-weight: 900; font-size: 2.5rem;">0</span></h4>
+                    <p style="font-size: 1.2rem; color: #64748b;">Thời gian chạy: <span id="final-time" style="font-weight: bold; color: #ef4444;">0</span> giây</p>
+                    <button class="btn btn-success btn-lg mt-4 fw-bold px-5 py-2" style="border-radius: 50px;" onclick="returnToSetup()">Chơi lại</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let vocabList = [];
+    let activeObstacles = [];
+    let score = 0;
+    
+    let animationId; 
+    let timerInterval; 
+    let secondsPlayed = 0; 
+    
+    let moveSpeed = 1.8; // Tốc độ chạy ngang (Pixel/frame)
+    let isGameRunning = false; 
+    
+    let currentLevel = '';
+    let currentLesson = '';
+    let totalWords = 0;
+    let wordsSpawned = 0;
+
+    // Gọi Kỷ lục (lưu ý truyền thêm game_type='panda' cho API mới)
+    async function fetchTopRecord() {
+        try {
+            const response = await fetch('/api/save-game-record/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ score: 0, time_taken: 0, level: currentLevel, lesson_id: currentLesson, game_type: 'panda' })
+            });
+            const data = await response.json();
+            if(data.status === 'success' && data.top_score > 0) {
+                document.getElementById('top-score').innerText = data.top_score;
+                document.getElementById('top-scorer').innerText = data.top_scorer;
+            } else {
+                document.getElementById('top-score').innerText = 0;
+                document.getElementById('top-scorer').innerText = '-';
+            }
+        } catch (error) {}
+    }
+
+    async function startGame() {
+        const level = document.getElementById('level-select').value;
+        const lesson = document.getElementById('lesson-select').value;
+        
+        if(!level && !lesson) {
+            alert("Vui lòng chọn Cấp độ hoặc Bài học trước khi chạy!"); return;
+        }
+
+        currentLevel = level;
+        currentLesson = lesson;
+
+        let url = `/api/get-vocab-game/?`;
+        if(lesson) url += `lesson_id=${lesson}`;
+        else if(level) url += `level=${encodeURIComponent(level)}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Server Error");
+            const data = await response.json();
+            vocabList = data.vocabularies;
+
+            if(vocabList.length === 0) {
+                alert("Khu vực này hiện chưa có từ vựng nào!"); return;
+            }
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('hanzi-input').focus();
+            
+            if (timerInterval) clearInterval(timerInterval);
+            if (animationId) cancelAnimationFrame(animationId);
+            
+            score = 0; 
+            moveSpeed = 1.8; 
+            totalWords = vocabList.length;
+            wordsSpawned = 0;
+            activeObstacles = [];
+            secondsPlayed = 0;
+            isGameRunning = true; 
+            
+            document.getElementById('score').innerText = score;
+            document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
+            document.getElementById('time-display').innerText = `0s`;
+
+            fetchTopRecord();
+
+            timerInterval = setInterval(() => {
+                secondsPlayed++;
+                document.getElementById('time-display').innerText = `${secondsPlayed}s`;
+            }, 1000);
+
+            spawnObstacle();
+            gameLoop(); 
+
+        } catch (error) {
+            console.error("Lỗi khi tải từ vựng:", error);
+            alert("Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại!");
+        }
+    }
+
+    function gameLoop() {
+        if (!isGameRunning) return; 
+        
+        updateObstacles();
+        
+        if (wordsSpawned >= totalWords && document.querySelectorAll('.obstacle').length === 0) {
+            isGameRunning = false; 
+            clearInterval(timerInterval); 
+            showEndScreen();
+            return; 
+        }
+        
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function spawnObstacle() {
+        if (wordsSpawned >= totalWords) return; 
+
+        const word = vocabList[wordsSpawned];
+        const obs = document.createElement('div');
+        obs.className = 'obstacle';
+        
+        // HTML Cấu trúc chướng ngại vật
+        obs.innerHTML = `
+            <div class="meaning-bubble">${word.meaning}</div>
+            <div class="bamboo-icon">🎍</div>
+        `;
+        
+        const gameArea = document.getElementById('game-area');
+        // Spawn chướng ngại vật ở góc phải ngoài cùng màn hình
+        const startLeft = gameArea.clientWidth; 
+        
+        obs.style.left = startLeft + 'px';
+        obs.dataset.exactLeft = startLeft;
+        
+        // LƯU Ý: Lần này ta lưu Hanzi làm đáp án thay vì Pinyin
+        obs.dataset.hanzi = word.hanzi.trim(); 
+        
+        gameArea.appendChild(obs);
+        activeObstacles.push(obs);
+        
+        wordsSpawned++;
+        document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
+    }
+
+    function updateObstacles() {
+        for (let i = activeObstacles.length - 1; i >= 0; i--) {
+            let obs = activeObstacles[i];
+            
+            let exactLeft = parseFloat(obs.dataset.exactLeft);
+            exactLeft -= moveSpeed; // Di chuyển sang trái
+            obs.dataset.exactLeft = exactLeft;
+            obs.style.left = exactLeft + 'px'; 
+            
+            // Xử lý va chạm: Gấu trúc đang đứng ở khoảng left = 80px -> 150px
+            // Nếu chướng ngại vật chạm vào gấu trúc (exactLeft < 100) -> Bị lỡ
+            if (exactLeft < 100) { 
+                obs.remove();
+                activeObstacles.splice(i, 1);
+                
+                // Hiệu ứng gấu trúc bị vấp nhẹ (rung)
+                const panda = document.getElementById('panda');
+                panda.style.transform = 'translateY(-10px) rotate(-10deg)';
+                setTimeout(() => panda.style.transform = 'none', 200);
+
+                if (wordsSpawned < totalWords) spawnObstacle();
+            }
+        }
+    }
+
+    const inputField = document.getElementById('hanzi-input');
+    inputField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+            const val = this.value.trim();
+            if(!val) return;
+
+            let targetIndex = -1;
+            
+            // Đối chiếu trực tiếp Chữ Hán
+            if(activeObstacles.length > 0 && activeObstacles[0].dataset.hanzi === val) {
+                targetIndex = 0;
+            }
+
+            if (targetIndex !== -1) {
+                handleJumpSuccess(activeObstacles[targetIndex], targetIndex);
+                this.value = ''; 
+            } else {
+                this.classList.remove('shake-error'); 
+                void this.offsetWidth; 
+                this.classList.add('shake-error');
+                this.value = ''; 
+            }
+        }
+    });
+
+    function handleJumpSuccess(targetObs, index) {
+        // 1. Cho Gấu trúc nhảy lên
+        const panda = document.getElementById('panda');
+        panda.classList.add('jump');
+        
+        // 2. Chướng ngại vật nổ thành khói
+        targetObs.innerHTML = `<div style="font-size: 65px;">💨</div>`;
+        activeObstacles.splice(index, 1);
+
+        setTimeout(() => {
+            targetObs.remove();
+            
+            // 3. Gấu trúc rơi xuống lại sau 0.4s
+            setTimeout(() => {
+                panda.classList.remove('jump');
+                // Gọi thẻ tiếp theo ngay khi tiếp đất
+                if (wordsSpawned < totalWords) {
+                    spawnObstacle();
+                }
+            }, 100);
+
+            score++;
+            document.getElementById('score').innerText = score;
+            
+            // Tăng tốc game mượt mà
+            if(score % 5 === 0) {
+                moveSpeed += 0.15; 
+            }
+        }, 200); 
+    }
+
+    async function showEndScreen() {
+        document.getElementById('hanzi-input').blur();
+        
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-time').innerText = secondsPlayed;
+        document.getElementById('end-screen').style.display = 'flex';
+        
+        if (score > 0) {
+            try {
+                await fetch('/api/save-game-record/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ score: score, time_taken: secondsPlayed, level: currentLevel, lesson_id: currentLesson, game_type: 'panda' })
+                });
+            } catch (error) {}
+        }
+    }
+
+    function returnToSetup() {
+        isGameRunning = false; 
+        // Dọn dẹp game area, giữ lại gấu trúc và mặt đất
+        const area = document.getElementById('game-area');
+        area.innerHTML = '<div id="ground"></div><div id="panda">🐼</div>';
+        
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'block';
+        
+        document.getElementById('top-score').innerText = 0;
+        document.getElementById('top-scorer').innerText = '-';
+    }
+</script>
+{% endblock %}

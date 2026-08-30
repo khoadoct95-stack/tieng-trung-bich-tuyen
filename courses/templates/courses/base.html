@@ -101,13 +101,15 @@
                     
                     <!-- MENU GIẢI TRÍ (MỚI THÊM) -->
                     <li class="nav-item dropdown me-3">
-                        <a class="nav-link dropdown-toggle fw-bold" href="#" id="gameMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #2563eb !important;">
-                            🎮 Giải trí
-                        </a>
-                        <ul class="dropdown-menu border-0 shadow" aria-labelledby="gameMenu">
-                            <li><a class="dropdown-item fw-semibold" href="{% url 'game_shooter' %}">⚔️ Ngự Kiếm Phá Tự</a></li>
-                        </ul>
-                    </li>
+    <a class="nav-link dropdown-toggle fw-bold" href="#" id="gamesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--primary-red) !important;">
+        🎮 Khu Giải Trí
+    </a>
+    <ul class="dropdown-menu shadow border-0" aria-labelledby="gamesDropdown" style="border-radius: 10px;">
+        <li><a class="dropdown-item fw-bold" href="{% url 'game_shooter' %}">⚔️ Ngự Kiếm Phi Hành <br><small class="text-muted fw-normal">(Gõ Pinyin)</small></a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item fw-bold" href="{% url 'game_panda' %}">🐼 Gấu Trúc Vượt Ải <br><small class="text-muted fw-normal">(Gõ Chữ Hán)</small></a></li>
+    </ul>
+</li>
                     
                     {% if user.is_authenticated %}
                         <li class="nav-item">

@@ -43,8 +43,6 @@ class Lesson(models.Model):
 
 class Vocabulary(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='vocabularies', verbose_name="Thuộc Bài học")
-    
-    # BỔ SUNG TRƯỜNG MỚI DÀNH CHO BỘ LỌC ADMIN
     level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ HSK", help_text="VD: HSK 1, HSK 2 (Để lọc trong Admin)")
     
     hanzi = models.CharField(max_length=50, verbose_name="Chữ Hán")
@@ -58,22 +56,27 @@ class Vocabulary(models.Model):
 
 
 # ==========================================
-# 2. LỊCH SỬ HỌC TẬP (GAME)
+# 2. LỊCH SỬ HỌC TẬP (GAME) - ĐÃ CẬP NHẬT CHO GAME 1
 # ==========================================
 
 class GameHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Học viên")
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name="Bài học")
-    game_type = models.CharField(max_length=50, verbose_name="Loại Game") # Tên game: 'quiz_1', 'quiz_2'...
-    time_taken = models.IntegerField(help_text="Thời gian hoàn thành (giây)", verbose_name="Thời gian (s)")
+    
+    # Cho phép trống (blank=True, null=True) để hỗ trợ chế độ chơi Toàn Cấp Độ
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Bài học")
+    level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ (Chơi toàn cấp)")
+    
+    game_type = models.CharField(max_length=50, verbose_name="Loại Game") 
+    score = models.IntegerField(default=0, verbose_name="Điểm/Số thẻ")
+    time_taken = models.IntegerField(help_text="Thời gian hoàn thành hoặc trụ vững (giây)", verbose_name="Thời gian (s)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày chơi")
 
     def __str__(self):
-        return f"{self.user.username} - {self.game_type} - {self.time_taken}s"
+        return f"{self.user.username} - {self.game_type} - {self.score} điểm"
 
 
 # ==========================================
-# 3. CẤU TRÚC ĐỀ THI HSK (HỖ TRỢ PINYIN)
+# 3. CẤU TRÚC ĐỀ THI HSK
 # ==========================================
 
 class Exam(models.Model):
@@ -97,26 +100,20 @@ class ExamQuestion(models.Model):
     section_type = models.CharField(max_length=50, choices=[('listening', 'Nghe hiểu'), ('reading', 'Đọc hiểu')], verbose_name="Phần thi")
     question_group = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nhóm câu hỏi")
 
-    # ================= KHU VỰC DÙNG CHUNG =================
     shared_image = models.ImageField(upload_to='exam_images/shared/', blank=True, null=True, verbose_name="Ảnh dùng chung (A-F)")
     passage_text = models.TextField(blank=True, null=True, verbose_name="Đoạn văn dùng chung (Chữ Hán)")
     passage_pinyin = models.TextField(blank=True, null=True, verbose_name="Đoạn văn dùng chung (Pinyin)")
 
-    # ================= NỘI DUNG CÂU HỎI =================
     content = models.TextField(blank=True, null=True, verbose_name="Câu hỏi (Chữ Hán)")
     content_pinyin = models.TextField(blank=True, null=True, verbose_name="Câu hỏi (Pinyin)")
     image = models.ImageField(upload_to='exam_images/', blank=True, null=True, verbose_name="Hình ảnh đính kèm câu hỏi")
     
-    # ================= CÁC ĐÁP ÁN =================
     option_a = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án A (Chữ)")
     option_a_pinyin = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án A (Pinyin)")
-    
     option_b = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án B (Chữ)")
     option_b_pinyin = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án B (Pinyin)")
-    
     option_c = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án C (Chữ)")
     option_c_pinyin = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án C (Pinyin)")
-    
     option_d = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án D")
     option_e = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án E")
     option_f = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án F")

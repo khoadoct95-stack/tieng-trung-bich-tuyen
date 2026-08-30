@@ -4,6 +4,7 @@ import subprocess
 import pandas as pd
 import zipfile
 import re
+import random # THÊM THƯ VIỆN NÀY ĐỂ TRỘN TỪ VỰNG NGẪU NHIÊN CHO GAME
 from io import BytesIO
 from PIL import Image
 from django.core.files.base import ContentFile
@@ -14,12 +15,11 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
 from django.urls import reverse_lazy
-from django.db.models import Min
+from django.db.models import Min, Max, Q
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from .models import Curriculum, Lesson, Vocabulary, GameHistory
 from .models import Exam, ExamQuestion, ExamResult
-from django.db.models import Max, Q
 
 # ==========================================
 # 1. CÁC HÀM CƠ BẢN CỦA WEB
@@ -48,7 +48,7 @@ def flashcard_view(request, lesson_id):
     return render(request, 'courses/flashcard.html', {'lesson': lesson, 'vocabularies': vocabularies})
 
 # ==========================================
-# 2. CÁC HÀM TRÒ CHƠI
+# 2. CÁC HÀM TRÒ CHƠI BÀI HỌC
 # ==========================================
 @login_required
 def quiz_1_view(request, lesson_id):
@@ -117,7 +117,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN (Đã nâng cấp Bộ lọc)
+# 4. BẢNG XẾP HẠNG & HỒ SƠ CÁ NHÂN
 # ==========================================
 @login_required
 def dashboard_view(request):
@@ -125,12 +125,10 @@ def dashboard_view(request):
     game_names = {'quiz_1': 'Nối từ', 'quiz_2': 'Lật thẻ', 'quiz_3': 'Viết chữ', 'quiz_4': 'Phát âm'}
     selected_game_name = game_names.get(selected_game, 'Nối từ')
     
-    # 1. LẤY DỮ LIỆU GIÁO TRÌNH & BÀI HỌC CHO BỘ LỌC
     curriculums = Curriculum.objects.prefetch_related('lessons').all()
     selected_curriculum = request.GET.get('curriculum', '')
     selected_lesson = request.GET.get('lesson', '')
 
-    # 2. XÂY DỰNG LƯỚI LỌC DỮ LIỆU
     query_filter = Q(game_type=selected_game)
     
     if selected_curriculum:
@@ -138,7 +136,6 @@ def dashboard_view(request):
     if selected_lesson:
         query_filter &= Q(lesson_id=selected_lesson)
 
-    # 3. TRUY VẤN BẢNG XẾP HẠNG (Gom nhóm theo Bài học và User)
     leaderboard_query = GameHistory.objects.filter(query_filter)\
         .values('user__username', 'user__first_name', 'lesson__id', 'lesson__title_vietnamese', 'lesson__curriculum__title')\
         .annotate(best_time=Min('time_taken'))\
@@ -147,7 +144,6 @@ def dashboard_view(request):
     leaderboard = list(leaderboard_query[:100])
     top_3 = leaderboard[:3]
     
-    # 4. TÌM THỨ HẠNG CỦA BẢN THÂN
     user_rank = None
     personal_best = None
     
@@ -161,13 +157,11 @@ def dashboard_view(request):
         pb_query = GameHistory.objects.filter(query_filter & Q(user=request.user)).aggregate(best=Min('time_taken'))['best']
         if pb_query:
             personal_best = pb_query
-            # Đếm xem có bao nhiêu người giỏi hơn mình trong bộ lọc này
             better_count = GameHistory.objects.filter(query_filter).values('user', 'lesson').annotate(best=Min('time_taken')).filter(best__lt=personal_best).count()
             user_rank = better_count + 1
 
     active_tab = request.GET.get('tab', 'leaderboard')
 
-    # Phần thành tích HSK giữ nguyên
     highest_hsk = 0
     passed_exams = ExamResult.objects.filter(user=request.user, score__gte=120)
     if passed_exams.exists():
@@ -274,10 +268,7 @@ def take_exam(request, exam_id):
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
         return redirect('exam_result', result_id=result.id)
 
-    # --- TÍNH NĂNG MỚI: TÌM KỶ LỤC CÁ NHÂN & KỶ LỤC SERVER ---
-    # Tìm điểm cao nhất của User hiện tại cho đề này
     personal_best = ExamResult.objects.filter(exam=exam, user=request.user).aggregate(Max('score'))['score__max']
-    # Tìm điểm cao nhất của Toàn bộ hệ thống cho đề này
     global_best = ExamResult.objects.filter(exam=exam).aggregate(Max('score'))['score__max']
 
     context = {
@@ -287,19 +278,16 @@ def take_exam(request, exam_id):
         'global_best': global_best if global_best is not None else "--"
     }
 
-    # TRẠM PHÂN LUỒNG TEMPLATE
     if exam.hsk_level == 1:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk1_old.html', context)
         else:
             return render(request, 'courses/take_exam_hsk1_new.html', context)
-            
     elif exam.hsk_level == 2:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk2_old.html', context)
         else:
             return render(request, 'courses/take_exam_hsk2_new.html', context)
-            
     elif exam.hsk_level == 3:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk3_old.html', context)
@@ -338,10 +326,8 @@ def review_exam(request, result_id):
 @login_required(login_url='login')
 def exam_result(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
-    
     total_questions = ExamQuestion.objects.filter(exam=result.exam).count()
     percentage = int((result.total_correct / total_questions) * 100) if total_questions > 0 else 0
-    
     is_passed = result.score >= 120
 
     return render(request, 'courses/exam_result.html', {
@@ -418,7 +404,6 @@ def exam_list(request):
 @login_required(login_url='login')
 def student_dashboard(request):
     user_results = ExamResult.objects.filter(user=request.user).order_by('-completed_at')
-    
     total_exams = user_results.count()
     highest_score = user_results.aggregate(Max('score'))['score__max'] or 0
     passed_exams = user_results.filter(score__gte=120).count()
@@ -429,17 +414,15 @@ def student_dashboard(request):
         'highest_score': highest_score,
         'passed_exams': passed_exams,
     }
-    
     return render(request, 'courses/dashboard.html', context)
 
 # ==========================================
-# 9. UPLOAD ĐỀ THI (IMPORT EXCEL) - BẢN ĐỌC THEO VỊ TRÍ
+# 9. UPLOAD ĐỀ THI (IMPORT EXCEL)
 # ==========================================
 @login_required
 def import_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
-        
         exam_type_form = request.POST.get('exam_type', 'new')
         exam_title_form = request.POST.get('exam_title', 'Đề thi HSK')
         hsk_level_form = request.POST.get('hsk_level', 1)
@@ -452,42 +435,38 @@ def import_excel(request):
             exam_type=exam_type_form 
         )
         
-        # Đọc file Excel và lấp đầy ô trống
         df = pd.read_excel(excel_file).fillna('')
         
-        # Đảm bảo file có ít nhất 14 cột để không bị lỗi
         if len(df.columns) < 14:
             messages.error(request, "❌ File Excel của bạn không đủ 14 cột chuẩn! Vui lòng kiểm tra lại.")
             exam.delete()
             return redirect('import_excel')
         
         for index, row in df.iterrows():
-            # Bỏ qua nếu dòng đó trống (không có số thứ tự)
             if str(row.iloc[0]).strip() == '':
                 continue
                 
             try:
                 ExamQuestion.objects.create(
                     exam=exam,
-                    question_number=row.iloc[0],              # Cột 1
-                    section_type=str(row.iloc[1]).strip(),    # Cột 2
-                    question_group=str(row.iloc[2]).strip(),  # Cột 3 (Đã sửa: question_group)
-                    passage_text=str(row.iloc[3]).strip(),    # Cột 4
-                    passage_pinyin=str(row.iloc[4]).strip(),  # Cột 5
-                    content=str(row.iloc[5]).strip(),         # Cột 6
-                    content_pinyin=str(row.iloc[6]).strip(),  # Cột 7
-                    option_a=str(row.iloc[7]).strip(),        # Cột 8
-                    option_a_pinyin=str(row.iloc[8]).strip(), # Cột 9 (Đã sửa: option_a_pinyin)
-                    option_b=str(row.iloc[9]).strip(),        # Cột 10
-                    option_b_pinyin=str(row.iloc[10]).strip(),# Cột 11 (Đã sửa: option_b_pinyin)
-                    option_c=str(row.iloc[11]).strip(),       # Cột 12
-                    option_c_pinyin=str(row.iloc[12]).strip(),# Cột 13 (Đã sửa: option_c_pinyin)
-                    correct_answer=str(row.iloc[13]).strip().upper() # Cột 14
+                    question_number=row.iloc[0],              
+                    section_type=str(row.iloc[1]).strip(),    
+                    question_group=str(row.iloc[2]).strip(),  
+                    passage_text=str(row.iloc[3]).strip(),    
+                    passage_pinyin=str(row.iloc[4]).strip(),  
+                    content=str(row.iloc[5]).strip(),         
+                    content_pinyin=str(row.iloc[6]).strip(),  
+                    option_a=str(row.iloc[7]).strip(),        
+                    option_a_pinyin=str(row.iloc[8]).strip(), 
+                    option_b=str(row.iloc[9]).strip(),        
+                    option_b_pinyin=str(row.iloc[10]).strip(),
+                    option_c=str(row.iloc[11]).strip(),       
+                    option_c_pinyin=str(row.iloc[12]).strip(),
+                    correct_answer=str(row.iloc[13]).strip().upper() 
                 )
             except Exception as e:
-                # Nếu có dòng nào bị lỗi, báo ngay ra màn hình
                 messages.error(request, f"❌ Lỗi ở dòng {index + 2} trong Excel: {str(e)}")
-                exam.delete() # Xóa đề thi vừa tạo dở dang
+                exam.delete() 
                 return redirect('import_excel')
             
         messages.success(request, f"🎉 Đã Import thành công: {exam_title_form}!")
@@ -509,7 +488,6 @@ def upload_exam_images_zip(request):
             return redirect('upload_exam_images_zip')
             
         exam = get_object_or_404(Exam, id=exam_id)
-        
         image_groups = {}
         single_images = {}
 
@@ -517,7 +495,6 @@ def upload_exam_images_zip(request):
             with zipfile.ZipFile(zip_file, 'r') as z:
                 for filename in z.namelist():
                     if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-                        # Bỏ qua các file ẩn của Mac/Windows
                         if '__MACOSX' in filename or filename.startswith('.'):
                             continue
                             
@@ -537,53 +514,51 @@ def upload_exam_images_zip(request):
                             q_num = match_single.group(1)
                             single_images[q_num] = z.read(filename)
 
-                # Lưu ảnh đơn
-                for q_num, file_data in single_images.items():
-                    question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
-                    if question:
-                        question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
+            for q_num, file_data in single_images.items():
+                question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+                if question:
+                    question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
 
-                # Tự động ghép ảnh nhóm
-                for q_num, letters_dict in image_groups.items():
-                    question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
-                    if not question:
-                        continue
+            for q_num, letters_dict in image_groups.items():
+                question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+                if not question:
+                    continue
 
-                    if 'A' in letters_dict and 'B' in letters_dict and 'C' in letters_dict and 'D' not in letters_dict:
-                        imgA = Image.open(BytesIO(letters_dict['A'])).convert('RGB')
-                        imgB = Image.open(BytesIO(letters_dict['B'])).convert('RGB')
-                        imgC = Image.open(BytesIO(letters_dict['C'])).convert('RGB')
-                        
-                        w, h = imgA.size
-                        imgB = imgB.resize((w, h))
-                        imgC = imgC.resize((w, h))
-                        
-                        composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
-                        composite.paste(imgA, (0, 0))
-                        composite.paste(imgB, (w, 0))
-                        composite.paste(imgC, (w * 2, 0))
-                        
-                        img_io = BytesIO()
-                        composite.save(img_io, format='JPEG', quality=90)
-                        question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+                if 'A' in letters_dict and 'B' in letters_dict and 'C' in letters_dict and 'D' not in letters_dict:
+                    imgA = Image.open(BytesIO(letters_dict['A'])).convert('RGB')
+                    imgB = Image.open(BytesIO(letters_dict['B'])).convert('RGB')
+                    imgC = Image.open(BytesIO(letters_dict['C'])).convert('RGB')
+                    
+                    w, h = imgA.size
+                    imgB = imgB.resize((w, h))
+                    imgC = imgC.resize((w, h))
+                    
+                    composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
+                    composite.paste(imgA, (0, 0))
+                    composite.paste(imgB, (w, 0))
+                    composite.paste(imgC, (w * 2, 0))
+                    
+                    img_io = BytesIO()
+                    composite.save(img_io, format='JPEG', quality=90)
+                    question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
 
-                    elif all(k in letters_dict for k in ['A', 'B', 'C', 'D', 'E', 'F']):
-                        imgs = {k: Image.open(BytesIO(letters_dict[k])).convert('RGB') for k in ['A','B','C','D','E','F']}
-                        w, h = imgs['A'].size
-                        for k in imgs:
-                            imgs[k] = imgs[k].resize((w, h))
-                            
-                        composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
-                        composite.paste(imgs['A'], (0, 0))
-                        composite.paste(imgs['B'], (w, 0))
-                        composite.paste(imgs['C'], (0, h))
-                        composite.paste(imgs['D'], (w, h))
-                        composite.paste(imgs['E'], (0, h * 2))
-                        composite.paste(imgs['F'], (w, h * 2))
+                elif all(k in letters_dict for k in ['A', 'B', 'C', 'D', 'E', 'F']):
+                    imgs = {k: Image.open(BytesIO(letters_dict[k])).convert('RGB') for k in ['A','B','C','D','E','F']}
+                    w, h = imgs['A'].size
+                    for k in imgs:
+                        imgs[k] = imgs[k].resize((w, h))
                         
-                        img_io = BytesIO()
-                        composite.save(img_io, format='JPEG', quality=90)
-                        question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+                    composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
+                    composite.paste(imgs['A'], (0, 0))
+                    composite.paste(imgs['B'], (w, 0))
+                    composite.paste(imgs['C'], (0, h))
+                    composite.paste(imgs['D'], (w, h))
+                    composite.paste(imgs['E'], (0, h * 2))
+                    composite.paste(imgs['F'], (w, h * 2))
+                    
+                    img_io = BytesIO()
+                    composite.save(img_io, format='JPEG', quality=90)
+                    question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
 
             messages.success(request, "🎉 Đã gắn và tự động ghép ảnh thành công từ file ZIP!")
             return redirect('exam_list')
@@ -594,3 +569,92 @@ def upload_exam_images_zip(request):
 
     exams = Exam.objects.all().order_by('-id')
     return render(request, 'admin/upload_zip.html', {'exams': exams})
+
+
+# ==========================================
+# 11. KHU VỰC GIẢI TRÍ (GÓC GAME MỚI)
+# ==========================================
+@login_required
+def game_shooter_view(request):
+    """
+    Hiển thị giao diện của Game Ngự Kiếm Phá Tự
+    """
+    curriculums = Curriculum.objects.all()
+    lessons = Lesson.objects.all().order_by('curriculum', 'order')
+    
+    context = {
+        'curriculums': curriculums,
+        'lessons': lessons
+    }
+    return render(request, 'games/shooter.html', context)
+
+
+@login_required
+def api_get_vocab_for_game(request):
+    """
+    API để cung cấp từ vựng cho Game (Theo Bài học hoặc Cấp độ)
+    """
+    level = request.GET.get('level')
+    lesson_id = request.GET.get('lesson_id')
+    
+    if lesson_id:
+        vocabs = Vocabulary.objects.filter(lesson_id=lesson_id)
+    elif level:
+        # Lọc theo cấp độ (trường level ta đã thêm vào ở bước model trước đó)
+        vocabs = Vocabulary.objects.filter(level=level)
+    else:
+        vocabs = Vocabulary.objects.none()
+
+    # Xáo trộn từ vựng ngẫu nhiên để game không bị lặp lại thứ tự
+    vocab_list = list(vocabs.values('hanzi', 'pinyin', 'meaning'))
+    random.shuffle(vocab_list)
+    
+    return JsonResponse({'vocabularies': vocab_list})
+
+
+@login_required
+def api_save_game_record(request):
+    """
+    API lưu trữ Kỷ lục người chơi và trả về Kỷ lục cao nhất hiện tại của Server
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        score = data.get('score', 0)
+        time_taken = data.get('time_taken', 0)
+        level = data.get('level', '')
+        lesson_id = data.get('lesson_id', '')
+
+        # Kiểm tra nếu người chơi đang chơi theo Bài học cụ thể
+        lesson_obj = None
+        if lesson_id:
+            lesson_obj = Lesson.objects.filter(id=lesson_id).first()
+        
+        # 1. Lưu thành tích mới nhất của người dùng
+        GameHistory.objects.create(
+            user=request.user,
+            game_type='shooter', # Định danh cho Game 1
+            score=score,
+            time_taken=time_taken,
+            level=level,
+            lesson=lesson_obj
+        )
+        
+        # 2. Tìm người đang giữ kỷ lục (Top 1) của Cấp độ/Bài học này
+        if lesson_obj:
+            top_record = GameHistory.objects.filter(game_type='shooter', lesson=lesson_obj).order_by('-score', 'time_taken').first()
+        else:
+            top_record = GameHistory.objects.filter(game_type='shooter', level=level).order_by('-score', 'time_taken').first()
+        
+        # 3. Trả dữ liệu kỷ lục gia về để hiển thị trên bảng điện tử của Game
+        top_scorer = top_record.user.username if top_record else "Chưa có"
+        top_score = top_record.score if top_record else 0
+        top_time = top_record.time_taken if top_record else 0
+
+        return JsonResponse({
+            'status': 'success', 
+            'top_scorer': top_scorer,
+            'top_score': top_score,
+            'top_time': top_time
+        })
+        
+    return JsonResponse({'status': 'error'}, status=400)

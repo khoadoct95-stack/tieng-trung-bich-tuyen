@@ -3,6 +3,9 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    # ==========================================
+    # CÁC ĐƯỜNG DẪN HIỆN TẠI CỦA BẠN (GIỮ NGUYÊN)
+    # ==========================================
     path('', views.home, name='home'),
     path('curriculum/<int:curriculum_id>/', views.lesson_list, name='lesson_list'),
     path('lesson/<int:lesson_id>/', views.vocab_list, name='vocab_list'),
@@ -18,9 +21,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('save-score/', views.save_score, name='save_score'),
     
-    # Đã đổi tên đường dẫn này thành 'leaderboard' để khớp với thẻ <a href="{% url 'leaderboard' %}">
     path('leaderboard/', views.dashboard_view, name='leaderboard'),
-    
     path('profile/', views.profile_view, name='profile'),
     path('github_webhook/', views.github_webhook, name='github_webhook'),
     
@@ -30,4 +31,16 @@ urlpatterns = [
     path('exam-review/<int:result_id>/', views.review_exam, name='review_exam'),
     path('import-excel/', views.import_excel, name='import_excel'),
     path('upload-zip/', views.upload_exam_images_zip, name='upload_exam_images_zip'),
+
+    # ==========================================
+    # ĐƯỜNG DẪN MỚI CHO KHU VỰC GIẢI TRÍ (GAMES)
+    # ==========================================
+    # 1. Đường dẫn mở giao diện Game 1
+    path('games/ngu-kiem/', views.game_shooter_view, name='game_shooter'),
+    
+    # 2. Đường dẫn API để Game lấy từ vựng (ẩn dưới nền)
+    path('api/get-vocab-game/', views.api_get_vocab_for_game, name='api_get_vocab_game'),
+    
+    # 3. Đường dẫn API để lưu kỷ lục điểm số (ẩn dưới nền)
+    path('api/save-game-record/', views.api_save_game_record, name='api_save_game_record'),
 ]

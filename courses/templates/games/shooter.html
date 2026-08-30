@@ -1,10 +1,9 @@
 {% extends 'courses/base.html' %} 
 
-{% block title %}Ngự Kiếm Phá Tự - Giải Trí{% endblock %}
+{% block title %}Ngự Kiếm Phi Hành - Giải Trí{% endblock %}
 
 {% block content %}
 <style>
-    /* CSS CHO GAME */
     #game-container {
         position: relative;
         width: 100%;
@@ -23,12 +22,11 @@
         position: relative;
     }
     
-    /* Thẻ chữ Hán rơi - ĐÃ SỬA CO GIÃN ĐỂ KHÔNG BỊ CẮT CHỮ */
     .word-card {
         position: absolute;
-        min-width: 70px; /* Rộng tối thiểu 70px */
-        width: fit-content; /* Tự động phình to nếu chữ dài */
-        padding: 0 15px; /* Khoảng cách hai bên trái phải */
+        min-width: 70px; 
+        width: fit-content; 
+        padding: 0 15px; 
         height: 70px;
         background: #ffffff;
         border: 3px solid #fbbf24;
@@ -38,7 +36,7 @@
         justify-content: center;
         box-shadow: 0 4px 10px rgba(251, 191, 36, 0.4);
         user-select: none;
-        white-space: nowrap; /* Cấm xuống dòng tuyệt đối */
+        white-space: nowrap; 
     }
     .word-card .hanzi { 
         font-size: 38px; 
@@ -49,14 +47,15 @@
         line-height: 1;
     }
     
+    /* ICON THANH KIẾM */
     #defender {
         position: absolute;
-        bottom: 0;
+        bottom: 5px;
         left: 50%;
         transform: translateX(-50%);
-        width: 80px;
+        width: 50px;
         height: 80px;
-        background: url('https://cdn-icons-png.flaticon.com/512/7592/7592984.png') center/cover;
+        background: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') center/contain no-repeat;
         z-index: 10;
     }
     
@@ -98,7 +97,6 @@
         box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
     }
     
-    /* Hiệu ứng rung lắc khi nhập sai Pinyin */
     .shake-error {
         animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         border-color: #ef4444 !important;
@@ -150,11 +148,11 @@
 
 <div class="row justify-content-center">
     <div class="col-md-11"> 
-        <h2 class="text-center mb-4 mt-2" style="font-family: 'Playfair Display', serif;">⚔️ Ngự Kiếm Phá Tự</h2>
+        <h2 class="text-center mb-4 mt-2" style="font-family: 'Playfair Display', serif;">⚔️ Ngự Kiếm Phi Hành</h2>
         
         <div class="card mb-4 shadow-sm" id="setup-screen">
             <div class="card-body text-center py-5">
-                <h4 class="mb-4" style="color: var(--primary-red);">Chuẩn bị chiến đấu</h4>
+                <h4 class="mb-4" style="color: var(--primary-red);">Chuẩn bị xuất kích</h4>
                 <div class="row justify-content-center">
                     <div class="col-md-5">
                         <select id="level-select" class="form-select form-select-lg mb-3">
@@ -174,10 +172,10 @@
                     </div>
                 </div>
                 <button class="btn btn-custom-primary btn-lg mt-3 px-5 py-2" onclick="startGame()">
-                    <i class="fas fa-rocket me-2"></i> Xuất Trận
+                    <i class="fas fa-rocket me-2"></i> Ngự Kiếm Xuất Trận
                 </button>
                 <p class="text-muted mt-3 mb-0">
-                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi <b>rồi nhấn phím ENTER</b>. <br>Quy ước thanh điệu: Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mǎ = ma3, mā = ma).</small>
+                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi <b>rồi nhấn phím ENTER</b> để phóng kiếm khí. <br>Quy ước thanh điệu: Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mǎ = ma3, mā = ma).</small>
                 </p>
             </div>
         </div>
@@ -199,10 +197,10 @@
 
             <div id="end-screen">
                 <div class="end-board">
-                    <h2 style="color: var(--primary-red); margin-bottom: 20px;">Hoàn Thành Bài Tập! 🎉</h2>
+                    <h2 style="color: var(--primary-red); margin-bottom: 20px;">Luyện Kiếm Thành Công! 🎉</h2>
                     <h4 class="mb-3">Số thẻ tiêu diệt: <span id="final-score" style="color: #2563eb; font-weight: 900; font-size: 2rem;">0</span></h4>
                     <p style="font-size: 1.2rem; color: #475569;">Thời gian: <span id="final-time" style="font-weight: bold; color: #d97706;">0</span> giây</p>
-                    <button class="btn btn-custom-primary btn-lg mt-4" onclick="returnToSetup()">Chơi ván mới</button>
+                    <button class="btn btn-custom-primary btn-lg mt-4" onclick="returnToSetup()">Tiếp tục luyện kiếm</button>
                 </div>
             </div>
         </div>
@@ -217,8 +215,11 @@
     let spawnInterval;
     let animationId; 
     
-    let dropSpeed = 1.2; 
-    let spawnRate = 2000; 
+    // ĐÃ CHỈNH SỬA: Giảm tốc độ rơi rất chậm (từ 2.2 xuống 0.7)
+    let dropSpeed = 0.7; 
+    
+    // ĐÃ CHỈNH SỬA: Giãn khoảng cách xuất hiện thẻ (từ 1400 lên 2500ms)
+    let spawnRate = 2500; 
     
     let startTime;
     let currentLevel = '';
@@ -278,8 +279,8 @@
             document.getElementById('pinyin-input').focus();
             
             score = 0; 
-            dropSpeed = 1.2; 
-            spawnRate = 2000;
+            dropSpeed = 0.7; // Reset lại tốc độ cực chậm
+            spawnRate = 2500; // Reset lại khoảng cách sinh thẻ
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeCards = [];
@@ -335,7 +336,7 @@
         card.innerHTML = `<div class="hanzi">${word.hanzi}</div>`;
         
         const gameArea = document.getElementById('game-area');
-        const maxX = gameArea.clientWidth - 120; // Trừ hao an toàn để thẻ không dính mép
+        const maxX = gameArea.clientWidth - 120; 
         
         card.style.left = Math.floor(Math.random() * maxX) + 'px';
         card.style.top = '0px';
@@ -375,18 +376,16 @@
         }
     }
 
-    // ĐÃ SỬA: Lắng nghe phím Enter thay vì bắt sự kiện gõ từng chữ
     const inputField = document.getElementById('pinyin-input');
     inputField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Ngăn hành vi mặc định của phím Enter
+            e.preventDefault(); 
             const inputVal = this.value.toLowerCase().trim();
             if(!inputVal) return;
 
             let targetIndex = -1;
             let maxTop = -1; 
 
-            // Quét xem có thẻ nào khớp với Pinyin vừa gõ không
             for(let i = 0; i < activeCards.length; i++) {
                 if(activeCards[i].dataset.pinyin === inputVal) {
                     let currentTop = parseFloat(activeCards[i].dataset.exactTop);
@@ -398,15 +397,13 @@
             }
 
             if (targetIndex !== -1) {
-                // Nếu bắn trúng
                 shootLaser(activeCards[targetIndex], targetIndex);
                 this.value = ''; 
             } else {
-                // Nếu gõ sai hoặc hụt -> Hiệu ứng rung lắc & tự xóa trắng
-                this.classList.remove('shake-error'); // Reset hiệu ứng nếu đang rung
-                void this.offsetWidth; // Mẹo ép trình duyệt render lại DOM
+                this.classList.remove('shake-error'); 
+                void this.offsetWidth; 
                 this.classList.add('shake-error');
-                this.value = ''; // Xóa luôn để người chơi gõ lại cho lẹ
+                this.value = ''; 
             }
         }
     });
@@ -449,11 +446,12 @@
             score++;
             document.getElementById('score').innerText = score;
             
+            // ĐÃ CHỈNH SỬA: Tăng tốc rất nhẹ nhàng khi chơi giỏi (mỗi 5 thẻ)
             if(score % 5 === 0) {
-                dropSpeed += 0.15; 
-                if(spawnRate > 700) {
+                dropSpeed += 0.05; // Chỉ tăng rất ít
+                if(spawnRate > 1000) {
                     clearInterval(spawnInterval);
-                    spawnRate -= 150;
+                    spawnRate -= 100; // Giảm khoảng cách từ từ
                     spawnInterval = setInterval(spawnCard, spawnRate);
                 }
             }

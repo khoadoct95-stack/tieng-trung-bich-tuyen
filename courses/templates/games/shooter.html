@@ -1,44 +1,48 @@
-{% extends 'courses/base.html' %}
+{% extends 'courses/base.html' %} 
 
 {% block title %}Ngự Kiếm Phá Tự - Giải Trí{% endblock %}
 
 {% block content %}
 <style>
-    /* CSS CHO GAME */
+    /* CSS CHO GAME MỚI - TƯƠI SÁNG HƠN */
     #game-container {
         position: relative;
         width: 100%;
-        max-width: 800px;
-        height: 600px;
-        background: #0f172a;
+        max-width: 1000px; /* Khung game to và rộng hơn */
+        height: 650px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%); /* Nền xanh da trời sáng */
         margin: 0 auto;
         overflow: hidden;
         border-radius: 15px;
-        border: 4px solid #334155;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 4px solid #bae6fd;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Đổ bóng nhẹ nhàng hơn */
     }
     #game-area {
         width: 100%;
         height: 80%;
         position: relative;
     }
-    /* Thẻ chữ Hán rơi */
+    /* Thẻ chữ Hán rơi (Đã tối giản, không còn nghĩa Tiếng Việt) */
     .word-card {
         position: absolute;
-        width: 90px;
-        height: 90px;
-        background: rgba(255, 255, 255, 0.95);
+        width: 70px;
+        height: 70px;
+        background: #ffffff;
         border: 3px solid #fbbf24;
         border-radius: 12px;
-        text-align: center;
         display: flex;
-        flex-direction: column;
+        align-items: center;
         justify-content: center;
-        box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
-        transition: top 0.1s linear;
+        box-shadow: 0 4px 10px rgba(251, 191, 36, 0.4);
+        /* Lưu ý: Không dùng CSS transition ở đây nữa để JS điều khiển mượt 60fps */
+        user-select: none;
     }
-    .word-card .hanzi { font-size: 32px; font-weight: bold; color: #9B1C1C; line-height: 1.2; }
-    .word-card .meaning { font-size: 13px; color: #475569; padding: 0 2px; }
+    .word-card .hanzi { 
+        font-size: 38px; 
+        font-weight: bold; 
+        color: #9B1C1C; 
+        font-family: 'Noto Serif', serif;
+    }
     
     /* Người bảo vệ (Tháp/Kiếm) */
     #defender {
@@ -46,8 +50,8 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 70px;
-        height: 70px;
+        width: 80px;
+        height: 80px;
         background: url('https://cdn-icons-png.flaticon.com/512/7592/7592984.png') center/cover;
         z-index: 10;
     }
@@ -55,18 +59,18 @@
     .laser {
         position: absolute;
         width: 6px;
-        background: #38bdf8;
-        box-shadow: 0 0 15px #38bdf8;
+        background: #ef4444; /* Laser màu đỏ cam cho nổi bật trên nền trời */
+        box-shadow: 0 0 15px #ef4444;
         left: 50%;
         transform: translateX(-50%);
         z-index: 5;
-        transition: all 0.15s;
     }
     
     /* Bảng điều khiển */
     #control-panel {
         height: 20%;
-        background: #1e293b;
+        background: #f8fafc;
+        border-top: 3px solid #e2e8f0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -74,40 +78,64 @@
     }
     #pinyin-input {
         width: 60%;
-        font-size: 28px;
+        font-size: 32px;
         padding: 12px;
         text-align: center;
-        border-radius: 30px;
-        border: 3px solid #38bdf8;
+        border-radius: 50px;
+        border: 3px solid #60a5fa;
         outline: none;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         color: #0f172a;
         font-weight: bold;
+        box-shadow: 0 4px 10px rgba(96, 165, 250, 0.2);
     }
     #pinyin-input:focus {
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+        border-color: #3b82f6;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
     }
     
     .stats {
         position: absolute;
-        top: 15px; left: 15px;
-        color: white; font-weight: bold;
+        top: 15px; left: 20px;
+        color: #1e293b; /* Chữ tối màu */
+        font-weight: bold;
         font-size: 1.2rem;
         z-index: 20;
     }
     .record {
         position: absolute;
-        top: 15px; right: 15px;
-        color: #fbbf24; font-weight: bold;
+        top: 15px; right: 20px;
+        color: #d97706; /* Màu vàng cam đậm */
+        font-weight: bold;
         font-size: 1.1rem;
         z-index: 20;
         text-align: right;
     }
+
+    /* Bảng tổng kết End Game */
+    #end-screen {
+        display: none; 
+        position: absolute; 
+        top:0; left:0; right:0; bottom:0; 
+        background: rgba(255, 255, 255, 0.95); 
+        z-index: 100; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center;
+    }
+    .end-board {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        border: 4px solid #60a5fa;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
 </style>
 
 <div class="row justify-content-center">
-    <div class="col-md-10">
-        <h2 class="text-center mb-4 mt-2">⚔️ Ngự Kiếm Phá Tự</h2>
+    <div class="col-md-11"> <!-- Tăng width cho cột chứa game -->
+        <h2 class="text-center mb-4 mt-2" style="font-family: 'Playfair Display', serif;">⚔️ Ngự Kiếm Phá Tự</h2>
         
         <!-- KHU VỰC CHỌN CHẾ ĐỘ -->
         <div class="card mb-4 shadow-sm" id="setup-screen">
@@ -132,7 +160,7 @@
                     </div>
                 </div>
                 <button class="btn btn-custom-primary btn-lg mt-3 px-5 py-2" onclick="startGame()">
-                    <i class="fas fa-rocket me-2"></i> Bắt đầu
+                    <i class="fas fa-rocket me-2"></i> Xuất Trận
                 </button>
                 <p class="text-muted mt-3 mb-0">
                     <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi. Quy ước thanh điệu: Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mǎ = ma3, mā = ma).</small>
@@ -142,7 +170,10 @@
 
         <!-- KHU VỰC GAME -->
         <div id="game-container" style="display: none;">
-            <div class="stats">Điểm: <span id="score" style="color: #38bdf8;">0</span> <br> Sinh lực: <span id="hp">3</span> ❤️</div>
+            <div class="stats">
+                Thẻ đã diệt: <span id="score" style="color: #2563eb; font-size: 1.5rem;">0</span> <br>
+                Tiến độ: <span id="progress">0/0</span>
+            </div>
             <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> <br><small>(bởi <span id="top-scorer">-</span>)</small></div>
             
             <div id="game-area">
@@ -152,6 +183,16 @@
             <div id="control-panel">
                 <input type="text" id="pinyin-input" placeholder="Gõ Pinyin (VD: hao3) rồi Enter..." autocomplete="off">
             </div>
+
+            <!-- Bảng kết thúc Game (Mới) -->
+            <div id="end-screen">
+                <div class="end-board">
+                    <h2 style="color: var(--primary-red); margin-bottom: 20px;">Hoàn Thành Bài Tập! 🎉</h2>
+                    <h4 class="mb-3">Số thẻ tiêu diệt: <span id="final-score" style="color: #2563eb; font-weight: 900; font-size: 2rem;">0</span></h4>
+                    <p style="font-size: 1.2rem; color: #475569;">Thời gian: <span id="final-time" style="font-weight: bold; color: #d97706;">0</span> giây</p>
+                    <button class="btn btn-custom-primary btn-lg mt-4" onclick="returnToSetup()">Chơi ván mới</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -160,14 +201,20 @@
     let vocabList = [];
     let activeCards = [];
     let score = 0;
-    let hp = 3;
-    let gameInterval, spawnInterval;
-    let gameSpeed = 50; // Tốc độ cập nhật khung hình
-    let dropSpeed = 1.5; // Tốc độ rơi ban đầu
-    let spawnRate = 2500; // Thời gian sinh thẻ ban đầu (ms)
+    
+    let spawnInterval;
+    let animationId; // Biến dùng cho requestAnimationFrame
+    
+    let dropSpeed = 1.2; // Tốc độ rơi pixel mỗi khung hình (~60fps)
+    let spawnRate = 2000; // Thời gian sinh thẻ ban đầu (ms)
+    
     let startTime;
     let currentLevel = '';
     let currentLesson = '';
+
+    // Logic Đếm tiến độ game
+    let totalWords = 0;
+    let wordsSpawned = 0;
 
     const pinyinMap = {
         'ā':'a', 'á':'a2', 'ǎ':'a3', 'à':'a4',
@@ -214,22 +261,29 @@
                 v.targetPinyin = normalizePinyin(v.pinyin);
             });
 
+            // Hiển thị khung game
             document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             document.getElementById('pinyin-input').focus();
             
             // Reset các chỉ số
-            score = 0; hp = 3; dropSpeed = 1.5; spawnRate = 2500;
-            document.getElementById('score').innerText = score;
-            document.getElementById('hp').innerText = hp;
-            startTime = Date.now();
+            score = 0; 
+            dropSpeed = 1.2; 
+            spawnRate = 2000;
+            totalWords = vocabList.length;
+            wordsSpawned = 0;
             activeCards = [];
+            
+            document.getElementById('score').innerText = score;
+            document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
+            startTime = Date.now();
+            
+            fetchTopRecord(); // Cập nhật kỷ lục
 
-            // Gọi API lấy kỷ lục hiện tại
-            fetchTopRecord();
-
+            // Bắt đầu vòng lặp game mượt mà
             spawnInterval = setInterval(spawnCard, spawnRate);
-            gameInterval = setInterval(updateGame, gameSpeed);
+            animationId = requestAnimationFrame(gameLoop);
 
         } catch (error) {
             console.error("Lỗi khi tải từ vựng:", error);
@@ -237,73 +291,85 @@
         }
     }
 
+    // Vòng lặp chính của Game sử dụng requestAnimationFrame (60 FPS)
+    function gameLoop() {
+        updateCards();
+        checkGameEnd();
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
     async function fetchTopRecord() {
-        // Chỉ lấy kỷ lục, gửi score=0 để không lưu lịch sử ảo
         try {
             const response = await fetch('/api/save-game-record/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // Django yêu cầu token này cho POST request
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({
-                    score: 0,
-                    time_taken: 0,
-                    level: currentLevel,
-                    lesson_id: currentLesson
-                })
+                body: JSON.stringify({ score: 0, time_taken: 0, level: currentLevel, lesson_id: currentLesson })
             });
             const data = await response.json();
             if(data.status === 'success' && data.top_score > 0) {
                 document.getElementById('top-score').innerText = data.top_score;
                 document.getElementById('top-scorer').innerText = data.top_scorer;
             }
-        } catch (error) {
-            console.log("Không lấy được kỷ lục:", error);
-        }
+        } catch (error) {}
     }
 
     function spawnCard() {
-        if(vocabList.length === 0) return;
-        const word = vocabList[Math.floor(Math.random() * vocabList.length)];
+        if (wordsSpawned >= totalWords) {
+            clearInterval(spawnInterval); // Dừng sinh thẻ khi đã xả hết từ vựng
+            return;
+        }
+
+        const word = vocabList[wordsSpawned];
         
         const card = document.createElement('div');
         card.className = 'word-card';
-        card.innerHTML = `<div class="hanzi">${word.hanzi}</div><div class="meaning">${word.meaning}</div>`;
+        // Xóa phần meaning, chỉ giữ Hanzi
+        card.innerHTML = `<div class="hanzi">${word.hanzi}</div>`;
         
         const gameArea = document.getElementById('game-area');
-        const maxX = gameArea.clientWidth - 90; // Trừ đi chiều rộng của thẻ
+        const maxX = gameArea.clientWidth - 70; // Trừ đi chiều rộng thẻ (70px)
+        
         card.style.left = Math.floor(Math.random() * maxX) + 'px';
         card.style.top = '0px';
         
+        // Lưu tọa độ thật vào dataset để tính toán số thập phân cho mượt
+        card.dataset.exactTop = 0;
         card.dataset.pinyin = word.targetPinyin;
         
         gameArea.appendChild(card);
         activeCards.push(card);
+        
+        wordsSpawned++;
+        document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
     }
 
-    function updateGame() {
+    function updateCards() {
         const gameAreaHeight = document.getElementById('game-area').clientHeight;
         
         for (let i = activeCards.length - 1; i >= 0; i--) {
             let card = activeCards[i];
-            let top = parseFloat(card.style.top || 0);
-            top += dropSpeed;
-            card.style.top = top + 'px';
+            let exactTop = parseFloat(card.dataset.exactTop);
             
-            if (top > gameAreaHeight - 70) { // Chạm tới người bảo vệ
+            exactTop += dropSpeed;
+            card.dataset.exactTop = exactTop;
+            card.style.top = exactTop + 'px'; // Render vị trí mới
+            
+            if (exactTop > gameAreaHeight - 50) { 
+                // Thẻ rớt xuống đáy -> Biến mất, KHÔNG TRỪ MÁU NỮA
                 card.remove();
                 activeCards.splice(i, 1);
-                hp--;
-                document.getElementById('hp').innerText = hp;
-                
-                // Hiệu ứng màn hình chớp đỏ khi mất máu
-                const gameContainer = document.getElementById('game-container');
-                gameContainer.style.borderColor = '#ef4444';
-                setTimeout(() => gameContainer.style.borderColor = '#334155', 200);
-
-                if(hp <= 0) gameOver();
             }
+        }
+    }
+
+    function checkGameEnd() {
+        // Game kết thúc khi đã sinh đủ số từ VÀ không còn thẻ nào rơi trên màn hình
+        if (wordsSpawned >= totalWords && activeCards.length === 0) {
+            cancelAnimationFrame(animationId);
+            showEndScreen();
         }
     }
 
@@ -311,13 +377,12 @@
         const inputVal = this.value.toLowerCase().trim();
         if(!inputVal) return;
 
-        // Tìm thẻ thấp nhất (gần chạm đất nhất) khớp với Pinyin
         let targetIndex = -1;
-        let maxTop = -1;
+        let maxTop = -1; // Ưu tiên bắn thẻ rơi thấp nhất
 
         for(let i=0; i<activeCards.length; i++) {
             if(activeCards[i].dataset.pinyin === inputVal) {
-                let currentTop = parseFloat(activeCards[i].style.top || 0);
+                let currentTop = parseFloat(activeCards[i].dataset.exactTop);
                 if (currentTop > maxTop) {
                     maxTop = currentTop;
                     targetIndex = i;
@@ -327,7 +392,7 @@
 
         if (targetIndex !== -1) {
             shootLaser(activeCards[targetIndex], targetIndex);
-            this.value = '';
+            this.value = ''; // Xóa ô nhập sau khi bắn trúng
         }
     });
 
@@ -340,61 +405,58 @@
         const targetRect = targetCard.getBoundingClientRect();
         const gameAreaRect = document.getElementById('game-area').getBoundingClientRect();
         
-        // Tính toán vị trí tia laser
         const defenderCenter = defenderRect.left + (defenderRect.width / 2) - gameAreaRect.left;
         const targetCenter = targetRect.left + (targetRect.width / 2) - gameAreaRect.left;
         
-        laser.style.bottom = '70px';
+        laser.style.bottom = '80px';
         laser.style.left = defenderCenter + 'px';
-        laser.style.height = (gameAreaRect.bottom - targetRect.bottom - 70) + 'px';
+        laser.style.height = (gameAreaRect.bottom - targetRect.bottom - 80) + 'px';
         
-        // Nghiêng laser nếu mục tiêu không ở chính giữa
         const angle = Math.atan2(targetCenter - defenderCenter, gameAreaRect.bottom - targetRect.bottom) * 180 / Math.PI;
         laser.style.transform = `translateX(-50%) rotate(${angle}deg)`;
         laser.style.transformOrigin = 'bottom center';
 
         document.getElementById('game-area').appendChild(laser);
         
-        // Xóa thẻ khỏi danh sách ngay để không bắn đúp
+        // Loại thẻ khỏi mảng ngay lập tức
         activeCards.splice(index, 1);
 
         setTimeout(() => {
             laser.remove();
             
-            // Hiệu ứng nổ
             targetCard.innerHTML = '💥';
             targetCard.style.backgroundColor = 'transparent';
             targetCard.style.borderColor = 'transparent';
             targetCard.style.boxShadow = 'none';
             targetCard.style.fontSize = '40px';
             
-            setTimeout(() => targetCard.remove(), 150);
+            setTimeout(() => targetCard.remove(), 100);
 
             score++;
             document.getElementById('score').innerText = score;
             
-            // Tăng độ khó mỗi 5 điểm
             if(score % 5 === 0) {
-                dropSpeed += 0.2; // Rơi nhanh hơn
-                if(spawnRate > 800) {
+                dropSpeed += 0.15; 
+                if(spawnRate > 700) {
                     clearInterval(spawnInterval);
-                    spawnRate -= 150; // Ra quân nhanh hơn
+                    spawnRate -= 150;
                     spawnInterval = setInterval(spawnCard, spawnRate);
                 }
             }
-        }, 100);
+        }, 80); // Laser vụt nhanh hơn (80ms)
     }
 
-    async function gameOver() {
-        clearInterval(gameInterval);
-        clearInterval(spawnInterval);
+    async function showEndScreen() {
         document.getElementById('pinyin-input').blur();
-        
         const timeTaken = Math.floor((Date.now() - startTime) / 1000);
         
-        alert(`THUA CUỘC! Bạn đã phá được ${score} thẻ trong ${timeTaken} giây!`);
+        // Điền dữ liệu vào bảng xếp hạng
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-time').innerText = timeTaken;
         
-        // Gửi kết quả lên máy chủ
+        // Hiển thị pop-up kết thúc
+        document.getElementById('end-screen').style.display = 'flex';
+        
         if (score > 0) {
             try {
                 await fetch('/api/save-game-record/', {
@@ -403,22 +465,17 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
-                    body: JSON.stringify({
-                        score: score,
-                        time_taken: timeTaken,
-                        level: currentLevel,
-                        lesson_id: currentLesson
-                    })
+                    body: JSON.stringify({ score: score, time_taken: timeTaken, level: currentLevel, lesson_id: currentLesson })
                 });
-            } catch (error) {
-                console.error("Lỗi khi lưu điểm:", error);
-            }
+            } catch (error) {}
         }
-        
-        // Reset màn hình
+    }
+
+    function returnToSetup() {
+        // Dọn dẹp màn hình và quay về trang chọn chế độ
         document.getElementById('game-area').innerHTML = '<div id="defender"></div>';
-        activeCards = [];
         document.getElementById('game-container').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'none';
         document.getElementById('setup-screen').style.display = 'block';
     }
 </script>

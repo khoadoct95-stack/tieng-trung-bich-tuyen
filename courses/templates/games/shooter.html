@@ -47,7 +47,6 @@
         line-height: 1;
     }
     
-    /* ICON THANH KIẾM */
     #defender {
         position: absolute;
         bottom: 5px;
@@ -175,7 +174,7 @@
                     <i class="fas fa-rocket me-2"></i> Ngự Kiếm Xuất Trận
                 </button>
                 <p class="text-muted mt-3 mb-0">
-                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi <b>rồi nhấn phím ENTER</b> để phóng kiếm khí. <br>Quy ước thanh điệu: Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mǎ = ma3, mā = ma).</small>
+                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi <b>rồi nhấn phím ENTER</b> để phóng kiếm khí. <br>Quy ước: Thanh 1 = 1, Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mā = ma1, mǎ = ma3).</small>
                 </p>
             </div>
         </div>
@@ -215,10 +214,7 @@
     let spawnInterval;
     let animationId; 
     
-    // ĐÃ CHỈNH SỬA: Giảm tốc độ rơi rất chậm (từ 2.2 xuống 0.7)
     let dropSpeed = 0.7; 
-    
-    // ĐÃ CHỈNH SỬA: Giãn khoảng cách xuất hiện thẻ (từ 1400 lên 2500ms)
     let spawnRate = 2500; 
     
     let startTime;
@@ -228,17 +224,18 @@
     let totalWords = 0;
     let wordsSpawned = 0;
 
+    // ĐÃ CẬP NHẬT QUY ƯỚC THANH ĐIỆU CHUẨN XÁC
     const pinyinMap = {
-        'ā':'a', 'á':'a2', 'ǎ':'a3', 'à':'a4',
-        'ē':'e', 'é':'e2', 'ě':'e3', 'è':'e4',
-        'ī':'i', 'í':'i2', 'ǐ':'i3', 'ì':'i4',
-        'ō':'o', 'ó':'o2', 'ǒ':'o3', 'ò':'o4',
-        'ū':'u', 'ú':'u2', 'ǔ':'u3', 'ù':'u4',
-        'ǖ':'v', 'ǘ':'v2', 'ǚ':'v3', 'ǜ':'v4', 'ü':'v'
+        'ā':'a1', 'á':'a2', 'ǎ':'a3', 'à':'a4',
+        'ē':'e1', 'é':'e2', 'ě':'e3', 'è':'e4',
+        'ī':'i1', 'í':'i2', 'ǐ':'i3', 'ì':'i4',
+        'ō':'o1', 'ó':'o2', 'ǒ':'o3', 'ò':'o4',
+        'ū':'u1', 'ú':'u2', 'ǔ':'u3', 'ù':'u4',
+        'ǖ':'v1', 'ǘ':'v2', 'ǚ':'v3', 'ǜ':'v4', 'ü':'v'
     };
 
     function normalizePinyin(pinyin) {
-        let res = pinyin.toLowerCase().replace(/\s+/g, '');
+        let res = pinyin.toLowerCase().replace(/\s+/g, ''); // Bỏ khoảng trắng trong DB
         for (let k in pinyinMap) {
             res = res.replace(new RegExp(k, 'g'), pinyinMap[k]);
         }
@@ -269,6 +266,7 @@
                 alert("Khu vực này hiện chưa có từ vựng nào!"); return;
             }
 
+            // Chuyển hóa toàn bộ Pinyin chuẩn bị để so sánh
             vocabList.forEach(v => {
                 v.targetPinyin = normalizePinyin(v.pinyin);
             });
@@ -279,8 +277,8 @@
             document.getElementById('pinyin-input').focus();
             
             score = 0; 
-            dropSpeed = 0.7; // Reset lại tốc độ cực chậm
-            spawnRate = 2500; // Reset lại khoảng cách sinh thẻ
+            dropSpeed = 0.7; 
+            spawnRate = 2500; 
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeCards = [];
@@ -380,7 +378,8 @@
     inputField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault(); 
-            const inputVal = this.value.toLowerCase().trim();
+            // ĐÃ THÊM: Xóa mọi khoảng trắng do người dùng nhập để quét khớp với Pinyin ghép
+            const inputVal = this.value.toLowerCase().replace(/\s+/g, '');
             if(!inputVal) return;
 
             let targetIndex = -1;
@@ -446,12 +445,11 @@
             score++;
             document.getElementById('score').innerText = score;
             
-            // ĐÃ CHỈNH SỬA: Tăng tốc rất nhẹ nhàng khi chơi giỏi (mỗi 5 thẻ)
             if(score % 5 === 0) {
-                dropSpeed += 0.05; // Chỉ tăng rất ít
+                dropSpeed += 0.05; 
                 if(spawnRate > 1000) {
                     clearInterval(spawnInterval);
-                    spawnRate -= 100; // Giảm khoảng cách từ từ
+                    spawnRate -= 100;
                     spawnInterval = setInterval(spawnCard, spawnRate);
                 }
             }

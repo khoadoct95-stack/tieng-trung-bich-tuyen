@@ -47,15 +47,19 @@
         line-height: 1;
     }
     
+    /* ĐÃ SỬA: Dùng biểu tượng Kiếm thật sự, không dùng ảnh ngoài nữa */
     #defender {
         position: absolute;
         bottom: 5px;
         left: 50%;
         transform: translateX(-50%);
-        width: 50px;
-        height: 80px;
-        background: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') center/contain no-repeat;
+        width: 60px;
+        height: 60px;
+        font-size: 50px;
+        text-align: center;
+        line-height: 60px;
         z-index: 10;
+        user-select: none;
     }
     
     .laser {
@@ -174,7 +178,7 @@
                     <i class="fas fa-rocket me-2"></i> Ngự Kiếm Xuất Trận
                 </button>
                 <p class="text-muted mt-3 mb-0">
-                    <small><b>Cách chơi:</b> Gõ Pinyin của chữ Hán đang rơi <b>rồi nhấn phím ENTER</b> để phóng kiếm khí. <br>Quy ước: Thanh 1 = 1, Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mā = ma1, mǎ = ma3).</small>
+                    <small><b>Cách chơi:</b> Gõ Pinyin <b>rồi nhấn ENTER</b> để phóng kiếm khí. <br>Quy ước: Thanh 1 = 1, Thanh 2 = 2, Thanh 3 = 3, Thanh 4 = 4. (VD: mā = ma1, mǎ = ma3).</small>
                 </p>
             </div>
         </div>
@@ -187,7 +191,7 @@
             <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> <br><small>(bởi <span id="top-scorer">-</span>)</small></div>
             
             <div id="game-area">
-                <div id="defender"></div>
+                <div id="defender">⚔️</div>
             </div>
             
             <div id="control-panel">
@@ -214,8 +218,9 @@
     let spawnInterval;
     let animationId; 
     
-    let dropSpeed = 0.7; 
-    let spawnRate = 2500; 
+    // ĐÃ SỬA TỐC ĐỘ: Rơi cực kỳ chậm (mất ~30s để chạm đáy)
+    let dropSpeed = 0.3; 
+    let spawnRate = 3500; // 3.5 giây mới xuất hiện 1 thẻ
     
     let startTime;
     let currentLevel = '';
@@ -224,7 +229,6 @@
     let totalWords = 0;
     let wordsSpawned = 0;
 
-    // ĐÃ CẬP NHẬT QUY ƯỚC THANH ĐIỆU CHUẨN XÁC
     const pinyinMap = {
         'ā':'a1', 'á':'a2', 'ǎ':'a3', 'à':'a4',
         'ē':'e1', 'é':'e2', 'ě':'e3', 'è':'e4',
@@ -234,12 +238,17 @@
         'ǖ':'v1', 'ǘ':'v2', 'ǚ':'v3', 'ǜ':'v4', 'ü':'v'
     };
 
-    function normalizePinyin(pinyin) {
-        let res = pinyin.toLowerCase().replace(/\s+/g, ''); // Bỏ khoảng trắng trong DB
+    // THUẬT TOÁN ĐÃ ĐƯỢC NÂNG CẤP THÔNG MINH
+    function standardizePinyin(pinyinStr) {
+        let res = pinyinStr.toLowerCase().replace(/\s+/g, '');
         for (let k in pinyinMap) {
             res = res.replace(new RegExp(k, 'g'), pinyinMap[k]);
         }
-        return res;
+        // Tách hẳn phần CHỮ CÁI và phần SỐ ra riêng rồi ráp lại. 
+        // VD: ha3o -> hao3, da4jia1 -> dajia41
+        let letters = res.replace(/[0-9]/g, '');
+        let tones = res.replace(/[^0-9]/g, '');
+        return letters + tones;
     }
 
     async function startGame() {
@@ -266,9 +275,8 @@
                 alert("Khu vực này hiện chưa có từ vựng nào!"); return;
             }
 
-            // Chuyển hóa toàn bộ Pinyin chuẩn bị để so sánh
             vocabList.forEach(v => {
-                v.targetPinyin = normalizePinyin(v.pinyin);
+                v.targetPinyin = standardizePinyin(v.pinyin);
             });
 
             document.getElementById('setup-screen').style.display = 'none';
@@ -277,8 +285,8 @@
             document.getElementById('pinyin-input').focus();
             
             score = 0; 
-            dropSpeed = 0.7; 
-            spawnRate = 2500; 
+            dropSpeed = 0.3; // Reset lại tốc độ cực chậm
+            spawnRate = 3500;
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeCards = [];
@@ -340,7 +348,7 @@
         card.style.top = '0px';
         
         card.dataset.exactTop = 0;
-        card.dataset.pinyin = word.targetPinyin;
+        card.dataset.pinyin = word.targetPinyin; // Đã được xử lý bởi thuật toán mới
         
         gameArea.appendChild(card);
         activeCards.push(card);
@@ -378,15 +386,16 @@
     inputField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault(); 
-            // ĐÃ THÊM: Xóa mọi khoảng trắng do người dùng nhập để quét khớp với Pinyin ghép
-            const inputVal = this.value.toLowerCase().replace(/\s+/g, '');
-            if(!inputVal) return;
+            
+            // Xử lý ô nhập của người dùng qua cùng 1 thuật toán với CSDL
+            const formattedInput = standardizePinyin(this.value);
+            if(!formattedInput) return;
 
             let targetIndex = -1;
             let maxTop = -1; 
 
             for(let i = 0; i < activeCards.length; i++) {
-                if(activeCards[i].dataset.pinyin === inputVal) {
+                if(activeCards[i].dataset.pinyin === formattedInput) {
                     let currentTop = parseFloat(activeCards[i].dataset.exactTop);
                     if (currentTop > maxTop) {
                         maxTop = currentTop;
@@ -419,9 +428,9 @@
         const defenderCenter = defenderRect.left + (defenderRect.width / 2) - gameAreaRect.left;
         const targetCenter = targetRect.left + (targetRect.width / 2) - gameAreaRect.left;
         
-        laser.style.bottom = '80px';
+        laser.style.bottom = '60px';
         laser.style.left = defenderCenter + 'px';
-        laser.style.height = (gameAreaRect.bottom - targetRect.bottom - 80) + 'px';
+        laser.style.height = (gameAreaRect.bottom - targetRect.bottom - 60) + 'px';
         
         const angle = Math.atan2(targetCenter - defenderCenter, gameAreaRect.bottom - targetRect.bottom) * 180 / Math.PI;
         laser.style.transform = `translateX(-50%) rotate(${angle}deg)`;
@@ -445,9 +454,10 @@
             score++;
             document.getElementById('score').innerText = score;
             
+            // Tăng tốc cực nhẹ
             if(score % 5 === 0) {
                 dropSpeed += 0.05; 
-                if(spawnRate > 1000) {
+                if(spawnRate > 1500) {
                     clearInterval(spawnInterval);
                     spawnRate -= 100;
                     spawnInterval = setInterval(spawnCard, spawnRate);
@@ -479,7 +489,7 @@
     }
 
     function returnToSetup() {
-        document.getElementById('game-area').innerHTML = '<div id="defender"></div>';
+        document.getElementById('game-area').innerHTML = '<div id="defender">⚔️</div>';
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';
         document.getElementById('setup-screen').style.display = 'block';

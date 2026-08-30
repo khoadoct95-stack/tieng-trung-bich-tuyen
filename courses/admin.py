@@ -14,10 +14,33 @@ import re
 from .models import Exam, ExamQuestion, ExamResult, Curriculum, Lesson, Vocabulary
 
 # ==========================================
-# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH
+# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH VÀ TỪ VỰNG (ĐÃ NÂNG CẤP BỘ LỌC)
 # ==========================================
-admin.site.register(Curriculum)
-admin.site.register(Vocabulary)
+@admin.register(Curriculum)
+class CurriculumAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subtitle', 'icon_character')
+    search_fields = ('title', 'subtitle')
+
+@admin.register(Vocabulary)
+class VocabularyAdmin(admin.ModelAdmin):
+    # Hiển thị thêm cột Cấp độ, Bài học trong danh sách
+    list_display = ('hanzi', 'pinyin', 'meaning', 'level', 'get_lesson', 'get_curriculum')
+    
+    # BỘ LỌC BÊN TAY PHẢI:
+    # Lọc theo Cấp độ (level), Bài học (lesson), Giáo trình (lesson__curriculum)
+    list_filter = ('level', 'lesson__curriculum', 'lesson')
+    
+    # Thanh tìm kiếm
+    search_fields = ('hanzi', 'pinyin', 'meaning', 'level')
+
+    def get_lesson(self, obj):
+        return f"Bài {obj.lesson.order}: {obj.lesson.title_hanzi}"
+    get_lesson.short_description = 'Thuộc Bài học'
+
+    def get_curriculum(self, obj):
+        return obj.lesson.curriculum.title
+    get_curriculum.short_description = 'Thuộc Giáo trình'
+
 
 # ==========================================
 # KHU VỰC 2: QUẢN LÝ BÀI HỌC (CÓ TÍNH NĂNG DÁN TỪ VỰNG HÀNG LOẠT)
@@ -27,10 +50,10 @@ class LessonAdminForm(forms.ModelForm):
         label="⚡ Dán nhanh nhiều từ vựng (Tự động tách)",
         widget=forms.Textarea(attrs={
             'rows': 8, 
-            'placeholder': 'Định dạng: Chữ Hán | Pinyin | Nghĩa (Mỗi từ 1 dòng)\nVí dụ:\n你好 | nǐ hǎo | Xin chào\n谢谢 | xièxie | Cảm ơn'
+            'placeholder': 'Định dạng: Chữ Hán | Pinyin | Nghĩa | Cấp độ (Mỗi từ 1 dòng)\nVí dụ:\n你好 | nǐ hǎo | Xin chào | HSK 1\n谢谢 | xièxie | Cảm ơn | HSK 1'
         }),
         required=False,
-        help_text="Mỗi từ vựng 1 dòng. Ngăn cách nhau bằng dấu gạch đứng ( | ) hoặc dấu Tab."
+        help_text="Mỗi từ vựng 1 dòng. Ngăn cách nhau bằng dấu gạch đứng ( | ) hoặc dấu Tab. Có thể nhập thêm Cấp độ ở cột thứ 4."
     )
 
     class Meta:
@@ -41,24 +64,19 @@ class LessonAdminForm(forms.ModelForm):
 class LessonAdmin(admin.ModelAdmin):
     form = LessonAdminForm
     
-    # Hiển thị các trường trong giao diện Admin
     fieldsets = (
         ('Thông tin Bài học', {
-            # Giả định tên các cột trong model Lesson của bạn. 
-            # (Nếu model Lesson của bạn có tên cột khác, hãy sửa lại cho khớp nhé)
             'fields': ('curriculum', 'order', 'title_hanzi', 'title_pinyin', 'title_vietnamese', 'description') 
         }),
         ('Thêm Từ vựng nhanh', {
             'fields': ('bulk_vocab',),
-            'classes': ('collapse',), # Làm cho phần này có thể thu gọn lại cho gọn gàng
+            'classes': ('collapse',), 
         }),
     )
 
     def save_model(self, request, obj, form, change):
-        # Lưu đối tượng Lesson trước
         super().save_model(request, obj, form, change)
 
-        # Lấy dữ liệu từ ô bulk_vocab
         bulk_text = form.cleaned_data.get('bulk_vocab')
         
         if bulk_text:
@@ -68,16 +86,18 @@ class LessonAdmin(admin.ModelAdmin):
                 if not line.strip():
                     continue
                 
-                # Cắt bằng dấu | hoặc Tab
                 parts = line.split('|') if '|' in line else line.split('\t')
                 
                 if len(parts) >= 3:
-                    # Chú ý: Đảm bảo 'chinese', 'pinyin', 'meaning' khớp với models.py của Vocabulary
+                    # Nếu có cột Cấp độ thì lấy, không có thì để trống
+                    level_val = parts[3].strip() if len(parts) >= 4 else ""
+                    
                     Vocabulary.objects.create(
                         lesson=obj,
                         hanzi=parts[0].strip(),
                         pinyin=parts[1].strip(),
-                        meaning=parts[2].strip()
+                        meaning=parts[2].strip(),
+                        level=level_val # Lưu cấp độ vào CSDL
                     )
                     count += 1
             if count > 0:
@@ -102,7 +122,6 @@ class ExamAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    # ... (Các hàm bulk_image_upload_view, extract_images_view, import_excel_view của bạn được giữ nguyên y hệt bên dưới)
     def bulk_image_upload_view(self, request):
         if request.method == 'POST':
             exam_id = request.POST.get('exam_id')

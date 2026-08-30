@@ -261,3 +261,26 @@ class ExamResultAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score', 'total_correct', 'completed_at')
     list_filter = ('exam', 'completed_at')
     search_fields = ('user__username', 'exam__title')
+    
+    # --- THÊM PHẦN NÀY ĐỂ TẠO NÚT BẤM CẬP NHẬT NHANH ---
+    actions = ['sync_level_from_curriculum']
+
+    @admin.action(description='⚡ Đồng bộ Cấp độ (Lấy tự động từ tên Giáo trình)')
+    def sync_level_from_curriculum(self, request, queryset):
+        count = 0
+        for obj in queryset:
+            # Tự động dò tìm Tên giáo trình của từ vựng đó và gán vào cột level
+            if obj.lesson and obj.lesson.curriculum:
+                obj.level = obj.lesson.curriculum.title 
+                obj.save()
+                count += 1
+        messages.success(request, f"Tuyệt vời! Đã cập nhật cấp độ tự động cho {count} từ vựng.")
+    # ----------------------------------------------------
+
+    def get_lesson(self, obj):
+        return f"Bài {obj.lesson.order}: {obj.lesson.title_hanzi}"
+    get_lesson.short_description = 'Thuộc Bài học'
+
+    def get_curriculum(self, obj):
+        return obj.lesson.curriculum.title
+    get_curriculum.short_description = 'Thuộc Giáo trình'

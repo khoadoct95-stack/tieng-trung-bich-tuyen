@@ -119,15 +119,6 @@
         z-index: 20;
         line-height: 1.5;
     }
-    .record {
-        position: absolute;
-        top: 15px; right: 20px;
-        color: #d97706; 
-        font-weight: bold;
-        font-size: 1.1rem;
-        z-index: 20;
-        text-align: right;
-    }
 
     #end-screen {
         display: none; 
@@ -160,16 +151,18 @@
                     <div class="col-md-5">
                         <select id="level-select" class="form-select form-select-lg mb-3">
                             <option value="">-- Chơi theo Cấp độ (Trộn toàn bộ) --</option>
-                            {% for c in curriculums %}
-                            <option value="{{ c.title }}">{{ c.title }}</option>
+                            <!-- Đã cập nhật biến curriculums_data mới -->
+                            {% for c in curriculums_data %}
+                            <option value="{{ c.title }}">{{ c.title }} ({{ c.vocab_count }} từ)</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-5">
                         <select id="lesson-select" class="form-select form-select-lg mb-3">
                             <option value="">-- Hoặc ôn tập theo Bài học --</option>
-                            {% for l in lessons %}
-                            <option value="{{ l.id }}">{{ l.curriculum.title }} - Bài {{ l.order }}</option>
+                            <!-- Đã cập nhật biến lessons_data mới -->
+                            {% for l in lessons_data %}
+                            <option value="{{ l.id }}">{{ l.curriculum_title }} - Bài {{ l.order }} ({{ l.vocab_count }} từ)</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -184,12 +177,13 @@
         </div>
 
         <div id="game-container" style="display: none;">
+            <!-- Góc hiển thị điểm -->
             <div class="stats">
                 Thẻ đã diệt: <span id="score" style="color: #2563eb; font-size: 1.4rem;">0</span> <br>
                 Tiến độ: <span id="progress" style="color: #059669;">0/0</span> <br>
-                Thời gian: <span id="time-display" style="color: #d97706;">0s</span> <!-- Đồng hồ live -->
+                Thời gian: <span id="time-display" style="color: #d97706;">0s</span>
             </div>
-            <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> <br><small>(bởi <span id="top-scorer">-</span>)</small></div>
+            <!-- Đã xóa phần hiển thị Kỷ lục máy chủ ở góc phải -->
             
             <div id="game-area">
                 <div id="defender">⚔️</div>
@@ -217,10 +211,10 @@
     let score = 0;
     
     let animationId; 
-    let timerInterval; // Biến chạy đồng hồ
-    let secondsPlayed = 0; // Số giây đã chơi
+    let timerInterval; 
+    let secondsPlayed = 0; 
     
-    let dropSpeed = 0.3; // Rơi rất chậm
+    let dropSpeed = 0.3; 
     
     let currentLevel = '';
     let currentLesson = '';
@@ -290,16 +284,12 @@
             document.getElementById('score').innerText = score;
             document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
             document.getElementById('time-display').innerText = `0s`;
-            
-            fetchTopRecord(); 
 
-            // Chạy đồng hồ live
             timerInterval = setInterval(() => {
                 secondsPlayed++;
                 document.getElementById('time-display').innerText = `${secondsPlayed}s`;
             }, 1000);
 
-            // Bắt đầu game bằng việc ném thẻ đầu tiên xuống
             spawnCard();
             animationId = requestAnimationFrame(gameLoop);
 
@@ -315,27 +305,9 @@
         animationId = requestAnimationFrame(gameLoop);
     }
 
-    async function fetchTopRecord() {
-        try {
-            const response = await fetch('/api/save-game-record/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ score: 0, time_taken: 0, level: currentLevel, lesson_id: currentLesson })
-            });
-            const data = await response.json();
-            if(data.status === 'success' && data.top_score > 0) {
-                document.getElementById('top-score').innerText = data.top_score;
-                document.getElementById('top-scorer').innerText = data.top_scorer;
-            }
-        } catch (error) {}
-    }
-
     function spawnCard() {
         if (wordsSpawned >= totalWords) {
-            return; // Hết từ vựng thì không ném thẻ nữa
+            return; 
         }
 
         const word = vocabList[wordsSpawned];
@@ -374,7 +346,6 @@
                 card.remove();
                 activeCards.splice(i, 1);
                 
-                // NẾU THẺ TRƯỚC RƠI CHẠM ĐÁY, THẺ SAU LẬP TỨC RƠI XUỐNG
                 if (wordsSpawned < totalWords) {
                     spawnCard();
                 }
@@ -385,7 +356,7 @@
     function checkGameEnd() {
         if (wordsSpawned >= totalWords && activeCards.length === 0) {
             cancelAnimationFrame(animationId);
-            clearInterval(timerInterval); // Đóng băng đồng hồ
+            clearInterval(timerInterval); 
             showEndScreen();
         }
     }
@@ -400,7 +371,6 @@
 
             let targetIndex = -1;
             
-            // Vì chỉ có 1 thẻ rơi trên màn hình, ta chỉ cần check thẻ đầu tiên
             if(activeCards.length > 0 && activeCards[0].dataset.pinyin === formattedInput) {
                 targetIndex = 0;
             }
@@ -439,7 +409,6 @@
 
         document.getElementById('game-area').appendChild(laser);
         
-        // Cắt bỏ thẻ này khỏi mảng ngay khi nổ
         activeCards.splice(index, 1);
 
         setTimeout(() => {
@@ -453,18 +422,14 @@
             
             setTimeout(() => {
                 targetCard.remove();
-                
-                // NẾU TRẢ LỜI THÀNH CÔNG, GỌI THẺ MỚI RƠI NGAY LẬP TỨC ĐỂ TĂNG TỐC
                 if (wordsSpawned < totalWords) {
                     spawnCard();
                 }
-
             }, 100);
 
             score++;
             document.getElementById('score').innerText = score;
             
-            // Chơi càng hay, tốc độ rơi thẻ tăng rất nhẹ (0.05 px/frame) để tạo tính cạnh tranh
             if(score % 5 === 0) {
                 dropSpeed += 0.05; 
             }
@@ -474,13 +439,13 @@
     async function showEndScreen() {
         document.getElementById('pinyin-input').blur();
         
-        // Hiển thị kết quả bằng số giây thực tế đã đóng băng
         document.getElementById('final-score').innerText = score;
         document.getElementById('final-time').innerText = secondsPlayed;
         document.getElementById('end-screen').style.display = 'flex';
         
         if (score > 0) {
             try {
+                // Vẫn lưu ngầm kết quả tiến độ học tập vào database, chỉ không hiển thị Bảng xếp hạng ra ngoài
                 await fetch('/api/save-game-record/', {
                     method: 'POST',
                     headers: {

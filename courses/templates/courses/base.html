@@ -110,9 +110,6 @@
                     </li>
                     
                     {% if user.is_authenticated %}
-                        <li class="nav-item me-3">
-                            <a class="nav-link fw-bold" style="color: var(--gold-accent) !important;" href="{% url 'leaderboard' %}">🏆 Bảng Xếp Hạng</a>
-                        </li>
                         <li class="nav-item">
                             <a href="{% url 'profile' %}" class="nav-link me-3 text-decoration-none fw-semibold">
                                 👋 Chào, {{ user.first_name|default:user.username }}!

@@ -577,14 +577,34 @@ def upload_exam_images_zip(request):
 @login_required
 def game_shooter_view(request):
     """
-    Hiển thị giao diện của Game Ngự Kiếm Phá Tự
+    Hiển thị giao diện của Game Ngự Kiếm Phá Tự kèm số lượng từ vựng
     """
     curriculums = Curriculum.objects.all()
     lessons = Lesson.objects.all().order_by('curriculum', 'order')
     
+    # 1. Đếm số từ vựng cho từng Cấp độ
+    curriculums_data = []
+    for c in curriculums:
+        count = Vocabulary.objects.filter(level=c.title).count()
+        curriculums_data.append({
+            'title': c.title,
+            'vocab_count': count
+        })
+        
+    # 2. Đếm số từ vựng cho từng Bài học
+    lessons_data = []
+    for l in lessons:
+        count = l.vocabularies.count()
+        lessons_data.append({
+            'id': l.id,
+            'curriculum_title': l.curriculum.title,
+            'order': l.order,
+            'vocab_count': count
+        })
+    
     context = {
-        'curriculums': curriculums,
-        'lessons': lessons
+        'curriculums_data': curriculums_data,
+        'lessons_data': lessons_data
     }
     return render(request, 'games/shooter.html', context)
 

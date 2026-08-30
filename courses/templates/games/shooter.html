@@ -47,7 +47,6 @@
         line-height: 1;
     }
     
-    /* ĐÃ SỬA: Dùng biểu tượng Kiếm thật sự, không dùng ảnh ngoài nữa */
     #defender {
         position: absolute;
         bottom: 5px;
@@ -118,6 +117,7 @@
         font-weight: bold;
         font-size: 1.2rem;
         z-index: 20;
+        line-height: 1.5;
     }
     .record {
         position: absolute;
@@ -185,8 +185,9 @@
 
         <div id="game-container" style="display: none;">
             <div class="stats">
-                Thẻ đã diệt: <span id="score" style="color: #2563eb; font-size: 1.5rem;">0</span> <br>
-                Tiến độ: <span id="progress">0/0</span>
+                Thẻ đã diệt: <span id="score" style="color: #2563eb; font-size: 1.4rem;">0</span> <br>
+                Tiến độ: <span id="progress" style="color: #059669;">0/0</span> <br>
+                Thời gian: <span id="time-display" style="color: #d97706;">0s</span> <!-- Đồng hồ live -->
             </div>
             <div class="record">Kỷ lục máy chủ: <br><span id="top-score" style="font-size: 1.4rem;">0</span> <br><small>(bởi <span id="top-scorer">-</span>)</small></div>
             
@@ -202,7 +203,7 @@
                 <div class="end-board">
                     <h2 style="color: var(--primary-red); margin-bottom: 20px;">Luyện Kiếm Thành Công! 🎉</h2>
                     <h4 class="mb-3">Số thẻ tiêu diệt: <span id="final-score" style="color: #2563eb; font-weight: 900; font-size: 2rem;">0</span></h4>
-                    <p style="font-size: 1.2rem; color: #475569;">Thời gian: <span id="final-time" style="font-weight: bold; color: #d97706;">0</span> giây</p>
+                    <p style="font-size: 1.2rem; color: #475569;">Thời gian hoàn thành: <span id="final-time" style="font-weight: bold; color: #d97706;">0</span> giây</p>
                     <button class="btn btn-custom-primary btn-lg mt-4" onclick="returnToSetup()">Tiếp tục luyện kiếm</button>
                 </div>
             </div>
@@ -215,14 +216,12 @@
     let activeCards = [];
     let score = 0;
     
-    let spawnInterval;
     let animationId; 
+    let timerInterval; // Biến chạy đồng hồ
+    let secondsPlayed = 0; // Số giây đã chơi
     
-    // ĐÃ SỬA TỐC ĐỘ: Rơi cực kỳ chậm (mất ~30s để chạm đáy)
-    let dropSpeed = 0.3; 
-    let spawnRate = 3500; // 3.5 giây mới xuất hiện 1 thẻ
+    let dropSpeed = 0.3; // Rơi rất chậm
     
-    let startTime;
     let currentLevel = '';
     let currentLesson = '';
 
@@ -238,14 +237,11 @@
         'ǖ':'v1', 'ǘ':'v2', 'ǚ':'v3', 'ǜ':'v4', 'ü':'v'
     };
 
-    // THUẬT TOÁN ĐÃ ĐƯỢC NÂNG CẤP THÔNG MINH
     function standardizePinyin(pinyinStr) {
         let res = pinyinStr.toLowerCase().replace(/\s+/g, '');
         for (let k in pinyinMap) {
             res = res.replace(new RegExp(k, 'g'), pinyinMap[k]);
         }
-        // Tách hẳn phần CHỮ CÁI và phần SỐ ra riêng rồi ráp lại. 
-        // VD: ha3o -> hao3, da4jia1 -> dajia41
         let letters = res.replace(/[0-9]/g, '');
         let tones = res.replace(/[^0-9]/g, '');
         return letters + tones;
@@ -285,19 +281,26 @@
             document.getElementById('pinyin-input').focus();
             
             score = 0; 
-            dropSpeed = 0.3; // Reset lại tốc độ cực chậm
-            spawnRate = 3500;
+            dropSpeed = 0.3; 
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeCards = [];
+            secondsPlayed = 0;
             
             document.getElementById('score').innerText = score;
             document.getElementById('progress').innerText = `${wordsSpawned}/${totalWords}`;
-            startTime = Date.now();
+            document.getElementById('time-display').innerText = `0s`;
             
             fetchTopRecord(); 
 
-            spawnInterval = setInterval(spawnCard, spawnRate);
+            // Chạy đồng hồ live
+            timerInterval = setInterval(() => {
+                secondsPlayed++;
+                document.getElementById('time-display').innerText = `${secondsPlayed}s`;
+            }, 1000);
+
+            // Bắt đầu game bằng việc ném thẻ đầu tiên xuống
+            spawnCard();
             animationId = requestAnimationFrame(gameLoop);
 
         } catch (error) {
@@ -332,8 +335,7 @@
 
     function spawnCard() {
         if (wordsSpawned >= totalWords) {
-            clearInterval(spawnInterval); 
-            return;
+            return; // Hết từ vựng thì không ném thẻ nữa
         }
 
         const word = vocabList[wordsSpawned];
@@ -348,7 +350,7 @@
         card.style.top = '0px';
         
         card.dataset.exactTop = 0;
-        card.dataset.pinyin = word.targetPinyin; // Đã được xử lý bởi thuật toán mới
+        card.dataset.pinyin = word.targetPinyin;
         
         gameArea.appendChild(card);
         activeCards.push(card);
@@ -371,6 +373,11 @@
             if (exactTop > gameAreaHeight - 50) { 
                 card.remove();
                 activeCards.splice(i, 1);
+                
+                // NẾU THẺ TRƯỚC RƠI CHẠM ĐÁY, THẺ SAU LẬP TỨC RƠI XUỐNG
+                if (wordsSpawned < totalWords) {
+                    spawnCard();
+                }
             }
         }
     }
@@ -378,6 +385,7 @@
     function checkGameEnd() {
         if (wordsSpawned >= totalWords && activeCards.length === 0) {
             cancelAnimationFrame(animationId);
+            clearInterval(timerInterval); // Đóng băng đồng hồ
             showEndScreen();
         }
     }
@@ -387,21 +395,14 @@
         if (e.key === 'Enter') {
             e.preventDefault(); 
             
-            // Xử lý ô nhập của người dùng qua cùng 1 thuật toán với CSDL
             const formattedInput = standardizePinyin(this.value);
             if(!formattedInput) return;
 
             let targetIndex = -1;
-            let maxTop = -1; 
-
-            for(let i = 0; i < activeCards.length; i++) {
-                if(activeCards[i].dataset.pinyin === formattedInput) {
-                    let currentTop = parseFloat(activeCards[i].dataset.exactTop);
-                    if (currentTop > maxTop) {
-                        maxTop = currentTop;
-                        targetIndex = i;
-                    }
-                }
+            
+            // Vì chỉ có 1 thẻ rơi trên màn hình, ta chỉ cần check thẻ đầu tiên
+            if(activeCards.length > 0 && activeCards[0].dataset.pinyin === formattedInput) {
+                targetIndex = 0;
             }
 
             if (targetIndex !== -1) {
@@ -438,6 +439,7 @@
 
         document.getElementById('game-area').appendChild(laser);
         
+        // Cắt bỏ thẻ này khỏi mảng ngay khi nổ
         activeCards.splice(index, 1);
 
         setTimeout(() => {
@@ -449,29 +451,32 @@
             targetCard.style.boxShadow = 'none';
             targetCard.style.fontSize = '50px';
             
-            setTimeout(() => targetCard.remove(), 100);
+            setTimeout(() => {
+                targetCard.remove();
+                
+                // NẾU TRẢ LỜI THÀNH CÔNG, GỌI THẺ MỚI RƠI NGAY LẬP TỨC ĐỂ TĂNG TỐC
+                if (wordsSpawned < totalWords) {
+                    spawnCard();
+                }
+
+            }, 100);
 
             score++;
             document.getElementById('score').innerText = score;
             
-            // Tăng tốc cực nhẹ
+            // Chơi càng hay, tốc độ rơi thẻ tăng rất nhẹ (0.05 px/frame) để tạo tính cạnh tranh
             if(score % 5 === 0) {
                 dropSpeed += 0.05; 
-                if(spawnRate > 1500) {
-                    clearInterval(spawnInterval);
-                    spawnRate -= 100;
-                    spawnInterval = setInterval(spawnCard, spawnRate);
-                }
             }
         }, 80); 
     }
 
     async function showEndScreen() {
         document.getElementById('pinyin-input').blur();
-        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
         
+        // Hiển thị kết quả bằng số giây thực tế đã đóng băng
         document.getElementById('final-score').innerText = score;
-        document.getElementById('final-time').innerText = timeTaken;
+        document.getElementById('final-time').innerText = secondsPlayed;
         document.getElementById('end-screen').style.display = 'flex';
         
         if (score > 0) {
@@ -482,7 +487,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
-                    body: JSON.stringify({ score: score, time_taken: timeTaken, level: currentLevel, lesson_id: currentLesson })
+                    body: JSON.stringify({ score: score, time_taken: secondsPlayed, level: currentLevel, lesson_id: currentLesson })
                 });
             } catch (error) {}
         }

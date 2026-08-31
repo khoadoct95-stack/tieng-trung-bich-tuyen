@@ -37,43 +37,63 @@
         z-index: 5;
     }
     
-    /* GẤU TRÚC NGUYÊN CON (LINK ẢNH MỚI 100%) */
-    #panda {
+    /* ==========================================
+       GẤU TRÚC HERO (ANIMATION 3D) 
+       ========================================== */
+    /* Container xử lý việc Nhảy và Va chạm */
+    #panda-hero {
         position: absolute;
         bottom: 35px; /* Đứng trên mặt đất */
         left: 80px;
-        width: 90px; 
-        height: auto; 
+        width: 100px; /* To hơn một chút cho đẹp */
+        height: 100px; 
         z-index: 10;
         user-select: none;
-        filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
     }
 
-    /* HIỆU ỨNG 1: BẬT NHẢY KHI NHẬP ĐÚNG (Dùng Transform để ép chạy mượt) */
-    .jumping {
-        animation: pandaJump 0.45s ease-out forwards;
-    }
-    @keyframes pandaJump {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-170px) rotate(5deg); }
-        100% { transform: translateY(0); }
+    /* Hình ảnh bên trong xử lý việc chạy (nhún nhảy liên tục) */
+    #panda-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.4));
+        /* Animation chạy nhún liên tục */
+        animation: runBobbing 0.3s infinite alternate cubic-bezier(0.4, 0, 0.6, 1);
     }
 
-    /* HIỆU ỨNG 2: BỊ THỤT LÙI KHI VA CHẠM */
-    .hit {
-        animation: pandaHit 0.4s ease-in-out forwards;
+    /* Hiệu ứng nhún khi chạy (Bobbing) */
+    @keyframes runBobbing {
+        0% { transform: translateY(0) rotate(-4deg) scaleY(0.95); }
+        100% { transform: translateY(-12px) rotate(4deg) scaleY(1.05); }
     }
-    @keyframes pandaHit {
-        0% { transform: translateX(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
-        40% { 
-            transform: translateX(-40px) rotate(-15deg); 
-            /* Nháy đỏ đau đớn */
-            filter: drop-shadow(0 0 20px rgba(239,68,68,1)) sepia(1) hue-rotate(-50deg) saturate(5); 
+
+    /* HIỆU ỨNG NHẢY 3D (Squash & Stretch) */
+    .jump-3d {
+        animation: pandaJump3D 0.5s ease-out forwards;
+    }
+    @keyframes pandaJump3D {
+        0% { bottom: 35px; transform: scale(1.3, 0.7); } /* Ép người lấy đà */
+        20% { bottom: 120px; transform: scale(0.8, 1.2); } /* Giãn người bay lên */
+        50% { bottom: 220px; transform: scale(1, 1) rotate(15deg); } /* Đạt đỉnh */
+        80% { bottom: 120px; transform: scale(0.9, 1.1); } /* Rơi xuống */
+        100% { bottom: 35px; transform: scale(1.2, 0.8); } /* Chạm đất nén lại */
+    }
+
+    /* HIỆU ỨNG VA CHẠM 3D */
+    .hit-3d {
+        animation: pandaHit3D 0.4s ease-in-out forwards;
+    }
+    @keyframes pandaHit3D {
+        0% { transform: translateX(0); }
+        20% { 
+            transform: translateX(-40px) rotate(-20deg) scale(0.9); 
+            filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5); 
         }
-        100% { transform: translateX(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        50% { transform: translateX(-15px) rotate(10deg) scale(1.05); }
+        100% { transform: translateX(0); }
     }
     
-    /* CHƯỚNG NGẠI VẬT (BỤI TRÚC & NGHĨA TIẾNG VIỆT) */
+    /* CHƯỚNG NGẠI VẬT */
     .obstacle {
         position: absolute;
         bottom: 35px;
@@ -247,8 +267,11 @@
             
             <div id="game-area">
                 <div id="ground"></div>
-                <!-- SỬ DỤNG THẺ IMG VỚI ĐƯỜNG DẪN MỚI CỦA ICONS8 -->
-                <img id="panda" src="https://img.icons8.com/color/256/panda.png" alt="Panda">
+                <!-- SỬ DỤNG ID MỚI (#panda-hero) ĐỂ TIÊU DIỆT CACHE TRÌNH DUYỆT -->
+                <div id="panda-hero">
+                    <!-- NẾU BẠN MUỐN DÙNG ẢNH CỦA BẠN: HÃY XÓA NỀN CỦA ẢNH ĐÓ RỒI THAY LINK VÀO src="ĐƯỜNG_DẪN_CỦA_BẠN" -->
+                    <img id="panda-img" src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Panda.png" alt="Panda 3D">
+                </div>
             </div>
             
             <div id="control-panel">
@@ -354,6 +377,10 @@
                 document.getElementById('time-display').innerText = `${secondsPlayed}s`;
             }, 1000);
 
+            // Bắt đầu game sẽ xóa class animation rác nếu có
+            const pandaHero = document.getElementById('panda-hero');
+            pandaHero.classList.remove('jump-3d', 'hit-3d');
+
             spawnObstacle();
             gameLoop(); 
 
@@ -417,7 +444,7 @@
             if (exactLeft <= 150) { 
                 activeObstacles.splice(i, 1);
                 
-                // Hiệu ứng bụi trúc nổ tung 
+                // Bụi trúc nổ tung 
                 const explosion = document.createElement('div');
                 explosion.innerHTML = '💥';
                 explosion.style.position = 'absolute';
@@ -436,11 +463,11 @@
                 }, 10);
                 setTimeout(() => explosion.remove(), 350);
                 
-                // GỌI HIỆU ỨNG GẤU TRÚC VẤP NGÃ
-                const panda = document.getElementById('panda');
-                panda.classList.remove('hit');
-                void panda.offsetWidth; 
-                panda.classList.add('hit');
+                // GỌI HIỆU ỨNG GẤU TRÚC BỊ TÔNG TRÚNG
+                const pandaHero = document.getElementById('panda-hero');
+                pandaHero.classList.remove('hit-3d');
+                void pandaHero.offsetWidth; // Cực kỳ quan trọng để reset animation
+                pandaHero.classList.add('hit-3d');
 
                 if (wordsSpawned < totalWords) spawnObstacle();
             }
@@ -476,18 +503,21 @@
     });
 
     function handleJumpSuccess(targetObs, index) {
-        const panda = document.getElementById('panda');
+        const pandaHero = document.getElementById('panda-hero');
         
+        // Gỡ bụi trúc khỏi logic di chuyển chậm
         activeObstacles.splice(index, 1);
         
-        targetObs.style.transition = 'left 0.35s linear';
+        // Bụi trúc vút đi cực nhanh
+        targetObs.style.transition = 'left 0.4s ease-in';
         targetObs.style.left = '-200px'; 
         
-        // GỌI HIỆU ỨNG GẤU TRÚC BẬT NHẢY
-        panda.classList.remove('jumping');
-        void panda.offsetWidth; // Mẹo bắt trình duyệt vẽ lại
-        panda.classList.add('jumping');
+        // GỌI HIỆU ỨNG GẤU TRÚC 3D BẬT NHẢY
+        pandaHero.classList.remove('jump-3d', 'hit-3d'); // Xóa cả 2 hiệu ứng để tránh xung đột
+        void pandaHero.offsetWidth; 
+        pandaHero.classList.add('jump-3d');
 
+        // Chờ kết thúc bước nhảy (0.5s theo đúng time trong CSS)
         setTimeout(() => {
             targetObs.remove();
             
@@ -497,7 +527,7 @@
 
             score++;
             document.getElementById('score').innerText = score;
-        }, 400); 
+        }, 500); 
     }
 
     async function showEndScreen() {
@@ -521,8 +551,14 @@
     function returnToSetup() {
         isGameRunning = false; 
         const area = document.getElementById('game-area');
-        // Trả lại cấu trúc gốc khi reset
-        area.innerHTML = '<div id="ground"></div><img id="panda" src="https://img.icons8.com/color/256/panda.png" alt="Panda">';
+        
+        // Render lại bộ div gốc để làm sạch giao diện
+        area.innerHTML = `
+            <div id="ground"></div>
+            <div id="panda-hero">
+                <img id="panda-img" src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Panda.png" alt="Panda 3D">
+            </div>
+        `;
         
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';

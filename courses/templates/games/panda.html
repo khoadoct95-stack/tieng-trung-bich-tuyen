@@ -37,43 +37,40 @@
         z-index: 5;
     }
     
-    /* GẤU TRÚC NGUYÊN CON - LINK CHUẨN 100% KHÔNG BIẾN THÀNH THỎ NỮA */
+    /* GẤU TRÚC NGUYÊN CON (DÙNG THẺ IMG ĐỂ ÉP TẢI HÌNH) */
     #panda {
         position: absolute;
         bottom: 35px; /* Đứng trên mặt đất */
         left: 80px;
-        width: 90px; 
-        height: 90px; 
-        background: url('https://img.icons8.com/fluency/240/panda.png') center/contain no-repeat;
+        width: 85px; 
+        height: auto; 
         z-index: 10;
         user-select: none;
         filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
     }
 
-    /* HIỆU ỨNG 1: BẬT NHẢY KHI NHẬP ĐÚNG */
-    .jump {
-        animation: jumpArc 0.4s ease-in-out forwards;
+    /* HIỆU ỨNG 1: BẬT NHẢY KHI NHẬP ĐÚNG (Dùng Bottom để ép nhảy dứt khoát) */
+    .jumping {
+        animation: pandaJump 0.45s ease-out forwards;
     }
-    @keyframes jumpArc {
-        0% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-160px) scale(1.1) rotate(5deg); }
-        100% { transform: translateY(0) scale(1); }
+    @keyframes pandaJump {
+        0% { bottom: 35px; }
+        50% { bottom: 200px; }
+        100% { bottom: 35px; }
     }
 
     /* HIỆU ỨNG 2: BỊ THỤT LÙI KHI VA CHẠM */
-    .collide {
-        animation: hitBounce 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    .hit {
+        animation: pandaHit 0.4s ease-in-out forwards;
     }
-    @keyframes hitBounce {
-        0% { transform: translateX(0) rotate(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
-        20% { 
-            transform: translateX(-35px) rotate(-15deg); 
+    @keyframes pandaHit {
+        0% { left: 80px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        40% { 
+            left: 40px; 
             /* Nháy đỏ đau đớn */
-            filter: drop-shadow(0 5px 15px rgba(239,68,68,0.9)) sepia(1) hue-rotate(-50deg) saturate(5); 
+            filter: drop-shadow(0 0 20px rgba(239,68,68,1)) sepia(1) hue-rotate(-50deg) saturate(5); 
         }
-        50% { transform: translateX(-15px) rotate(10deg); }
-        80% { transform: translateX(5px) rotate(-5deg); }
-        100% { transform: translateX(0) rotate(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        100% { left: 80px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
     }
     
     /* CHƯỚNG NGẠI VẬT (BỤI TRÚC & NGHĨA TIẾNG VIỆT) */
@@ -88,7 +85,7 @@
     }
     
     .obstacle .meaning-bubble {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         border: 2px solid #16a34a;
         border-radius: 10px;
         padding: 8px 15px;
@@ -154,7 +151,7 @@
 
     /* BẢNG THỐNG KÊ (HUD) */
     .hud-box {
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(4px);
         border: 2px solid #86efac;
         border-radius: 10px;
@@ -244,14 +241,14 @@
             
             <div class="hud-box record">
                 <span style="color: #64748b; font-size: 0.9rem;">KỶ LỤC MÁY CHỦ</span><br>
-                <span id="top-score" style="color: #d97706; font-weight: 900; font-size: 1.5rem;">0</span> thẻ<br>
+                <span id="top-score" style="color: #d97706; font-weight: 900; font-size: 1.5rem;">0</span> ải<br>
                 <small style="color: #475569;">(bởi <span id="top-scorer" style="color: #16a34a;">-</span>)</small>
             </div>
             
             <div id="game-area">
                 <div id="ground"></div>
-                <!-- Vùng chứa ảnh gấu trúc -->
-                <div id="panda"></div>
+                <!-- SỬ DỤNG THẺ IMG ĐỂ BẮT BUỘC TẢI HÌNH MỚI, KHÔNG BỊ LỖI THÀNH EMOJI CŨ -->
+                <img id="panda" src="https://cdn-icons-png.flaticon.com/512/427/427503.png" alt="Panda">
             </div>
             
             <div id="control-panel">
@@ -261,7 +258,7 @@
             <div id="end-screen">
                 <div class="end-board">
                     <h2 style="color: #16a34a; margin-bottom: 20px;">Về Đích Thành Công! 🏁</h2>
-                    <h4 class="mb-3" style="color: #334155;">Số bụi trúc đã nhảy qua: <span id="final-score" style="color: #d97706; font-weight: 900; font-size: 2.5rem;">0</span></h4>
+                    <h4 class="mb-3" style="color: #334155;">Số bụi trúc đã vượt qua: <span id="final-score" style="color: #d97706; font-weight: 900; font-size: 2.5rem;">0</span></h4>
                     <p style="font-size: 1.2rem; color: #64748b;">Thời gian chạy: <span id="final-time" style="font-weight: bold; color: #ef4444;">0</span> giây</p>
                     <button class="btn btn-success btn-lg mt-4 fw-bold px-5 py-2" style="border-radius: 50px;" onclick="returnToSetup()">Chơi lại</button>
                 </div>
@@ -279,7 +276,7 @@
     let timerInterval; 
     let secondsPlayed = 0; 
     
-    let moveSpeed = 0.8; // Tốc độ giữ nguyên từ đầu đến cuối
+    let moveSpeed = 0.8; 
     let isGameRunning = false; 
     
     let currentLevel = '';
@@ -416,35 +413,34 @@
             obs.dataset.exactLeft = exactLeft;
             obs.style.left = exactLeft + 'px'; 
             
-            // XỬ LÝ VA CHẠM KHI KHÔNG KỊP GÕ (left <= 140px)
-            if (exactLeft <= 140) { 
-                // Loại bỏ khỏi mảng di chuyển
+            // XỬ LÝ KHI VA CHẠM (NGƯỜI CHƠI KHÔNG KỊP GÕ KHI CHƯỚNG NGẠI VẬT TỚI 150px)
+            if (exactLeft <= 150) { 
                 activeObstacles.splice(i, 1);
                 
-                // Hiệu ứng 1: Bụi trúc nổ tung
+                // Hiệu ứng bụi trúc nổ tung 
                 const explosion = document.createElement('div');
                 explosion.innerHTML = '💥';
                 explosion.style.position = 'absolute';
                 explosion.style.left = '140px';
                 explosion.style.bottom = '35px';
-                explosion.style.fontSize = '60px';
+                explosion.style.fontSize = '80px';
                 explosion.style.zIndex = '11';
-                explosion.style.transition = 'all 0.3s ease';
+                explosion.style.transition = 'all 0.3s ease-out';
                 document.getElementById('game-area').appendChild(explosion);
                 
-                obs.remove(); // Xóa bụi trúc cũ
+                obs.remove(); 
                 
                 setTimeout(() => {
                     explosion.style.opacity = '0';
-                    explosion.style.transform = 'translateY(-30px) scale(1.5)';
+                    explosion.style.transform = 'translateY(-50px) scale(1.5)';
                 }, 10);
-                setTimeout(() => explosion.remove(), 300);
+                setTimeout(() => explosion.remove(), 350);
                 
-                // Hiệu ứng 2: Gấu trúc bị đẩy lùi và nháy đỏ
+                // GỌI HIỆU ỨNG GẤU TRÚC VẤP NGÃ
                 const panda = document.getElementById('panda');
-                panda.classList.remove('collide');
-                void panda.offsetWidth; // Ép trình duyệt reset animation
-                panda.classList.add('collide');
+                panda.classList.remove('hit');
+                void panda.offsetWidth; 
+                panda.classList.add('hit');
 
                 if (wordsSpawned < totalWords) spawnObstacle();
             }
@@ -482,19 +478,19 @@
     function handleJumpSuccess(targetObs, index) {
         const panda = document.getElementById('panda');
         
-        // 1. Gỡ bụi trúc khỏi logic di chuyển để nó không tự đi nữa
+        // Gỡ bụi trúc khỏi logic di chuyển chậm
         activeObstacles.splice(index, 1);
         
-        // 2. Ép bụi trúc lao vút qua dưới chân
-        targetObs.style.transition = 'left 0.4s linear';
-        targetObs.style.left = '-150px'; 
+        // Bụi trúc trượt vút đi nhanh
+        targetObs.style.transition = 'left 0.35s linear';
+        targetObs.style.left = '-200px'; 
         
-        // 3. Cho Gấu trúc bật nhảy lên
-        panda.classList.remove('jump');
-        void panda.offsetWidth; 
-        panda.classList.add('jump');
+        // GỌI HIỆU ỨNG GẤU TRÚC BẬT NHẢY
+        panda.classList.remove('jumping');
+        void panda.offsetWidth; // Mẹo bắt trình duyệt vẽ lại (cực kỳ quan trọng để lặp lại animation)
+        panda.classList.add('jumping');
 
-        // Khi nhảy xong (0.4s), dọn dẹp và gọi thẻ mới
+        // Chờ kết thúc bước nhảy
         setTimeout(() => {
             targetObs.remove();
             
@@ -528,7 +524,8 @@
     function returnToSetup() {
         isGameRunning = false; 
         const area = document.getElementById('game-area');
-        area.innerHTML = '<div id="ground"></div><div id="panda"></div>';
+        // Trả lại cấu trúc gốc khi reset
+        area.innerHTML = '<div id="ground"></div><img id="panda" src="https://cdn-icons-png.flaticon.com/512/427/427503.png" alt="Panda">';
         
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';

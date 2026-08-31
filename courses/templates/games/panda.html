@@ -37,22 +37,43 @@
         z-index: 5;
     }
     
-    /* GẤU TRÚC NGUYÊN CON */
+    /* GẤU TRÚC NGUYÊN CON - LINK CHUẨN 100% KHÔNG BIẾN THÀNH THỎ NỮA */
     #panda {
         position: absolute;
         bottom: 35px; /* Đứng trên mặt đất */
         left: 80px;
-        width: 85px; 
-        height: 85px; 
-        background: url('https://cdn-icons-png.flaticon.com/512/1998/1998765.png') center/contain no-repeat;
+        width: 90px; 
+        height: 90px; 
+        background: url('https://img.icons8.com/fluency/240/panda.png') center/contain no-repeat;
         z-index: 10;
-        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         user-select: none;
         filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
     }
-    /* Hiệu ứng Gấu Trúc Nhảy */
+
+    /* HIỆU ỨNG 1: BẬT NHẢY KHI NHẬP ĐÚNG */
     .jump {
-        transform: translateY(-160px) rotate(10deg);
+        animation: jumpArc 0.4s ease-in-out forwards;
+    }
+    @keyframes jumpArc {
+        0% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-160px) scale(1.1) rotate(5deg); }
+        100% { transform: translateY(0) scale(1); }
+    }
+
+    /* HIỆU ỨNG 2: BỊ THỤT LÙI KHI VA CHẠM */
+    .collide {
+        animation: hitBounce 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes hitBounce {
+        0% { transform: translateX(0) rotate(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        20% { 
+            transform: translateX(-35px) rotate(-15deg); 
+            /* Nháy đỏ đau đớn */
+            filter: drop-shadow(0 5px 15px rgba(239,68,68,0.9)) sepia(1) hue-rotate(-50deg) saturate(5); 
+        }
+        50% { transform: translateX(-15px) rotate(10deg); }
+        80% { transform: translateX(5px) rotate(-5deg); }
+        100% { transform: translateX(0) rotate(0); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
     }
     
     /* CHƯỚNG NGẠI VẬT (BỤI TRÚC & NGHĨA TIẾNG VIỆT) */
@@ -229,6 +250,7 @@
             
             <div id="game-area">
                 <div id="ground"></div>
+                <!-- Vùng chứa ảnh gấu trúc -->
                 <div id="panda"></div>
             </div>
             
@@ -257,8 +279,7 @@
     let timerInterval; 
     let secondsPlayed = 0; 
     
-    // Đã chỉnh sửa: Tốc độ giữ cố định ở mức 0.8 từ đầu đến cuối
-    let moveSpeed = 0.8; 
+    let moveSpeed = 0.8; // Tốc độ giữ nguyên từ đầu đến cuối
     let isGameRunning = false; 
     
     let currentLevel = '';
@@ -318,7 +339,7 @@
             if (animationId) cancelAnimationFrame(animationId);
             
             score = 0; 
-            moveSpeed = 0.8; // Khởi tạo tốc độ cố định
+            moveSpeed = 0.8; 
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeObstacles = [];
@@ -377,7 +398,6 @@
         
         obs.style.left = startLeft + 'px';
         obs.dataset.exactLeft = startLeft;
-        
         obs.dataset.hanzi = word.hanzi.replace(/\s+/g, ''); 
         
         gameArea.appendChild(obs);
@@ -396,13 +416,35 @@
             obs.dataset.exactLeft = exactLeft;
             obs.style.left = exactLeft + 'px'; 
             
-            if (exactLeft < 100) { 
-                obs.remove();
+            // XỬ LÝ VA CHẠM KHI KHÔNG KỊP GÕ (left <= 140px)
+            if (exactLeft <= 140) { 
+                // Loại bỏ khỏi mảng di chuyển
                 activeObstacles.splice(i, 1);
                 
+                // Hiệu ứng 1: Bụi trúc nổ tung
+                const explosion = document.createElement('div');
+                explosion.innerHTML = '💥';
+                explosion.style.position = 'absolute';
+                explosion.style.left = '140px';
+                explosion.style.bottom = '35px';
+                explosion.style.fontSize = '60px';
+                explosion.style.zIndex = '11';
+                explosion.style.transition = 'all 0.3s ease';
+                document.getElementById('game-area').appendChild(explosion);
+                
+                obs.remove(); // Xóa bụi trúc cũ
+                
+                setTimeout(() => {
+                    explosion.style.opacity = '0';
+                    explosion.style.transform = 'translateY(-30px) scale(1.5)';
+                }, 10);
+                setTimeout(() => explosion.remove(), 300);
+                
+                // Hiệu ứng 2: Gấu trúc bị đẩy lùi và nháy đỏ
                 const panda = document.getElementById('panda');
-                panda.style.transform = 'translateY(-10px) rotate(-10deg)';
-                setTimeout(() => panda.style.transform = 'none', 200);
+                panda.classList.remove('collide');
+                void panda.offsetWidth; // Ép trình duyệt reset animation
+                panda.classList.add('collide');
 
                 if (wordsSpawned < totalWords) spawnObstacle();
             }
@@ -439,27 +481,30 @@
 
     function handleJumpSuccess(targetObs, index) {
         const panda = document.getElementById('panda');
-        panda.classList.add('jump');
         
-        targetObs.innerHTML = `<div style="font-size: 65px;">💨</div>`;
+        // 1. Gỡ bụi trúc khỏi logic di chuyển để nó không tự đi nữa
         activeObstacles.splice(index, 1);
+        
+        // 2. Ép bụi trúc lao vút qua dưới chân
+        targetObs.style.transition = 'left 0.4s linear';
+        targetObs.style.left = '-150px'; 
+        
+        // 3. Cho Gấu trúc bật nhảy lên
+        panda.classList.remove('jump');
+        void panda.offsetWidth; 
+        panda.classList.add('jump');
 
+        // Khi nhảy xong (0.4s), dọn dẹp và gọi thẻ mới
         setTimeout(() => {
             targetObs.remove();
             
-            setTimeout(() => {
-                panda.classList.remove('jump');
-                if (wordsSpawned < totalWords) {
-                    spawnObstacle();
-                }
-            }, 100);
+            if (wordsSpawned < totalWords) {
+                spawnObstacle();
+            }
 
             score++;
             document.getElementById('score').innerText = score;
-            
-            // XÓA ĐOẠN CODE TĂNG TỐC THEO ĐIỂM Ở ĐÂY
-            
-        }, 200); 
+        }, 400); 
     }
 
     async function showEndScreen() {

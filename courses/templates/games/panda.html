@@ -11,8 +11,7 @@
         position: relative;
         width: 100%;
         max-width: 1000px; 
-        height: 550px; /* Thấp hơn ngự kiếm một chút vì là game chạy ngang */
-        /* Nền sương mù rừng trúc */
+        height: 550px; 
         background: linear-gradient(to bottom, #dcfce7 0%, #86efac 100%);
         margin: 0 auto;
         overflow: hidden;
@@ -38,12 +37,14 @@
         z-index: 5;
     }
     
-    /* GẤU TRÚC */
+    /* GẤU TRÚC NGUYÊN CON */
     #panda {
         position: absolute;
         bottom: 35px; /* Đứng trên mặt đất */
         left: 80px;
-        font-size: 70px;
+        width: 85px; 
+        height: 85px; 
+        background: url('https://cdn-icons-png.flaticon.com/512/1998/1998765.png') center/contain no-repeat;
         z-index: 10;
         transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         user-select: none;
@@ -51,7 +52,7 @@
     }
     /* Hiệu ứng Gấu Trúc Nhảy */
     .jump {
-        transform: translateY(-160px) rotate(15deg);
+        transform: translateY(-160px) rotate(10deg);
     }
     
     /* CHƯỚNG NGẠI VẬT (BỤI TRÚC & NGHĨA TIẾNG VIỆT) */
@@ -73,7 +74,7 @@
         font-size: 20px;
         font-weight: bold;
         color: #064e3b;
-        margin-bottom: -5px; /* Kéo gần lại bụi trúc */
+        margin-bottom: -5px; 
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         text-align: center;
         max-width: 200px;
@@ -228,8 +229,7 @@
             
             <div id="game-area">
                 <div id="ground"></div>
-                <div id="panda">🐼</div>
-                <!-- Chướng ngại vật sẽ sinh ra ở đây -->
+                <div id="panda"></div>
             </div>
             
             <div id="control-panel">
@@ -257,7 +257,8 @@
     let timerInterval; 
     let secondsPlayed = 0; 
     
-    let moveSpeed = 1.8; // Tốc độ chạy ngang (Pixel/frame)
+    // Đã chỉnh sửa: Tốc độ giữ cố định ở mức 0.8 từ đầu đến cuối
+    let moveSpeed = 0.8; 
     let isGameRunning = false; 
     
     let currentLevel = '';
@@ -265,7 +266,6 @@
     let totalWords = 0;
     let wordsSpawned = 0;
 
-    // Gọi Kỷ lục (lưu ý truyền thêm game_type='panda' cho API mới)
     async function fetchTopRecord() {
         try {
             const response = await fetch('/api/save-game-record/', {
@@ -318,7 +318,7 @@
             if (animationId) cancelAnimationFrame(animationId);
             
             score = 0; 
-            moveSpeed = 1.8; 
+            moveSpeed = 0.8; // Khởi tạo tốc độ cố định
             totalWords = vocabList.length;
             wordsSpawned = 0;
             activeObstacles = [];
@@ -367,21 +367,18 @@
         const obs = document.createElement('div');
         obs.className = 'obstacle';
         
-        // HTML Cấu trúc chướng ngại vật
         obs.innerHTML = `
             <div class="meaning-bubble">${word.meaning}</div>
             <div class="bamboo-icon">🎍</div>
         `;
         
         const gameArea = document.getElementById('game-area');
-        // Spawn chướng ngại vật ở góc phải ngoài cùng màn hình
         const startLeft = gameArea.clientWidth; 
         
         obs.style.left = startLeft + 'px';
         obs.dataset.exactLeft = startLeft;
         
-        // LƯU Ý: Lần này ta lưu Hanzi làm đáp án thay vì Pinyin
-        obs.dataset.hanzi = word.hanzi.trim(); 
+        obs.dataset.hanzi = word.hanzi.replace(/\s+/g, ''); 
         
         gameArea.appendChild(obs);
         activeObstacles.push(obs);
@@ -395,17 +392,14 @@
             let obs = activeObstacles[i];
             
             let exactLeft = parseFloat(obs.dataset.exactLeft);
-            exactLeft -= moveSpeed; // Di chuyển sang trái
+            exactLeft -= moveSpeed; 
             obs.dataset.exactLeft = exactLeft;
             obs.style.left = exactLeft + 'px'; 
             
-            // Xử lý va chạm: Gấu trúc đang đứng ở khoảng left = 80px -> 150px
-            // Nếu chướng ngại vật chạm vào gấu trúc (exactLeft < 100) -> Bị lỡ
             if (exactLeft < 100) { 
                 obs.remove();
                 activeObstacles.splice(i, 1);
                 
-                // Hiệu ứng gấu trúc bị vấp nhẹ (rung)
                 const panda = document.getElementById('panda');
                 panda.style.transform = 'translateY(-10px) rotate(-10deg)';
                 setTimeout(() => panda.style.transform = 'none', 200);
@@ -419,14 +413,16 @@
     inputField.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault(); 
-            const val = this.value.trim();
+            const val = this.value.replace(/\s+/g, '');
             if(!val) return;
 
             let targetIndex = -1;
             
-            // Đối chiếu trực tiếp Chữ Hán
-            if(activeObstacles.length > 0 && activeObstacles[0].dataset.hanzi === val) {
-                targetIndex = 0;
+            for(let i = 0; i < activeObstacles.length; i++) {
+                if(activeObstacles[i].dataset.hanzi === val) {
+                    targetIndex = i;
+                    break;
+                }
             }
 
             if (targetIndex !== -1) {
@@ -442,21 +438,17 @@
     });
 
     function handleJumpSuccess(targetObs, index) {
-        // 1. Cho Gấu trúc nhảy lên
         const panda = document.getElementById('panda');
         panda.classList.add('jump');
         
-        // 2. Chướng ngại vật nổ thành khói
         targetObs.innerHTML = `<div style="font-size: 65px;">💨</div>`;
         activeObstacles.splice(index, 1);
 
         setTimeout(() => {
             targetObs.remove();
             
-            // 3. Gấu trúc rơi xuống lại sau 0.4s
             setTimeout(() => {
                 panda.classList.remove('jump');
-                // Gọi thẻ tiếp theo ngay khi tiếp đất
                 if (wordsSpawned < totalWords) {
                     spawnObstacle();
                 }
@@ -465,10 +457,8 @@
             score++;
             document.getElementById('score').innerText = score;
             
-            // Tăng tốc game mượt mà
-            if(score % 5 === 0) {
-                moveSpeed += 0.15; 
-            }
+            // XÓA ĐOẠN CODE TĂNG TỐC THEO ĐIỂM Ở ĐÂY
+            
         }, 200); 
     }
 
@@ -492,9 +482,8 @@
 
     function returnToSetup() {
         isGameRunning = false; 
-        // Dọn dẹp game area, giữ lại gấu trúc và mặt đất
         const area = document.getElementById('game-area');
-        area.innerHTML = '<div id="ground"></div><div id="panda">🐼</div>';
+        area.innerHTML = '<div id="ground"></div><div id="panda"></div>';
         
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('end-screen').style.display = 'none';

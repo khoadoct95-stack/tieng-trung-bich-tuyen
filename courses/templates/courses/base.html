@@ -82,11 +82,12 @@
     <nav class="navbar navbar-expand-lg py-2">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'home' %}">
-                <!-- Hình ảnh Logo -->
-                <img src="{% static 'images/logo_hanyu.png' %}" alt="Logo Hanyu Huoban" width="45" height="45" class="me-2" style="object-fit: contain;">
-                <!-- Tên thương hiệu hiển thị cạnh Logo -->
-                <span style="color: var(--primary-red);">Hanyu</span>&nbsp;<span style="color: #2563eb;">Huoban</span>
-            </a>
+    <!-- Tăng kích thước logo và dùng mix-blend-mode để hòa quyện nền trắng của ảnh với web -->
+    <img src="{% static 'images/logo_hanyu.png' %}" alt="Logo Hanyu Huoban" width="60" height="60" class="me-2" style="object-fit: contain; mix-blend-mode: multiply;">
+    
+    <!-- Gộp chung thành một màu đỏ và tăng kích thước chữ cho cân đối -->
+    <span style="color: var(--primary-red); font-size: 1.3rem; letter-spacing: 0.5px;">Hanyu Huoban</span>
+</a>
 
             <button class="navbar-toggler shadow-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

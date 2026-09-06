@@ -23,7 +23,7 @@ urlpatterns = [
     
     path('leaderboard/', views.dashboard_view, name='leaderboard'),
     path('profile/', views.profile_view, name='profile'),
-    path('github_webhook/', views.github_webhook, name='github_webhook'),
+    path('webhook/', views.github_webhook, name='github_webhook'),
     
     path('exams/', views.exam_list, name='exam_list'),
     path('exam/<int:exam_id>/', views.take_exam, name='take_exam'),

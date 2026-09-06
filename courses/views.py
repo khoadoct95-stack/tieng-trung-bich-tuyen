@@ -223,16 +223,15 @@ def profile_view(request):
 @csrf_exempt
 def github_webhook(request):
     if request.method == 'POST':
-        project_dir = '/home/xuehanyu/tieng-trung-bich-tuyen'
-        wsgi_file = '/var/www/xuehanyu_pythonanywhere_com_wsgi.py'
-        try:
-            subprocess.run(['git', 'fetch', '--all'], cwd=project_dir, check=True)
-            subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, check=True)
-            subprocess.run(['touch', wsgi_file], check=True)
-            return HttpResponse("Updated code successfully")
-        except subprocess.CalledProcessError as e:
-            return HttpResponse(f"Error: {str(e)}", status=500)
-    return HttpResponse("Invalid request", status=400)
+        # 1. Tự động kéo code mới nhất
+        subprocess.call(['git', 'pull'], cwd='/home/khoadoct95/tieng-trung-bich-tuyen')
+        
+        # 2. Tự động khởi động lại máy chủ (tương đương nút Reload)
+        wsgi_file = '/var/www/khoadoct95_pythonanywhere_com_wsgi.py'
+        os.utime(wsgi_file, None)
+        
+        return HttpResponse('Cập nhật thành công!', status=200)
+    return HttpResponse('Chỉ nhận lệnh POST', status=405)
 
 # ==========================================
 # 6. LÀM BÀI THI & TRẠM PHÂN LUỒNG TEMPLATE

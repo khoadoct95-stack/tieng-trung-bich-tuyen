@@ -1,4 +1,4 @@
-{% extends "courses/base.html" %} <!-- Tùy chỉnh theo tên file base của bạn -->
+{% extends "courses/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -61,7 +61,7 @@
         margin-bottom: 15px;
     }
     
-    /* Khung ảnh độc lập */
+    /* Khung ảnh */
     .answer-img {
         max-width: 100%;
         height: auto;
@@ -74,16 +74,10 @@
         transform: scale(1.05);
         border-color: #0d6efd;
     }
-    .example-box {
-        background-color: #e9ecef;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        border-left: 4px solid #6c757d;
-    }
     .option-text {
         font-size: 1.2rem;
         margin-bottom: 10px;
+        cursor: pointer;
     }
 </style>
 
@@ -91,8 +85,10 @@
     <div class="row">
         <!-- CỘT TRÁI: NỘI DUNG ĐỀ THI -->
         <div class="col-md-8 col-lg-9">
-            <h2 class="mb-4 text-center">Đề Thi Thử HSK 1</h2>
-            <form id="hsk-exam-form" method="POST" action="{% url 'submit_exam' exam.id %}">
+            <h2 class="mb-4 text-center">Đề Thi Thử HSK 1: {{ exam.title }}</h2>
+            
+            <!-- ACTION ĐỂ TRỐNG GIÚP FIX LỖI NOREVERSEMATCH -->
+            <form id="hsk-exam-form" method="POST" action="">
                 {% csrf_token %}
                 
                 <!-- ========================================== -->
@@ -100,7 +96,7 @@
                 <!-- ========================================== -->
                 <div class="section-title">Phần 1: Nghe và chọn bức tranh tương ứng (Câu 1-5)</div>
                 
-                <!-- Ví dụ Phần 1 (Form giống câu hỏi thật) -->
+                <!-- Ví dụ Phần 1 -->
                 <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
                     <p class="fw-bold text-success mb-3"><i class="fas fa-lightbulb"></i> Ví dụ (例如):</p>
                     <div class="row text-center">
@@ -125,37 +121,30 @@
                     </div>
                 </div>
 
-                <!-- Vòng lặp câu hỏi Phần 1 -->
-                {% for q in part1_questions %}
-                <div class="question-card">
-                    <p class="fw-bold">Câu {{ q.question_number }}:</p>
-                    <div class="row text-center">
-                        {% if q.image_a %}
-                        <div class="col-4">
-                            <label>
-                                <img src="{{ q.image_a.url }}" class="answer-img" alt="Đáp án A"><br>
-                                <input type="radio" name="q_{{ q.id }}" value="A"> A
-                            </label>
+                <!-- Vòng lặp Câu 1-5 từ CSDL -->
+                {% for q in questions %}
+                    {% if q.question_number >= 1 and q.question_number <= 5 %}
+                    <div class="question-card">
+                        <p class="fw-bold">Câu {{ q.question_number }}:</p>
+                        <div class="row text-center">
+                            {% if q.image_a %}
+                            <div class="col-4">
+                                <label><img src="{{ q.image_a.url }}" class="answer-img"><br><input type="radio" name="q_{{ q.id }}" value="A"> A</label>
+                            </div>
+                            {% endif %}
+                            {% if q.image_b %}
+                            <div class="col-4">
+                                <label><img src="{{ q.image_b.url }}" class="answer-img"><br><input type="radio" name="q_{{ q.id }}" value="B"> B</label>
+                            </div>
+                            {% endif %}
+                            {% if q.image_c %}
+                            <div class="col-4">
+                                <label><img src="{{ q.image_c.url }}" class="answer-img"><br><input type="radio" name="q_{{ q.id }}" value="C"> C</label>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                        {% if q.image_b %}
-                        <div class="col-4">
-                            <label>
-                                <img src="{{ q.image_b.url }}" class="answer-img" alt="Đáp án B"><br>
-                                <input type="radio" name="q_{{ q.id }}" value="B"> B
-                            </label>
-                        </div>
-                        {% endif %}
-                        {% if q.image_c %}
-                        <div class="col-4">
-                            <label>
-                                <img src="{{ q.image_c.url }}" class="answer-img" alt="Đáp án C"><br>
-                                <input type="radio" name="q_{{ q.id }}" value="C"> C
-                            </label>
-                        </div>
-                        {% endif %}
                     </div>
-                </div>
+                    {% endif %}
                 {% endfor %}
 
 
@@ -164,65 +153,52 @@
                 <!-- ========================================== -->
                 <div class="section-title mt-5">Phần 2: Nghe và chọn đáp án đúng (Câu 6-10)</div>
                 
-                <!-- Ví dụ Phần 2 (Form giống câu hỏi thật) -->
+                <!-- Ví dụ Phần 2 -->
                 <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
                     <p class="fw-bold text-success mb-3">
                         <i class="fas fa-lightbulb"></i> Ví dụ (例如): Jīntiān tiānqì zěnmeyàng? (今天天气怎么样？)
                     </p>
                     <div class="d-flex flex-column gap-2 ms-3">
-                        <label class="option-text text-muted">
-                            <input type="radio" disabled> A. 在学习 (zài xuéxí)
-                        </label>
-                        <label class="option-text text-muted">
-                            <input type="radio" disabled> B. 很好听 (hěn hǎotīng)
-                        </label>
-                        <label class="option-text fw-bold text-success">
-                            <input type="radio" checked disabled> C. 非常热 (fēicháng rè) ✓
-                        </label>
+                        <label class="option-text text-muted"><input type="radio" disabled> A. 在学习 (zài xuéxí)</label>
+                        <label class="option-text text-muted"><input type="radio" disabled> B. 很好听 (hěn hǎotīng)</label>
+                        <label class="option-text fw-bold text-success"><input type="radio" checked disabled> C. 非常热 (fēicháng rè) ✓</label>
                     </div>
                 </div>
 
-                <!-- Vòng lặp câu hỏi Phần 2 -->
-                {% for q in part2_questions %}
-                <div class="question-card">
-                    <p class="fw-bold">Câu {{ q.question_number }}:</p>
-                    <div class="d-flex flex-column gap-2 ms-3">
-                        <label class="option-text">
-                            <input type="radio" name="q_{{ q.id }}" value="A"> 
-                            A. {{ q.option_a }} {% if q.option_a_pinyin %}({{ q.option_a_pinyin }}){% endif %}
-                        </label>
-                        <label class="option-text">
-                            <input type="radio" name="q_{{ q.id }}" value="B"> 
-                            B. {{ q.option_b }} {% if q.option_b_pinyin %}({{ q.option_b_pinyin }}){% endif %}
-                        </label>
-                        <label class="option-text">
-                            <input type="radio" name="q_{{ q.id }}" value="C"> 
-                            C. {{ q.option_c }} {% if q.option_c_pinyin %}({{ q.option_c_pinyin }}){% endif %}
-                        </label>
+                <!-- Vòng lặp Câu 6-10 từ CSDL -->
+                {% for q in questions %}
+                    {% if q.question_number >= 6 and q.question_number <= 10 %}
+                    <div class="question-card">
+                        <p class="fw-bold">Câu {{ q.question_number }}: {{ q.content }} {% if q.content_pinyin %}({{ q.content_pinyin }}){% endif %}</p>
+                        <div class="d-flex flex-column gap-2 ms-3">
+                            {% if q.option_a %}<label class="option-text"><input type="radio" name="q_{{ q.id }}" value="A"> A. {{ q.option_a }} {% if q.option_a_pinyin %}({{ q.option_a_pinyin }}){% endif %}</label>{% endif %}
+                            {% if q.option_b %}<label class="option-text"><input type="radio" name="q_{{ q.id }}" value="B"> B. {{ q.option_b }} {% if q.option_b_pinyin %}({{ q.option_b_pinyin }}){% endif %}</label>{% endif %}
+                            {% if q.option_c %}<label class="option-text"><input type="radio" name="q_{{ q.id }}" value="C"> C. {{ q.option_c }} {% if q.option_c_pinyin %}({{ q.option_c_pinyin }}){% endif %}</label>{% endif %}
+                        </div>
                     </div>
-                </div>
+                    {% endif %}
                 {% endfor %}
 
 
                 <!-- ========================================== -->
                 <!-- PHẦN 3: NGHE - NỐI TRANH A-F (CÂU 11-15) -->
                 <!-- ========================================== -->
-                <div class="section-title mt-5">Phần 3: Nghe và Nối tranh (Sử dụng các ảnh A-F)</div>
+                <div class="section-title mt-5">Phần 3: Nghe và Nối tranh (Câu 11-15)</div>
                 
-                <!-- Ví dụ Phần 3 -->
-                <div class="example-box mb-3">
+                <!-- Khung tranh mẫu từ A đến F -->
+                <div class="question-card mb-3" style="background-color: #e9ecef;">
                     <h5 class="text-success"><i class="fas fa-lightbulb"></i> Khung tranh chung từ A đến F (Ví dụ):</h5>
                     <div class="row text-center mt-3">
-                        <div class="col-4 col-md-2 mb-2">A<img src="{% static 'images/examples/hsk1_p3_A.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">B<img src="{% static 'images/examples/hsk1_p3_B.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">C<img src="{% static 'images/examples/hsk1_p3_C.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">D<img src="{% static 'images/examples/hsk1_p3_D.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">E<img src="{% static 'images/examples/hsk1_p3_E.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">F<img src="{% static 'images/examples/hsk1_p3_F.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">A<br><img src="{% static 'images/examples/hsk1_p3_A.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">B<br><img src="{% static 'images/examples/hsk1_p3_B.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">C<br><img src="{% static 'images/examples/hsk1_p3_C.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">D<br><img src="{% static 'images/examples/hsk1_p3_D.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">E<br><img src="{% static 'images/examples/hsk1_p3_E.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">F<br><img src="{% static 'images/examples/hsk1_p3_F.jpg' %}" class="answer-img"></div>
                     </div>
                 </div>
 
-                <!-- Câu hỏi mẫu Phần 3 (Form giống câu hỏi thật) -->
+                <!-- Ví dụ Câu hỏi Phần 3 -->
                 <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -238,40 +214,108 @@
                     </div>
                 </div>
 
-                <!-- Khung tranh thực tế cho Câu 11-15 (Load từ CSDL nếu có) -->
-                {% if part3_group_images %}
-                <div class="row text-center mb-4">
-                    <div class="col-4 col-md-2 mb-2">A <img src="{{ part3_group.image_a.url }}" class="answer-img"></div>
-                    <div class="col-4 col-md-2 mb-2">B <img src="{{ part3_group.image_b.url }}" class="answer-img"></div>
-                    <div class="col-4 col-md-2 mb-2">C <img src="{{ part3_group.image_c.url }}" class="answer-img"></div>
-                    <div class="col-4 col-md-2 mb-2">D <img src="{{ part3_group.image_d.url }}" class="answer-img"></div>
-                    <div class="col-4 col-md-2 mb-2">E <img src="{{ part3_group.image_e.url }}" class="answer-img"></div>
-                    <div class="col-4 col-md-2 mb-2">F <img src="{{ part3_group.image_f.url }}" class="answer-img"></div>
-                </div>
-                {% endif %}
-
-                <!-- Vòng lặp câu hỏi Phần 3 -->
-                {% for q in part3_questions %}
-                <div class="question-card">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <span class="fw-bold me-2">Câu {{ q.question_number }}.</span>
-                            {% if q.content_pinyin %}<div class="pinyin-text d-inline-block">{{ q.content_pinyin }}</div>{% endif %}
-                            <div class="hanzi-text">{{ q.content }}</div>
+                <!-- Khung tranh thật (Được lấy ra từ ảnh của câu số 11 nếu có) -->
+                {% for q in questions %}
+                    {% if q.question_number == 11 %}
+                        <div class="row text-center mb-4 mt-4">
+                            {% if q.image_a %}<div class="col-4 col-md-2 mb-2">A<br><img src="{{ q.image_a.url }}" class="answer-img"></div>{% endif %}
+                            {% if q.image_b %}<div class="col-4 col-md-2 mb-2">B<br><img src="{{ q.image_b.url }}" class="answer-img"></div>{% endif %}
+                            {% if q.image_c %}<div class="col-4 col-md-2 mb-2">C<br><img src="{{ q.image_c.url }}" class="answer-img"></div>{% endif %}
+                            {% if q.image_d %}<div class="col-4 col-md-2 mb-2">D<br><img src="{{ q.image_d.url }}" class="answer-img"></div>{% endif %}
+                            {% if q.image_e %}<div class="col-4 col-md-2 mb-2">E<br><img src="{{ q.image_e.url }}" class="answer-img"></div>{% endif %}
+                            {% if q.image_f %}<div class="col-4 col-md-2 mb-2">F<br><img src="{{ q.image_f.url }}" class="answer-img"></div>{% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <select class="form-select border-primary" name="q_{{ q.id }}">
-                                <option value="">Chọn đáp án...</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                                <option value="E">E</option>
-                                <option value="F">F</option>
-                            </select>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Vòng lặp Câu 11-15 từ CSDL (Dạng chọn Dropdown) -->
+                {% for q in questions %}
+                    {% if q.question_number >= 11 and q.question_number <= 15 %}
+                    <div class="question-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <span class="fw-bold me-2">Câu {{ q.question_number }}.</span>
+                                {% if q.content_pinyin %}<div class="pinyin-text d-inline-block">{{ q.content_pinyin }}</div>{% endif %}
+                                <div class="hanzi-text">{{ q.content }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select border-primary" name="q_{{ q.id }}">
+                                    <option value="">Chọn đáp án...</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                    <option value="F">F</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    {% endif %}
+                {% endfor %}
+
+                
+                <!-- ========================================== -->
+                <!-- CÁC PHẦN CÒN LẠI (CÂU 16 TRỞ ĐI) -->
+                <!-- ========================================== -->
+                <div class="section-title mt-5">Các câu hỏi tiếp theo (Phần Đọc)</div>
+                
+                {% for q in questions %}
+                    {% if q.question_number >= 16 %}
+                    <div class="question-card">
+                        <p class="fw-bold">Câu {{ q.question_number }}: {{ q.content }} {% if q.content_pinyin %}({{ q.content_pinyin }}){% endif %}</p>
+                        
+                        <div class="d-flex flex-column gap-2 ms-3">
+                            {% if q.option_a or q.image_a %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="A"> 
+                                {% if q.option_a %} A. {{ q.option_a }} {% if q.option_a_pinyin %}({{ q.option_a_pinyin }}){% endif %} {% endif %}
+                                {% if q.image_a %}<br><img src="{{ q.image_a.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if q.option_b or q.image_b %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="B"> 
+                                {% if q.option_b %} B. {{ q.option_b }} {% if q.option_b_pinyin %}({{ q.option_b_pinyin }}){% endif %} {% endif %}
+                                {% if q.image_b %}<br><img src="{{ q.image_b.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if q.option_c or q.image_c %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="C"> 
+                                {% if q.option_c %} C. {{ q.option_c }} {% if q.option_c_pinyin %}({{ q.option_c_pinyin }}){% endif %} {% endif %}
+                                {% if q.image_c %}<br><img src="{{ q.image_c.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if q.option_d or q.image_d %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="D"> 
+                                {% if q.option_d %} D. {{ q.option_d }}{% endif %}
+                                {% if q.image_d %}<br><img src="{{ q.image_d.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if q.option_e or q.image_e %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="E"> 
+                                {% if q.option_e %} E. {{ q.option_e }}{% endif %}
+                                {% if q.image_e %}<br><img src="{{ q.image_e.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if q.option_f or q.image_f %}
+                            <label class="option-text">
+                                <input type="radio" name="q_{{ q.id }}" value="F"> 
+                                {% if q.option_f %} F. {{ q.option_f }}{% endif %}
+                                {% if q.image_f %}<br><img src="{{ q.image_f.url }}" class="answer-img mt-2">{% endif %}
+                            </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 {% endfor %}
                 
                 <!-- Nút nộp bài -->
@@ -299,7 +343,9 @@
 </div>
 
 <script>
-    let timeInSeconds = 40 * 60;
+    let timeInSeconds = {{ exam.duration_minutes }} * 60;
+    if (!timeInSeconds) timeInSeconds = 40 * 60; // Mặc định 40 phút
+    
     const timerElement = document.getElementById('countdown-timer');
 
     function updateTimer() {

@@ -27,6 +27,7 @@ urlpatterns = [
     
     path('exams/', views.exam_list, name='exam_list'),
     path('exam/<int:exam_id>/', views.take_exam, name='take_exam'),
+    path('exam/<int:exam_id>/submit/', views.take_exam, name='submit_exam'), # <-- Đã bổ sung dòng này để khớp với form HTML
     path('exam-result/<int:result_id>/', views.exam_result, name='exam_result'),
     path('exam-review/<int:result_id>/', views.review_exam, name='review_exam'),
     path('import-excel/', views.import_excel, name='import_excel'),

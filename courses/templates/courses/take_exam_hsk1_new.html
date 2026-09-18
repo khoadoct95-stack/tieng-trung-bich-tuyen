@@ -100,21 +100,27 @@
                 <!-- ========================================== -->
                 <div class="section-title">Phần 1: Nghe và chọn bức tranh tương ứng (Câu 1-5)</div>
                 
-                <!-- Ví dụ Phần 1 (Hardcode 3 ảnh) -->
-                <div class="example-box">
-                    <h5>Ví dụ (例如):</h5>
-                    <div class="row mt-2">
-                        <div class="col-4 text-center">
-                            <span>[A]</span><br>
-                            <img src="{% static 'images/examples/hsk1_p1_A.jpg' %}" class="answer-img" alt="Ví dụ A">
+                <!-- Ví dụ Phần 1 (Form giống câu hỏi thật) -->
+                <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
+                    <p class="fw-bold text-success mb-3"><i class="fas fa-lightbulb"></i> Ví dụ (例如):</p>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <label style="opacity: 0.7;">
+                                <img src="{% static 'images/examples/hsk1_p1_A.jpg' %}" class="answer-img" alt="Ví dụ A"><br>
+                                <input type="radio" disabled> A
+                            </label>
                         </div>
-                        <div class="col-4 text-center">
-                            <span class="fw-bold text-success">[B] (Đáp án)</span><br>
-                            <img src="{% static 'images/examples/hsk1_p1_B.jpg' %}" class="answer-img" alt="Ví dụ B">
+                        <div class="col-4">
+                            <label>
+                                <img src="{% static 'images/examples/hsk1_p1_B.jpg' %}" class="answer-img border-success" style="border-width: 3px;" alt="Ví dụ B"><br>
+                                <input type="radio" checked disabled> <span class="fw-bold text-success">B (✓)</span>
+                            </label>
                         </div>
-                        <div class="col-4 text-center">
-                            <span>[C]</span><br>
-                            <img src="{% static 'images/examples/hsk1_p1_C.jpg' %}" class="answer-img" alt="Ví dụ C">
+                        <div class="col-4">
+                            <label style="opacity: 0.7;">
+                                <img src="{% static 'images/examples/hsk1_p1_C.jpg' %}" class="answer-img" alt="Ví dụ C"><br>
+                                <input type="radio" disabled> C
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -158,13 +164,21 @@
                 <!-- ========================================== -->
                 <div class="section-title mt-5">Phần 2: Nghe và chọn đáp án đúng (Câu 6-10)</div>
                 
-                <!-- Ví dụ Phần 2 (Hardcode chữ) -->
-                <div class="example-box">
-                    <h5>Ví dụ (例如): Jīntiān tiānqì zěnmeyàng? (今天天气怎么样？)</h5>
-                    <div class="mt-3">
-                        <div class="option-text">A. 在学习 (zài xuéxí)</div>
-                        <div class="option-text">B. 很好听 (hěn hǎotīng)</div>
-                        <div class="option-text fw-bold text-success">C. 非常热 (fēicháng rè) - Đáp án ✓</div>
+                <!-- Ví dụ Phần 2 (Form giống câu hỏi thật) -->
+                <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
+                    <p class="fw-bold text-success mb-3">
+                        <i class="fas fa-lightbulb"></i> Ví dụ (例如): Jīntiān tiānqì zěnmeyàng? (今天天气怎么样？)
+                    </p>
+                    <div class="d-flex flex-column gap-2 ms-3">
+                        <label class="option-text text-muted">
+                            <input type="radio" disabled> A. 在学习 (zài xuéxí)
+                        </label>
+                        <label class="option-text text-muted">
+                            <input type="radio" disabled> B. 很好听 (hěn hǎotīng)
+                        </label>
+                        <label class="option-text fw-bold text-success">
+                            <input type="radio" checked disabled> C. 非常热 (fēicháng rè) ✓
+                        </label>
                     </div>
                 </div>
 
@@ -195,18 +209,33 @@
                 <!-- ========================================== -->
                 <div class="section-title mt-5">Phần 3: Nghe và Nối tranh (Sử dụng các ảnh A-F)</div>
                 
-                <!-- Ví dụ Phần 3 (Hardcode 6 ảnh) -->
-                <div class="example-box">
-                    <h5>Ví dụ (例如): Khung tranh chung từ A đến F</h5>
-                    <div class="row text-center mb-3 mt-3">
+                <!-- Ví dụ Phần 3 -->
+                <div class="example-box mb-3">
+                    <h5 class="text-success"><i class="fas fa-lightbulb"></i> Khung tranh chung từ A đến F (Ví dụ):</h5>
+                    <div class="row text-center mt-3">
                         <div class="col-4 col-md-2 mb-2">A<img src="{% static 'images/examples/hsk1_p3_A.jpg' %}" class="answer-img"></div>
                         <div class="col-4 col-md-2 mb-2">B<img src="{% static 'images/examples/hsk1_p3_B.jpg' %}" class="answer-img"></div>
                         <div class="col-4 col-md-2 mb-2">C<img src="{% static 'images/examples/hsk1_p3_C.jpg' %}" class="answer-img"></div>
                         <div class="col-4 col-md-2 mb-2">D<img src="{% static 'images/examples/hsk1_p3_D.jpg' %}" class="answer-img"></div>
-                        <div class="col-4 col-md-2 mb-2">E (Mẫu)<img src="{% static 'images/examples/hsk1_p3_E.jpg' %}" class="answer-img"></div>
+                        <div class="col-4 col-md-2 mb-2">E<img src="{% static 'images/examples/hsk1_p3_E.jpg' %}" class="answer-img"></div>
                         <div class="col-4 col-md-2 mb-2">F<img src="{% static 'images/examples/hsk1_p3_F.jpg' %}" class="answer-img"></div>
                     </div>
-                    <p class="mb-0">Câu hỏi ví dụ: Nǐ hǎo! (你好！) -> Chọn <strong>E</strong></p>
+                </div>
+
+                <!-- Câu hỏi mẫu Phần 3 (Form giống câu hỏi thật) -->
+                <div class="question-card" style="border-left: 5px solid #198754; background-color: #f8fff9;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <span class="fw-bold text-success me-2">Ví dụ (例如):</span>
+                            <div class="pinyin-text d-inline-block">Nǐ hǎo!</div>
+                            <div class="hanzi-text">你好！</div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select border-success text-success fw-bold bg-white" disabled>
+                                <option selected>E (Đáp án ✓)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Khung tranh thực tế cho Câu 11-15 (Load từ CSDL nếu có) -->

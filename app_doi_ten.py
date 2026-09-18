@@ -7,21 +7,22 @@ from PIL import Image, ImageTk
 # 👉 NHỚ SỬA ĐƯỜNG DẪN THƯ MỤC CỦA BẠN:
 FOLDER_PATH = r"C:\Users\Khoa\Desktop\ANH_EXTRACT"
 
+# ĐÃ ĐIỀU CHỈNH: Dùng chữ thường (a, b, c...) để khớp tuyệt đối với CSDL (image_a, image_b...)
 HSK1_OLD = [
     "1", "2", "3", "4", "5",
-    "6_A", "6_B", "6_C", "7_A", "7_B", "7_C", "8_A", "8_B", "8_C", "9_A", "9_B", "9_C", "10_A", "10_B", "10_C",
-    "11_A", "11_B", "11_C", "11_D", "11_E", "11_F",
+    "6_a", "6_b", "6_c", "7_a", "7_b", "7_c", "8_a", "8_b", "8_c", "9_a", "9_b", "9_c", "10_a", "10_b", "10_c",
+    "11_a", "11_b", "11_c", "11_d", "11_e", "11_f",
     "21", "22", "23", "24", "25",
-    "26_A", "26_B", "26_C", "26_D", "26_E", "26_F"
+    "26_a", "26_b", "26_c", "26_d", "26_e", "26_f"
 ]
 
 HSK1_3_0 = [
     "1", "2", "3", "4", "5",
-    "6_A", "6_B", "6_C", "7_A", "7_B", "7_C", "8_A", "8_B", "8_C", "9_A", "9_B", "9_C", "10_A", "10_B", "10_C",
-    "11_A", "11_B", "11_C", "11_D", "11_E", "11_F",
-    "21_A", "21_B", "21_C", "21_D", "21_E", "21_F",
-    "26_A", "26_B", "26_C", "26_D", "26_E", "26_F",
-    "31_A", "31_B", "31_C", "31_D", "31_E", "31_F"
+    "6_a", "6_b", "6_c", "7_a", "7_b", "7_c", "8_a", "8_b", "8_c", "9_a", "9_b", "9_c", "10_a", "10_b", "10_c",
+    "11_a", "11_b", "11_c", "11_d", "11_e", "11_f",
+    "21_a", "21_b", "21_c", "21_d", "21_e", "21_f",
+    "26_a", "26_b", "26_c", "26_d", "26_e", "26_f",
+    "31_a", "31_b", "31_c", "31_d", "31_e", "31_f"
 ]
 # ======================================================
 
@@ -33,7 +34,7 @@ class ImageRenamerApp:
         
         # --- THIẾT KẾ GIAO DIỆN CHÍNH ---
         self.root.title(f"🚀 Bảng Điều Khiển Gắn Ảnh - {title}")
-        self.root.geometry("900x750")
+        self.root.geometry("950x800")
         self.root.configure(bg="#F1F5F9")
         
         self.lbl_status = tk.Label(root, text="", font=("Arial", 12), bg="#F1F5F9", fg="#64748B")
@@ -50,14 +51,13 @@ class ImageRenamerApp:
         self.buttons = {}
         cols = 8 # Số cột của lưới
         for i, name in enumerate(self.expected_names):
-            # Tạo các nút tương ứng với danh sách tên
             btn = tk.Button(
                 self.frame_grid, 
                 text=name, 
                 width=6, 
                 font=("Arial", 11, "bold"),
                 cursor="hand2",
-                command=lambda n=name: self.on_button_click(n) # Lệnh khi bấm nút
+                command=lambda n=name: self.on_button_click(n)
             )
             btn.grid(row=i // cols, column=i % cols, padx=4, pady=4)
             self.buttons[name] = btn
@@ -66,11 +66,11 @@ class ImageRenamerApp:
         frame_input = tk.Frame(root, bg="#F1F5F9")
         frame_input.pack(pady=10)
         tk.Label(frame_input, text="Gõ tay nếu tên lạ:", font=("Arial", 11), bg="#F1F5F9").pack(side=tk.LEFT)
-        self.entry_custom = tk.Entry(frame_input, font=("Arial", 14, "bold"), width=12, justify="center")
+        self.entry_custom = tk.Entry(frame_input, font=("Arial", 14, "bold"), width=15, justify="center")
         self.entry_custom.pack(side=tk.LEFT, padx=10)
         
         help_text = (
-            "🖱️ CLICK CHUỘT VÀO LƯỚI: Đặt tên cho ảnh bằng nút tương ứng.\n"
+            "🖱️ CLICK CHUỘT: Đặt tên cho ảnh bằng nút tương ứng.\n"
             "⌨️ [ENTER]: Đặt bằng ô Gõ tay   |   [Phím S]: Bỏ qua ẢNH này (Ảnh rác)\n"
             "🟧 Màu cam: Tên đang đề xuất   |   🟩 Màu xanh: Đã gán xong"
         )
@@ -79,6 +79,7 @@ class ImageRenamerApp:
         # Lắng nghe sự kiện bàn phím
         self.root.bind('<Return>', self.on_enter)
         self.root.bind('<s>', self.on_skip_image)
+        self.root.bind('<S>', self.on_skip_image)
 
         # --- KIỂM TRA FILE ĐẦU VÀO ---
         if not os.path.exists(folder_path):
@@ -87,10 +88,11 @@ class ImageRenamerApp:
             return
 
         valid_exts = ('.png', '.jpg', '.jpeg')
+        # Lọc ra các file chưa có tiền tố 'q'
         self.files = [f for f in os.listdir(folder_path) if f.lower().endswith(valid_exts) and not f.lower().startswith('q')]
         
         if not self.files:
-            messagebox.showwarning("Trống", "KHÔNG TÌM THẤY ẢNH!\nCó thể thư mục trống hoặc các ảnh đã có chữ 'q' ở đầu.")
+            messagebox.showwarning("Trống", "KHÔNG TÌM THẤY ẢNH CHƯA ĐƯỢC XỬ LÝ!\nCó thể thư mục trống hoặc tất cả ảnh đã có chữ 'q' ở đầu.")
             self.root.destroy()
             return
 
@@ -104,22 +106,22 @@ class ImageRenamerApp:
 
     def load_current_state(self):
         if self.file_idx >= len(self.files):
-            messagebox.showinfo("Hoàn tất", "🎉 Đã duyệt hết tất cả các ảnh trong thư mục!")
+            messagebox.showinfo("Hoàn tất", "🎉 Đã duyệt hết tất cả các ảnh trong thư mục!\nGiờ bạn có thể nén file ZIP và Upload lên Web.")
             self.root.destroy()
             return
             
         self.current_file = self.files[self.file_idx]
-        self.lbl_status.config(text=f"Tiến độ file ảnh: {self.file_idx + 1}/{len(self.files)}")
+        self.lbl_status.config(text=f"Tiến độ file ảnh: {self.file_idx + 1}/{len(self.files)}  (Đang hiển thị: {self.current_file})")
         
         # Tìm nút đang được đề xuất tiếp theo (màu cam)
         suggested_name = ""
         for i, name in enumerate(self.expected_names):
-            if self.buttons[name]['state'] != 'disabled': # Nút chưa bị bấm
+            if self.buttons[name]['state'] != 'disabled':
                 if i == self.name_idx:
-                    self.buttons[name].config(bg="#F59E0B", fg="white") # Nổi bật màu Cam
+                    self.buttons[name].config(bg="#F59E0B", fg="white")
                     suggested_name = f"q{name}.jpg"
                 else:
-                    self.buttons[name].config(bg="SystemButtonFace", fg="black") # Trở về mặc định
+                    self.buttons[name].config(bg="SystemButtonFace", fg="black")
 
         self.entry_custom.delete(0, tk.END)
         self.entry_custom.insert(0, suggested_name)
@@ -128,26 +130,28 @@ class ImageRenamerApp:
         img_path = os.path.join(self.folder_path, self.current_file)
         try:
             img = Image.open(img_path)
-            img.thumbnail((450, 300)) # Bo kích thước ảnh cho vừa khung
+            img.thumbnail((500, 350)) # Chỉnh khung ảnh to hơn chút cho dễ nhìn
             self.tk_img = ImageTk.PhotoImage(img)
             self.lbl_img.config(image=self.tk_img)
         except Exception as e:
             self.lbl_status.config(text=f"Lỗi hiển thị ảnh: {e}")
 
-    # Khi người dùng bấm trực tiếp vào lưới Button
     def on_button_click(self, name_clicked):
         final_name = f"q{name_clicked}.jpg"
         self.thuc_hien_doi_ten(final_name)
 
-    # Khi người dùng tự gõ vào ô Text và bấm Enter
     def on_enter(self, event):
         custom_name = self.entry_custom.get().strip()
         if custom_name == "": return
         if not custom_name.endswith('.jpg'):
             custom_name += '.jpg'
+        
+        # Tự động chèn chữ 'q' nếu gõ thiếu
+        if not custom_name.startswith('q'):
+            custom_name = 'q' + custom_name
+            
         self.thuc_hien_doi_ten(custom_name)
 
-    # Hàm lõi xử lý việc đổi tên
     def thuc_hien_doi_ten(self, final_name):
         if not hasattr(self, 'files') or not self.files: return
             
@@ -155,7 +159,6 @@ class ImageRenamerApp:
         new_path = os.path.join(self.folder_path, final_name)
         
         try:
-            # Ép kiểu JPG và lưu
             with Image.open(old_path) as img:
                 rgb_im = img.convert('RGB')
                 rgb_im.save(new_path, 'JPEG', quality=95)
@@ -165,16 +168,13 @@ class ImageRenamerApp:
             messagebox.showerror("Lỗi", f"Không thể lưu ảnh: {e}")
             return
             
-        # Tìm xem cái tên vừa đặt khớp với nút nào trong Lưới để đổi sang màu Xanh (Hoàn tất)
         name_core = final_name.replace('.jpg', '').replace('q', '', 1)
         if name_core in self.buttons:
             self.buttons[name_core].config(bg="#10B981", fg="white", state="disabled")
             
-            # Cập nhật con trỏ name_idx sang vị trí kế tiếp
             idx = self.expected_names.index(name_core)
             self.name_idx = max(self.name_idx, idx + 1)
             
-        # Chuyển sang ảnh tiếp theo
         self.file_idx += 1
         self.load_current_state()
 
@@ -187,8 +187,8 @@ class ImageRenamerApp:
 def chon_cau_truc():
     print("\n" + "="*50)
     print("🌟 MENU APP GẮN TÊN ẢNH NHANH 🌟")
-    print("  [1]. Đề HSK 1 Bản cũ")
-    print("  [2]. Đề HSK 1 Bản 3.0")
+    print("  [1]. Đề HSK 1 Bản cũ (35 Câu)")
+    print("  [2]. Đề HSK 1 Bản 3.0 (Nếu có)")
     print("="*50)
     
     while True:
@@ -201,10 +201,8 @@ def chon_cau_truc():
             print("❌ Vui lòng chỉ nhập 1 hoặc 2.")
 
 if __name__ == "__main__":
-    # Bước 1: Chọn đề trên cửa sổ đen
     danh_sach, ten_de = chon_cau_truc()
     
-    # Bước 2: Bật giao diện trực quan lên
     root = tk.Tk()
     app = ImageRenamerApp(root, FOLDER_PATH, danh_sach, ten_de)
     root.mainloop()

@@ -185,25 +185,33 @@
                                     <div class="d-flex align-items-start">
                                         <div class="ex-label">例如：</div>
                                         <div class="flex-grow-1">
-                                            <!-- Hiển thị 3 ảnh rời thẳng vào web -->
                                             <div class="row g-4 mt-1">
                                                 <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_a.jpg" alt="A" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">A</div>
-                                                    </div>
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="auto-crop-btn">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; border-radius: 10px; overflow: hidden; background: #f8fafc;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_A.jpg' %}" alt="A" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain; opacity: 0.7;">
+                                                        </div>
+                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
+                                                    </label>
                                                 </div>
                                                 <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_b.jpg" alt="B" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">B</div>
-                                                    </div>
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="auto-crop-btn">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; border-radius: 10px; overflow: hidden; background: #f8fafc;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_B.jpg' %}" alt="B" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain; opacity: 0.7;">
+                                                        </div>
+                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
+                                                    </label>
                                                 </div>
                                                 <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_c.jpg" alt="C" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">C <span class="check-mark">✓</span></div>
-                                                    </div>
+                                                    <input type="radio" class="opt-radio" checked disabled>
+                                                    <label class="auto-crop-btn">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; border-radius: 10px; overflow: hidden; background: #f8fafc;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_C.jpg' %}" alt="C" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain;">
+                                                        </div>
+                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">C <span class="check-mark">✓</span></div>
+                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
@@ -218,10 +226,28 @@
                                                 <div class="pinyin-text">Jīntiān tiānqì zěnmeyàng?</div>
                                                 <div class="chinese-text">今天 天气 怎么样？</div>
                                             </div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">zài xuéxí</div><div class="chinese-text text-center fw-bold fs-5">A 在学习</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">hěn hǎotīng</div><div class="chinese-text text-center fw-bold fs-5">B 很好听</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">fēicháng rè</div><div class="chinese-text text-center fw-bold fs-5">C 非常热 <span class="check-mark">✓</span></div></div>
+                                            <div class="row g-3 mt-1">
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
+                                                        <div><div class="pinyin-text small">zài xuéxí</div><div class="chinese-text">在学习</div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
+                                                        <div><div class="pinyin-text small">hěn hǎotīng</div><div class="chinese-text">很好听</div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" checked disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
+                                                        <div><div class="pinyin-text small">fēicháng rè</div><div class="chinese-text">非常热 <span class="check-mark">✓</span></div></div>
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -229,14 +255,18 @@
                                 {% elif first_q_obj.question_number == 11 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
+                                        <div class="d-flex align-items-start flex-grow-1">
                                             <div class="ex-label">例如：</div>
                                             <div>
                                                 <div class="mb-2"><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo!</div><div class="chinese-text">女：你 好！</div></div>
                                                 <div><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo! Hěn gāoxìng rènshi nǐ.</div><div class="chinese-text">男：你 好！很 高兴 认识 你。</div></div>
                                             </div>
                                         </div>
-                                        <div class="box-answer">C</div>
+                                        <!-- Vòng tròn đáp án được kích hoạt CSS bằng class circle-radio -->
+                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
+                                            <input type="radio" class="circle-radio" checked disabled>
+                                            <label class="circle-label" style="opacity: 1; cursor: default;">C</label>
+                                        </div>
                                     </div>
                                 </div>
                                 {% elif first_q_obj.question_number == 16 %}
@@ -246,10 +276,28 @@
                                         <div class="flex-grow-1">
                                             <div class="mb-2"><div class="pinyin-text">Xiàwǔ wǒ qù chāoshì, wǒ xiǎng mǎi yìxiē shuǐguǒ.</div><div class="chinese-text">下午 我 去 超市，我 想 买 一些 水果。</div></div>
                                             <div class="mb-4"><div class="pinyin-text" style="padding-left: 45px;">Shuōhuàrén xiàwǔ qù nǎlǐ?</div><div class="chinese-text">问：说话人 下午 去 哪里？</div></div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">chāoshì</div><div class="chinese-text text-center fw-bold fs-5">A 超市 <span class="check-mark">✓</span></div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">yīyuàn</div><div class="chinese-text text-center fw-bold fs-5">B 医院</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">xuéxiào</div><div class="chinese-text text-center fw-bold fs-5">C 学校</div></div>
+                                            <div class="row g-3 mt-1">
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" checked disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
+                                                        <div><div class="pinyin-text small">chāoshì</div><div class="chinese-text">超市 <span class="check-mark">✓</span></div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
+                                                        <div><div class="pinyin-text small">yīyuàn</div><div class="chinese-text">医院</div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
+                                                        <div><div class="pinyin-text small">xuéxiào</div><div class="chinese-text">学校</div></div>
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -257,30 +305,42 @@
                                 {% elif first_q_obj.question_number == 21 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
+                                        <div class="d-flex align-items-start flex-grow-1">
                                             <div class="ex-label">例如：</div>
                                             <div><div class="pinyin-text">Wǒ hěn xǐhuan zhè běn shū.</div><div class="chinese-text">我 很 喜欢 这 本 书。</div></div>
                                         </div>
-                                        <div class="box-answer">E</div>
+                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
+                                            <input type="radio" class="circle-radio" checked disabled>
+                                            <label class="circle-label" style="opacity: 1; cursor: default;">E</label>
+                                        </div>
                                     </div>
                                 </div>
                                 {% elif first_q_obj.question_number == 26 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
+                                        <div class="d-flex align-items-start flex-grow-1">
                                             <div class="ex-label">例如：</div>
                                             <div><div class="pinyin-text">Nǐ hē shuǐ ma?</div><div class="chinese-text">你 喝 水 吗？</div></div>
                                         </div>
-                                        <div class="box-answer">F</div>
+                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
+                                            <input type="radio" class="circle-radio" checked disabled>
+                                            <label class="circle-label" style="opacity: 1; cursor: default;">F</label>
+                                        </div>
                                     </div>
                                 </div>
                                 {% elif first_q_obj.question_number == 31 %}
                                 <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div>
-                                            <div class="pinyin-text text-center">Nǐ <span style="display:inline-block; width: 60px;"></span> shénme míngzi?</div>
-                                            <div class="chinese-text">你 （<span class="ex-inline-box" style="border:none;">D</span>） 什么 名字？</div>
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="d-flex align-items-start flex-grow-1">
+                                            <div class="ex-label">例如：</div>
+                                            <div>
+                                                <div class="pinyin-text">Nǐ <span style="display:inline-block; width: 60px;"></span> shénme míngzi?</div>
+                                                <div class="chinese-text">你 （<span class="ex-inline-box" style="border:none;">D</span>） 什么 名字？</div>
+                                            </div>
+                                        </div>
+                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
+                                            <input type="radio" class="circle-radio" checked disabled>
+                                            <label class="circle-label" style="opacity: 1; cursor: default;">D</label>
                                         </div>
                                     </div>
                                 </div>
@@ -291,10 +351,28 @@
                                         <div class="flex-grow-1">
                                             <div class="mb-2"><div class="pinyin-text">Qǐngwèn xiànzài jǐ diǎn le?</div><div class="chinese-text">请问 现在 几 点 了？</div></div>
                                             <div class="mb-4"><div class="pinyin-text" style="padding-left: 35px;">Shuōhuàrén xiǎng zhīdào shénme?</div><div class="chinese-text">★ 说话人 想 知道 什么？</div></div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">shíjiān</div><div class="chinese-text text-center fw-bold fs-5">A 时间 <span class="check-mark">✓</span></div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">míngzi</div><div class="chinese-text text-center fw-bold fs-5">B 名字</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">fángjiānhào</div><div class="chinese-text text-center fw-bold fs-5">C 房间号</div></div>
+                                            <div class="row g-3 mt-1">
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" checked disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
+                                                        <div><div class="pinyin-text small">shíjiān</div><div class="chinese-text">时间 <span class="check-mark">✓</span></div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
+                                                        <div><div class="pinyin-text small">míngzi</div><div class="chinese-text">名字</div></div>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="radio" class="opt-radio" disabled>
+                                                    <label class="opt-label">
+                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
+                                                        <div><div class="pinyin-text small">fángjiānhào</div><div class="chinese-text">房间号</div></div>
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

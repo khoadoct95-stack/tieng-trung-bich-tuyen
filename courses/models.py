@@ -114,13 +114,6 @@ class ExamQuestion(models.Model):
     option_e = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án E")
     option_f = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án F")
     
-    # MỚI THÊM: 6 Cột ảnh rời cho đáp án
-    image_a = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời A")
-    image_b = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời B")
-    image_c = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời C")
-    image_d = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời D")
-    image_e = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời E")
-    image_f = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời F")
 
     correct_answer = models.CharField(max_length=5, verbose_name="Đáp án đúng (A/B/C/D/E/F)")
     explanation = models.TextField(blank=True, null=True, verbose_name="Giải thích chi tiết")

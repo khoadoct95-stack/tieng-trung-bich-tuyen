@@ -7,22 +7,20 @@ from PIL import Image, ImageTk
 # 👉 NHỚ SỬA ĐƯỜNG DẪN THƯ MỤC CỦA BẠN:
 FOLDER_PATH = r"C:\Users\Khoa\Desktop\ANH_EXTRACT"
 
-# ĐÃ ĐIỀU CHỈNH: Dùng chữ thường (a, b, c...) để khớp tuyệt đối với CSDL (image_a, image_b...)
-HSK1_OLD = [
-    "1", "2", "3", "4", "5",
-    "6_a", "6_b", "6_c", "7_a", "7_b", "7_c", "8_a", "8_b", "8_c", "9_a", "9_b", "9_c", "10_a", "10_b", "10_c",
+# Cấu trúc CHUẨN 100% dựa trên file đề thi HSK 1
+HSK1_STANDARD = [
+    # Nghe Phần 1 (1-5): Chọn ảnh A, B, C (Mỗi câu 3 ảnh)
+    "1_a", "1_b", "1_c", 
+    "2_a", "2_b", "2_c", 
+    "3_a", "3_b", "3_c", 
+    "4_a", "4_b", "4_c", 
+    "5_a", "5_b", "5_c",
+    
+    # Nghe Phần 3 (11-15): Nối ảnh A-F (Dùng chung 1 rổ ảnh)
     "11_a", "11_b", "11_c", "11_d", "11_e", "11_f",
-    "21", "22", "23", "24", "25",
-    "26_a", "26_b", "26_c", "26_d", "26_e", "26_f"
-]
-
-HSK1_3_0 = [
-    "1", "2", "3", "4", "5",
-    "6_a", "6_b", "6_c", "7_a", "7_b", "7_c", "8_a", "8_b", "8_c", "9_a", "9_b", "9_c", "10_a", "10_b", "10_c",
-    "11_a", "11_b", "11_c", "11_d", "11_e", "11_f",
-    "21_a", "21_b", "21_c", "21_d", "21_e", "21_f",
-    "26_a", "26_b", "26_c", "26_d", "26_e", "26_f",
-    "31_a", "31_b", "31_c", "31_d", "31_e", "31_f"
+    
+    # Đọc Phần 1 (21-25): Nối ảnh A-F (Dùng chung 1 rổ ảnh)
+    "21_a", "21_b", "21_c", "21_d", "21_e", "21_f"
 ]
 # ======================================================
 
@@ -49,7 +47,7 @@ class ImageRenamerApp:
         self.frame_grid.pack(pady=10)
         
         self.buttons = {}
-        cols = 8 # Số cột của lưới
+        cols = 6 # Chỉnh lại thành 6 cột cho vừa vặn nhóm A-F
         for i, name in enumerate(self.expected_names):
             btn = tk.Button(
                 self.frame_grid, 
@@ -96,7 +94,7 @@ class ImageRenamerApp:
             self.root.destroy()
             return
 
-        # Sắp xếp file theo thứ tự số tự nhiên trong tên file
+        # Sắp xếp file theo thứ tự số tự nhiên
         self.files.sort(key=lambda f: int(''.join(filter(str.isdigit, f)) or 0))
         self.file_idx = 0
         self.name_idx = 0
@@ -130,7 +128,7 @@ class ImageRenamerApp:
         img_path = os.path.join(self.folder_path, self.current_file)
         try:
             img = Image.open(img_path)
-            img.thumbnail((500, 350)) # Chỉnh khung ảnh to hơn chút cho dễ nhìn
+            img.thumbnail((500, 350)) 
             self.tk_img = ImageTk.PhotoImage(img)
             self.lbl_img.config(image=self.tk_img)
         except Exception as e:
@@ -183,26 +181,7 @@ class ImageRenamerApp:
         self.file_idx += 1
         self.load_current_state()
 
-# ================= MENU TỪ TERMINAL =================
-def chon_cau_truc():
-    print("\n" + "="*50)
-    print("🌟 MENU APP GẮN TÊN ẢNH NHANH 🌟")
-    print("  [1]. Đề HSK 1 Bản cũ (35 Câu)")
-    print("  [2]. Đề HSK 1 Bản 3.0 (Nếu có)")
-    print("="*50)
-    
-    while True:
-        choice = input("👉 Nhập số 1 hoặc 2: ").strip()
-        if choice == '1':
-            return HSK1_OLD, "HSK 1 BẢN CŨ"
-        elif choice == '2':
-            return HSK1_3_0, "HSK 1 BẢN 3.0"
-        else:
-            print("❌ Vui lòng chỉ nhập 1 hoặc 2.")
-
 if __name__ == "__main__":
-    danh_sach, ten_de = chon_cau_truc()
-    
     root = tk.Tk()
-    app = ImageRenamerApp(root, FOLDER_PATH, danh_sach, ten_de)
+    app = ImageRenamerApp(root, FOLDER_PATH, HSK1_STANDARD, "HSK 1 TIÊU CHUẨN")
     root.mainloop()

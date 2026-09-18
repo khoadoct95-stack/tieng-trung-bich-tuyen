@@ -14,7 +14,7 @@ import re
 from .models import Exam, ExamQuestion, ExamResult, Curriculum, Lesson, Vocabulary
 
 # ==========================================
-# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH VÀ TỪ VỰNG (ĐÃ NÂNG CẤP BỘ LỌC)
+# KHU VỰC 1: QUẢN LÝ GIÁO TRÌNH VÀ TỪ VỰNG
 # ==========================================
 @admin.register(Curriculum)
 class CurriculumAdmin(admin.ModelAdmin):
@@ -23,19 +23,9 @@ class CurriculumAdmin(admin.ModelAdmin):
 
 @admin.register(Vocabulary)
 class VocabularyAdmin(admin.ModelAdmin):
-    # Hiển thị thêm cột Cấp độ, Bài học trong danh sách
     list_display = ('hanzi', 'pinyin', 'meaning', 'level', 'get_lesson', 'get_curriculum')
-    
-    # BỘ LỌC BÊN TAY PHẢI:
-    # Lọc theo Cấp độ (level), Bài học (lesson), Giáo trình (lesson__curriculum)
     list_filter = ('level', 'lesson__curriculum', 'lesson')
-    
-    # Thanh tìm kiếm
     search_fields = ('hanzi', 'pinyin', 'meaning', 'level')
-
-    # =========================================================
-    # THÊM NÚT ĐỒNG BỘ Ở NGAY DƯỚI THANH TÌM KIẾM
-    # =========================================================
     actions = ['sync_level_from_curriculum']
 
     @admin.action(description='⚡ Đồng bộ Cấp độ (Lấy tự động từ tên Giáo trình)')
@@ -47,7 +37,6 @@ class VocabularyAdmin(admin.ModelAdmin):
                 obj.save()
                 count += 1
         messages.success(request, f"Tuyệt vời! Đã cập nhật cấp độ tự động cho {count} từ vựng.")
-    # =========================================================
 
     def get_lesson(self, obj):
         return f"Bài {obj.lesson.order}: {obj.lesson.title_hanzi}"
@@ -58,7 +47,7 @@ class VocabularyAdmin(admin.ModelAdmin):
     get_curriculum.short_description = 'Thuộc Giáo trình'
 
 # ==========================================
-# KHU VỰC 2: QUẢN LÝ BÀI HỌC (CÓ TÍNH NĂNG DÁN TỪ VỰNG HÀNG LOẠT)
+# KHU VỰC 2: QUẢN LÝ BÀI HỌC
 # ==========================================
 class LessonAdminForm(forms.ModelForm):
     bulk_vocab = forms.CharField(
@@ -78,7 +67,6 @@ class LessonAdminForm(forms.ModelForm):
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
     form = LessonAdminForm
-    
     fieldsets = (
         ('Thông tin Bài học', {
             'fields': ('curriculum', 'order', 'title_hanzi', 'title_pinyin', 'title_vietnamese', 'description') 
@@ -91,7 +79,6 @@ class LessonAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-
         bulk_text = form.cleaned_data.get('bulk_vocab')
         
         if bulk_text:
@@ -100,19 +87,16 @@ class LessonAdmin(admin.ModelAdmin):
             for line in lines:
                 if not line.strip():
                     continue
-                
                 parts = line.split('|') if '|' in line else line.split('\t')
                 
                 if len(parts) >= 3:
-                    # Nếu có cột Cấp độ thì lấy, không có thì để trống
                     level_val = parts[3].strip() if len(parts) >= 4 else ""
-                    
                     Vocabulary.objects.create(
                         lesson=obj,
                         hanzi=parts[0].strip(),
                         pinyin=parts[1].strip(),
                         meaning=parts[2].strip(),
-                        level=level_val # Lưu cấp độ vào CSDL
+                        level=level_val 
                     )
                     count += 1
             if count > 0:
@@ -155,14 +139,33 @@ class ExamAdmin(admin.ModelAdmin):
                         if '__MACOSX' in filename or filename.startswith('.'):
                             continue
                         
-                        match = re.search(r'q(\d+)\.(jpg|jpeg|png)', filename.lower().split('/')[-1])
-                        if match:
-                            q_num = int(match.group(1))
+                        clean_filename = filename.split('/')[-1].lower()
+                        if not clean_filename:
+                            continue
+
+                        # Trường hợp 1: Ảnh đáp án rời (q1_a.jpg, q11_f.png)
+                        match_option = re.search(r'^q(\d+)_([a-f])\.(jpg|jpeg|png)$', clean_filename)
+                        if match_option:
+                            q_num = int(match_option.group(1))
+                            option = match_option.group(2) # a, b, c, d, e, f
                             try:
                                 question = ExamQuestion.objects.get(exam=exam, question_number=q_num)
                                 image_data = z.read(filename)
-                                file_name_to_save = filename.split('/')[-1]
-                                question.image.save(file_name_to_save, ContentFile(image_data), save=True)
+                                field_name = f'image_{option}'
+                                getattr(question, field_name).save(clean_filename, ContentFile(image_data), save=True)
+                                success_count += 1
+                            except ExamQuestion.DoesNotExist:
+                                pass
+                            continue # Chuyển sang file tiếp theo
+
+                        # Trường hợp 2: Ảnh chính của câu hỏi (q1.jpg, q2.png) - Giữ nguyên logic cũ của bạn
+                        match_main = re.search(r'^q(\d+)\.(jpg|jpeg|png)$', clean_filename)
+                        if match_main:
+                            q_num = int(match_main.group(1))
+                            try:
+                                question = ExamQuestion.objects.get(exam=exam, question_number=q_num)
+                                image_data = z.read(filename)
+                                question.image.save(clean_filename, ContentFile(image_data), save=True)
                                 success_count += 1
                             except ExamQuestion.DoesNotExist:
                                 pass

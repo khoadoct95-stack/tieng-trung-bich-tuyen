@@ -56,16 +56,13 @@ class Vocabulary(models.Model):
 
 
 # ==========================================
-# 2. LỊCH SỬ HỌC TẬP (GAME) - ĐÃ CẬP NHẬT CHO GAME 1
+# 2. LỊCH SỬ HỌC TẬP (GAME)
 # ==========================================
 
 class GameHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Học viên")
-    
-    # Cho phép trống (blank=True, null=True) để hỗ trợ chế độ chơi Toàn Cấp Độ
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Bài học")
     level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ (Chơi toàn cấp)")
-    
     game_type = models.CharField(max_length=50, verbose_name="Loại Game") 
     score = models.IntegerField(default=0, verbose_name="Điểm/Số thẻ")
     time_taken = models.IntegerField(help_text="Thời gian hoàn thành hoặc trụ vững (giây)", verbose_name="Thời gian (s)")
@@ -83,11 +80,9 @@ class Exam(models.Model):
     title = models.CharField(max_length=255, verbose_name="Tên đề thi") 
     hsk_level = models.IntegerField(default=1, verbose_name="Cấp độ HSK") 
     duration_minutes = models.IntegerField(default=60, verbose_name="Thời gian làm bài (phút)")
-    
     listening_audio = models.FileField(upload_to='exam_audios/', blank=True, null=True, verbose_name="File Audio phần Nghe") 
     description = models.TextField(blank=True, null=True, verbose_name="Mô tả đề thi")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
-
     exam_type = models.CharField(max_length=10, default='new', choices=[('new', 'HSK 3.0'), ('old', 'HSK Bản cũ')], verbose_name="Loại đề thi")
 
     def __str__(self):
@@ -108,6 +103,7 @@ class ExamQuestion(models.Model):
     content_pinyin = models.TextField(blank=True, null=True, verbose_name="Câu hỏi (Pinyin)")
     image = models.ImageField(upload_to='exam_images/', blank=True, null=True, verbose_name="Hình ảnh đính kèm câu hỏi")
     
+    # Text Đáp án
     option_a = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án A (Chữ)")
     option_a_pinyin = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án A (Pinyin)")
     option_b = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án B (Chữ)")
@@ -118,6 +114,14 @@ class ExamQuestion(models.Model):
     option_e = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án E")
     option_f = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án F")
     
+    # MỚI THÊM: 6 Cột ảnh rời cho đáp án
+    image_a = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời A")
+    image_b = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời B")
+    image_c = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời C")
+    image_d = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời D")
+    image_e = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời E")
+    image_f = models.ImageField(upload_to='exam_images/options/', blank=True, null=True, verbose_name="Ảnh rời F")
+
     correct_answer = models.CharField(max_length=5, verbose_name="Đáp án đúng (A/B/C/D/E/F)")
     explanation = models.TextField(blank=True, null=True, verbose_name="Giải thích chi tiết")
 

@@ -1,549 +1,296 @@
-{% extends 'courses/base.html' %}
-{% block title %}Thi thử - {{ exam.title }}{% endblock %}
-
-{% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-    :root { --primary-color: #9B1C1C; --primary-light: #fef2f2; --bg-color: #F1F5F9; --card-bg: #FFFFFF; --border-color: #E2E8F0; --text-main: #334155; --text-muted: #64748B; --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04); --shadow-hover: 0 10px 25px rgba(155, 28, 28, 0.15); }
-    body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
-    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; color: #0f172a; line-height: 1.7; white-space: pre-wrap; }
-    .pinyin-text { font-size: 1.15rem; color: #3b82f6; margin-bottom: 5px; white-space: pre-wrap; font-weight: 500;}
-    .exam-container { max-width: 1500px; margin: 0 auto; padding: 40px 20px; }
-    
-    .exam-main-title { font-size: 2.2rem; font-weight: 900; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
-    .hsk-badge { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 8px 20px; border-radius: 30px; font-weight: 800; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 15px; }
-    .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 2.2rem; font-weight: 900; color: var(--primary-color); letter-spacing: 4px; padding-bottom: 10px; border-bottom: 4px solid var(--primary-color); margin-bottom: 30px; }
-    .hsk-part-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; font-weight: 700; color: white; background: #1e293b; padding: 8px 25px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    .hsk-group-range { font-family: 'Noto Sans SC', sans-serif; font-size: 1.25rem; font-weight: 700; color: #475569; border-left: 5px solid #cbd5e1; padding-left: 15px; margin-bottom: 15px; }
-    
-    .q-group-wrapper { position: relative; margin-bottom: 35px; }
-    .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 25px; box-shadow: var(--shadow-soft); transition: all 0.3s ease; }
-    .q-card-group:hover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
-    .question-row { padding: 30px 40px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 100px; }
-    .question-row:first-child { border-top: none; }
-    .question-row:hover { background: #f8fafc; }
-    
-    .q-header-inline { display: flex; align-items: flex-start; gap: 20px; }
-    .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
-    .q-options-area { margin-top: 15px; }
-    .q-options-area.ms-5 { margin-left: 60px !important; }
-
-    /* Rổ hình ảnh dùng chung cho câu 11-15 (Giữ nguyên crop vì CSDL đang dùng 1 ảnh ghép) */
-    .shared-pool { background: #fff; padding: 30px 40px; border-radius: 16px 16px 0 0; }
-    .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 12px; background-color: #fff; border: 2px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: transform 0.3s, border-color 0.3s; }
-    .crop-badge { position: absolute; top: 10px; left: 10px; background: var(--primary-color); color: white; font-weight: 900; font-size: 1.1rem; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10; box-shadow: 0 4px 10px rgba(155, 28, 28, 0.4); }
-    .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
-    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
-    
-    .shared-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-    .shared-opt-item { background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-    .shared-opt-letter { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); background: var(--primary-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; margin-right: 15px; }
-    
-    /* VÍ DỤ */
-    .example-row { padding: 25px 40px; background: #f8fafc; border-bottom: 2px dashed #cbd5e1; }
-    .example-row:first-child { border-radius: 16px 16px 0 0; }
-    .ex-label { font-family: 'Noto Sans SC', sans-serif; font-size: 1.35rem; font-weight: 800; color: #475569; white-space: nowrap; margin-right: 15px; margin-top: 2px; }
-    .check-mark { color: #10B981; font-weight: 900; margin-left: 5px; font-size: 1.3rem; }
-    .box-answer { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 2px solid #64748b; font-weight: 900; font-size: 1.3rem; color: #334155; margin-left: auto; }
-    
-    .opt-radio, .circle-radio { display: none; }
-    .opt-label { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; background: #f8fafc; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-    .opt-label:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: #fff; border-color: #cbd5e1; }
-    .opt-radio:checked + .opt-label { border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); }
-    
-    .af-options-wrapper { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 15px; background: transparent; padding: 0; border: none; }
-    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 45px; height: 45px; border: 2px solid var(--border-color); border-radius: 50%; cursor: pointer; font-weight: 800; font-size: 1.15rem; color: var(--text-muted); transition: all 0.3s ease; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin: 0; }
-    .circle-label:hover { border-color: #94A3B8; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); color: var(--text-main); }
-    .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); }
-    
-    /* Auto crop cho Câu 1-5 (vẫn giữ nguyên vì CSDL đang dùng ảnh ghép cho các câu hỏi chính) */
-    .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 2px solid transparent; border-radius: 16px; transition: all 0.3s ease; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
-    .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-    .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); }
-    .crop-window { width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc; }
-    .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
-    .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
-    
-    .sticky-sidebar { position: sticky; top: 25px; z-index: 100;}
-    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; box-shadow: var(--shadow-soft); margin-bottom: 25px; }
-    .timer-circle { width: 130px; height: 130px; border: 5px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 2.2rem; font-weight: 900; color: var(--primary-color); font-family: 'Courier New', Courier, monospace; letter-spacing: -1px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-    
-    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 700; font-size: 1rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; }
-    .grid-item:hover { background: #E2E8F0; }
-    .grid-item.done { background: #10B981; border-color: #10B981; color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
-    .btn-submit { background: var(--primary-color); color: white; font-weight: 800; border-radius: 30px; padding: 15px; font-size: 1.2rem; border: none; transition: transform 0.2s; }
-    
-    @media (max-width: 991px) {
-        .sticky-sidebar { position: relative; top: 0; margin-bottom: 20px; }
-        .panel-box { padding: 15px; margin-bottom: 15px; }
-        .timer-circle { width: 100px; height: 100px; font-size: 1.6rem; border-width: 4px; }
-        .question-row, .example-row { padding: 20px 20px; }
-        .q-options-area.ms-5 { margin-left: 0 !important; }
-        .exam-main-title { font-size: 1.6rem; }
-        .shared-pool { padding: 15px 20px; }
-        .shared-options-grid { grid-template-columns: 1fr; gap: 10px; }
-        .shared-img-grid { gap: 8px; }
-        .shared-opt-item { padding: 8px 12px; }
-        .shared-opt-letter { width: 32px; height: 32px; font-size: 1rem; margin-right: 10px; }
-        .chinese-text { font-size: 1.25rem; } 
-        .pinyin-text { font-size: 1rem; }
-        .circle-label { width: 40px; height: 40px; font-size: 1.1rem; margin: 5px; }
-        .opt-label { padding: 10px 15px; }
-        .q-number-text { font-size: 1.3rem; }
-    }
-</style>
-{% endblock %}
+{% extends "base.html" %} <!-- Tùy chỉnh theo tên file base của bạn -->
+{% load static %}
 
 {% block content %}
-<div class="exam-container">
+<style>
+    /* CSS cho giao diện */
+    .exam-container {
+        margin-top: 30px;
+        margin-bottom: 50px;
+    }
+    
+    /* Sticky Sidebar & Đồng hồ */
+    .sticky-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 20px;
+        z-index: 1000;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .timer-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 6px solid #4CAF50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0 auto 15px auto;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    
+    /* Card và Typography */
+    .section-title {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-left: 5px solid #0d6efd;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+    .question-card {
+        margin-bottom: 25px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        background: #fff;
+    }
+    .pinyin-text {
+        font-size: 1.1rem;
+        color: #6c757d;
+        font-family: Arial, sans-serif;
+        margin-bottom: 5px;
+    }
+    .hanzi-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    
+    /* Khung ảnh độc lập */
+    .answer-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+        transition: transform 0.2s;
+    }
+    .answer-img:hover {
+        transform: scale(1.05);
+        border-color: #0d6efd;
+    }
+    .example-box {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container exam-container">
     <div class="row">
-        <!-- ================= CỘT TRÁI ================= -->
-        <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
-            <div class="text-center mb-5 mt-2">
-                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> CẤP ĐỘ HSK {{ exam.hsk_level }}</div>
-                <h1 class="exam-main-title">{{ exam.title }}</h1>
-            </div>
-
-            <!-- BẢNG KỶ LỤC -->
-            <div class="q-card-group mb-4" style="padding: 20px 35px; border-radius: 16px;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-center w-50" style="border-right: 2px dashed #cbd5e1;">
-                        <div style="font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase;"><i class="fas fa-medal me-1"></i> Kỷ lục của bạn</div>
-                        <div style="font-size: 1.8rem; font-weight: 900; color: #10B981; line-height: 1.2; margin-top: 5px;">{{ personal_best }} <span style="font-size: 1rem; color: #94a3b8;">điểm</span></div>
-                    </div>
-                    <div class="text-center w-50">
-                        <div style="font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase;"><i class="fas fa-trophy me-1"></i> Kỷ lục Server</div>
-                        <div style="font-size: 1.8rem; font-weight: 900; color: #f59e0b; line-height: 1.2; margin-top: 5px;">{{ global_best }} <span style="font-size: 1rem; color: #94a3b8;">điểm</span></div>
-                    </div>
-                </div>
-            </div>
-
-            {% if exam.listening_audio %}
-            <div class="q-card-group mb-4" style="padding: 20px 35px; background: #fff;">
-                <p class="fw-bold mb-3 text-center" style="font-size: 1.1rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
-                <audio controls class="w-100" style="height: 45px;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
-            </div>
-            {% endif %}
-
-            <form id="exam-form" action="" method="POST">
+        <!-- CỘT TRÁI: NỘI DUNG ĐỀ THI -->
+        <div class="col-md-8 col-lg-9">
+            <h2 class="mb-4 text-center">Đề Thi Thử HSK 1</h2>
+            <form id="hsk-exam-form" method="POST" action="{% url 'submit_exam' %}">
                 {% csrf_token %}
                 
-                {% regroup questions by question_group as grouped_questions %}
-                {% for group in grouped_questions %}
-                    <div class="q-group-wrapper">
-                        <!-- HEADER TỪNG PHẦN THI -->
-                        {% with first_q_obj=group.list.0 %}
-                            {% if first_q_obj.question_number == 1 %}
-                                <div class="text-center mt-3 mb-5"><div class="hsk-major-title">一、听 力</div></div>
-                            {% elif first_q_obj.question_number == 21 %}
-                                <div class="text-center mt-5 mb-5 pt-5"><div class="hsk-major-title">二、阅 读</div></div>
-                            {% endif %}
-
-                            <div class="text-center mb-3 mt-2">
-                                <div class="hsk-part-title">
-                                    {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 21 %}第一部分{% endif %}
-                                    {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 26 %}第二部分{% endif %}
-                                    {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 31 %}第三部分{% endif %}
-                                    {% if first_q_obj.question_number == 16 or first_q_obj.question_number == 36 %}第四部分{% endif %}
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="hsk-group-range">第 {{ first_q_obj.question_number }}—{% if first_q_obj.question_number == 1 %}5{% elif first_q_obj.question_number == 6 %}10{% elif first_q_obj.question_number == 11 %}15{% elif first_q_obj.question_number == 16 %}20{% elif first_q_obj.question_number == 21 %}25{% elif first_q_obj.question_number == 26 %}30{% elif first_q_obj.question_number == 31 %}35{% elif first_q_obj.question_number == 36 %}40{% endif %} 题</div>
-                            </div>
-                        {% endwith %}
-
-                        <div class="q-card-group">
-                            
-                            {% with first_q_obj=group.list.0 %}
-                                <!-- KHU VỰC DÙNG CHUNG -->
-                                {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
-                                    <div class="shared-pool">
-                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
-                                            <div class="format-shared-options" style="display: none;">{{ first_q_obj.passage_text }}</div>
-                                            <div class="format-shared-pinyin" style="display: none;">{{ first_q_obj.passage_pinyin|default:""|linebreaksbr }}</div>
-                                        {% endif %}
-                                        
-                                        {% if first_q_obj.image %}
-                                            <div class="shared-img-grid">
-                                                <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ first_q_obj.image.url }}" alt="A"></div>
-                                                <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ first_q_obj.image.url }}" alt="B"></div>
-                                                <div class="shared-crop-window pos-C"><span class="crop-badge">C</span><img src="{{ first_q_obj.image.url }}" alt="C"></div>
-                                                <div class="shared-crop-window pos-D"><span class="crop-badge">D</span><img src="{{ first_q_obj.image.url }}" alt="D"></div>
-                                                <div class="shared-crop-window pos-E"><span class="crop-badge">E</span><img src="{{ first_q_obj.image.url }}" alt="E"></div>
-                                                <div class="shared-crop-window pos-F"><span class="crop-badge">F</span><img src="{{ first_q_obj.image.url }}" alt="F"></div>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-
-                                <!-- KHU VỰC VÍ DỤ CỐ ĐỊNH -->
-                                {% if first_q_obj.question_number == 1 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <!-- Hiển thị 3 ảnh rời thẳng vào web -->
-                                            <div class="row g-4 mt-1">
-                                                <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_a.jpg" alt="A" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">A</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_b.jpg" alt="B" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">B</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="text-center p-3" style="background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; height: 100%;">
-                                                        <img src="/static/images/ex1_c.jpg" alt="C" style="max-width: 100%; height: 110px; object-fit: contain;">
-                                                        <div class="mt-3 fw-bold fs-5 text-dark">C <span class="check-mark">✓</span></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 6 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-3">
-                                                <div class="pinyin-text">Jīntiān tiānqì zěnmeyàng?</div>
-                                                <div class="chinese-text">今天 天气 怎么样？</div>
-                                            </div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">zài xuéxí</div><div class="chinese-text text-center fw-bold fs-5">A 在学习</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">hěn hǎotīng</div><div class="chinese-text text-center fw-bold fs-5">B 很好听</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">fēicháng rè</div><div class="chinese-text text-center fw-bold fs-5">C 非常热 <span class="check-mark">✓</span></div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 11 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
-                                            <div class="ex-label">例如：</div>
-                                            <div>
-                                                <div class="mb-2"><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo!</div><div class="chinese-text">女：你 好！</div></div>
-                                                <div><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo! Hěn gāoxìng rènshi nǐ.</div><div class="chinese-text">男：你 好！很 高兴 认识 你。</div></div>
-                                            </div>
-                                        </div>
-                                        <div class="box-answer">C</div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 16 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-2"><div class="pinyin-text">Xiàwǔ wǒ qù chāoshì, wǒ xiǎng mǎi yìxiē shuǐguǒ.</div><div class="chinese-text">下午 我 去 超市，我 想 买 一些 水果。</div></div>
-                                            <div class="mb-4"><div class="pinyin-text" style="padding-left: 45px;">Shuōhuàrén xiàwǔ qù nǎlǐ?</div><div class="chinese-text">问：说话人 下午 去 哪里？</div></div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">chāoshì</div><div class="chinese-text text-center fw-bold fs-5">A 超市 <span class="check-mark">✓</span></div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">yīyuàn</div><div class="chinese-text text-center fw-bold fs-5">B 医院</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">xuéxiào</div><div class="chinese-text text-center fw-bold fs-5">C 学校</div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 21 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
-                                            <div class="ex-label">例如：</div>
-                                            <div><div class="pinyin-text">Wǒ hěn xǐhuan zhè běn shū.</div><div class="chinese-text">我 很 喜欢 这 本 书。</div></div>
-                                        </div>
-                                        <div class="box-answer">E</div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 26 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start">
-                                            <div class="ex-label">例如：</div>
-                                            <div><div class="pinyin-text">Nǐ hē shuǐ ma?</div><div class="chinese-text">你 喝 水 吗？</div></div>
-                                        </div>
-                                        <div class="box-answer">F</div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 31 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div>
-                                            <div class="pinyin-text text-center">Nǐ <span style="display:inline-block; width: 60px;"></span> shénme míngzi?</div>
-                                            <div class="chinese-text">你 （<span class="ex-inline-box" style="border:none;">D</span>） 什么 名字？</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% elif first_q_obj.question_number == 36 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-2"><div class="pinyin-text">Qǐngwèn xiànzài jǐ diǎn le?</div><div class="chinese-text">请问 现在 几 点 了？</div></div>
-                                            <div class="mb-4"><div class="pinyin-text" style="padding-left: 35px;">Shuōhuàrén xiǎng zhīdào shénme?</div><div class="chinese-text">★ 说话人 想 知道 什么？</div></div>
-                                            <div class="row g-3">
-                                                <div class="col-4"><div class="pinyin-text text-center small">shíjiān</div><div class="chinese-text text-center fw-bold fs-5">A 时间 <span class="check-mark">✓</span></div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">míngzi</div><div class="chinese-text text-center fw-bold fs-5">B 名字</div></div>
-                                                <div class="col-4"><div class="pinyin-text text-center small">fángjiānhào</div><div class="chinese-text text-center fw-bold fs-5">C 房间号</div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endwith %}
-
-                            <!-- DANH SÁCH CÂU HỎI -->
-                            {% for q in group.list %}
-                                <div class="question-row" id="q{{ q.question_number }}">
-                                    <div class="q-header-inline">
-                                        <div class="q-number-text">{{ q.question_number }}.</div>
-                                        <div class="q-content-area w-100">
-                                            {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                                                <div class="interleave-group passage-group border-bottom mb-3 pb-3">
-                                                    <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
-                                                    <div class="raw-chinese" style="display: none;">{{ q.passage_text|default:""|linebreaksbr }}</div>
-                                                    <div class="interleaved-output"></div>
-                                                </div>
-                                            {% endif %}
-                                            
-                                            {% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' or q.content_pinyin and q.content_pinyin != 'nan' %}
-                                                <div class="interleave-group content-group">
-                                                    <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
-                                                    <div class="raw-chinese" style="display: none;">{% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' %}{{ q.content|linebreaksbr }}{% endif %}</div>
-                                                    <div class="interleaved-output"></div>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <div class="q-options-area ms-5">
-                                        {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
-                                            <div class="af-options-wrapper mt-2">
-                                                {% for opt in "ABCDEF"|make_list %}
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
-                                                {% endfor %}
-                                            </div>
-                                        {% elif q.image %}
-                                            <div class="row g-4 mt-1">
-                                                <div class="col-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="auto-crop-btn" for="q{{ q.id }}_A"><div class="crop-window show-part-A"><img src="{{ q.image.url }}" alt="A"></div><div class="text-center mt-3 fw-bold text-dark fs-5">A</div></label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="auto-crop-btn" for="q{{ q.id }}_B"><div class="crop-window show-part-B"><img src="{{ q.image.url }}" alt="B"></div><div class="text-center mt-3 fw-bold text-dark fs-5">B</div></label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="auto-crop-btn" for="q{{ q.id }}_C"><div class="crop-window show-part-C"><img src="{{ q.image.url }}" alt="C"></div><div class="text-center mt-3 fw-bold text-dark fs-5">C</div></label>
-                                                </div>
-                                            </div>
-                                        {% else %}
-                                            <div class="row g-3 mt-1">
-                                                {% if q.option_a or q.option_a_pinyin %}
-                                                <div class="col-md-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_A_txt"><span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span><div>{% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}<div class="chinese-text">{{ q.option_a }}</div></div></label>
-                                                </div>
-                                                {% endif %}
-                                                {% if q.option_b or q.option_b_pinyin %}
-                                                <div class="col-md-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_B_txt"><span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span><div>{% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}<div class="chinese-text">{{ q.option_b }}</div></div></label>
-                                                </div>
-                                                {% endif %}
-                                                {% if q.option_c or q.option_c_pinyin %}
-                                                <div class="col-md-4">
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_C_txt"><span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span><div>{% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}<div class="chinese-text">{{ q.option_c }}</div></div></label>
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
+                <!-- PHẦN 1 -->
+                <div class="section-title">Phần 1: Nghe và chọn Đúng / Sai</div>
+                
+                <!-- Ví dụ Phần 1 (Hardcode) -->
+                <div class="example-box">
+                    <h5>Ví dụ (例如):</h5>
+                    <div class="row align-items-center">
+                        <div class="col-4 text-center">
+                            <!-- Ảnh ví dụ bạn có thể lưu trong static -->
+                            <img src="{% static 'images/examples/hsk1_p1_ex.jpg' %}" class="answer-img" alt="Ví dụ">
+                        </div>
+                        <div class="col-8">
+                            <div class="pinyin-text">hěn gāoxìng</div>
+                            <div class="hanzi-text">很 高兴</div>
+                            <div class="text-success fw-bold">✓ (Đúng)</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Vòng lặp câu hỏi Phần 1 -->
+                {% for q in part1_questions %}
+                <div class="question-card">
+                    <p class="fw-bold">Câu {{ q.question_number }}:</p>
+                    <div class="text-center mb-3">
+                        {% if q.image_a %}
+                            <!-- Logic gọi ảnh mới -->
+                            <img src="{{ q.image_a.url }}" class="answer-img" style="max-width: 200px;" alt="Hình câu {{ q.question_number }}">
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-center gap-4">
+                        <label><input type="radio" name="q_{{ q.id }}" value="T"> Đúng (✓)</label>
+                        <label><input type="radio" name="q_{{ q.id }}" value="F"> Sai (✗)</label>
+                    </div>
+                </div>
                 {% endfor %}
+
+                <!-- PHẦN 2 -->
+                <div class="section-title mt-5">Phần 2: Nghe và chọn bức tranh tương ứng</div>
+                
+                <!-- Ví dụ Phần 2 (Hardcode) -->
+                <div class="example-box">
+                    <h5>Ví dụ (例如):</h5>
+                    <div class="pinyin-text">Nǐ xǐhuan shénme yùndòng?</div>
+                    <div class="hanzi-text">你喜欢什么运动？</div>
+                    <div class="row mt-2">
+                        <div class="col-4 text-center">
+                            <span>[A]</span><br>
+                            <img src="{% static 'images/examples/hsk1_p2_A.jpg' %}" class="answer-img">
+                        </div>
+                        <div class="col-4 text-center">
+                            <span class="fw-bold text-success">[B] (Đáp án)</span><br>
+                            <img src="{% static 'images/examples/hsk1_p2_B.jpg' %}" class="answer-img">
+                        </div>
+                        <div class="col-4 text-center">
+                            <span>[C]</span><br>
+                            <img src="{% static 'images/examples/hsk1_p2_C.jpg' %}" class="answer-img">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vòng lặp câu hỏi Phần 2 -->
+                {% for q in part2_questions %}
+                <div class="question-card">
+                    <p class="fw-bold">Câu {{ q.question_number }}:</p>
+                    <div class="row text-center">
+                        {% if q.image_a %}
+                        <div class="col-4">
+                            <label>
+                                <img src="{{ q.image_a.url }}" class="answer-img" alt="Đáp án A"><br>
+                                <input type="radio" name="q_{{ q.id }}" value="A"> A
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if q.image_b %}
+                        <div class="col-4">
+                            <label>
+                                <img src="{{ q.image_b.url }}" class="answer-img" alt="Đáp án B"><br>
+                                <input type="radio" name="q_{{ q.id }}" value="B"> B
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if q.image_c %}
+                        <div class="col-4">
+                            <label>
+                                <img src="{{ q.image_c.url }}" class="answer-img" alt="Đáp án C"><br>
+                                <input type="radio" name="q_{{ q.id }}" value="C"> C
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- PHẦN 3 -->
+                <div class="section-title mt-5">Phần 3: Nối tranh (Sử dụng các ảnh A-F)</div>
+                
+                <!-- Ví dụ Phần 3 (Hardcode) -->
+                <div class="example-box">
+                    <h5>Ví dụ (例如): Khung tranh chung từ A đến F</h5>
+                    <div class="row text-center mb-3">
+                        <div class="col-2">A<img src="{% static 'images/examples/hsk1_p3_A.jpg' %}" class="answer-img"></div>
+                        <div class="col-2">B<img src="{% static 'images/examples/hsk1_p3_B.jpg' %}" class="answer-img"></div>
+                        <div class="col-2">C<img src="{% static 'images/examples/hsk1_p3_C.jpg' %}" class="answer-img"></div>
+                        <div class="col-2">D<img src="{% static 'images/examples/hsk1_p3_D.jpg' %}" class="answer-img"></div>
+                        <div class="col-2">E<img src="{% static 'images/examples/hsk1_p3_E.jpg' %}" class="answer-img"></div>
+                        <div class="col-2">F<img src="{% static 'images/examples/hsk1_p3_F.jpg' %}" class="answer-img"></div>
+                    </div>
+                    <p>Câu hỏi ví dụ: Nǐ hǎo! (你好！) -> Chọn <strong>E</strong></p>
+                </div>
+
+                <!-- Khung tranh chung (nếu Part 3 gộp ảnh) hoặc lặp trực tiếp -->
+                <!-- Giả sử Part 3 có một bảng chung gồm 6 ảnh ở câu đầu tiên -->
+                {% if part3_group_images %}
+                <div class="row text-center mb-4">
+                    <!-- Gọi dữ liệu ảnh từ đối tượng chứa chung hoặc câu hỏi đầu tiên của Part 3 -->
+                    <div class="col-4 col-md-2 mb-2">A <img src="{{ part3_group.image_a.url }}" class="answer-img"></div>
+                    <div class="col-4 col-md-2 mb-2">B <img src="{{ part3_group.image_b.url }}" class="answer-img"></div>
+                    <div class="col-4 col-md-2 mb-2">C <img src="{{ part3_group.image_c.url }}" class="answer-img"></div>
+                    <div class="col-4 col-md-2 mb-2">D <img src="{{ part3_group.image_d.url }}" class="answer-img"></div>
+                    <div class="col-4 col-md-2 mb-2">E <img src="{{ part3_group.image_e.url }}" class="answer-img"></div>
+                    <div class="col-4 col-md-2 mb-2">F <img src="{{ part3_group.image_f.url }}" class="answer-img"></div>
+                </div>
+                {% endif %}
+
+                {% for q in part3_questions %}
+                <div class="question-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <span class="fw-bold me-2">{{ q.question_number }}.</span>
+                            {% if q.pinyin %}<div class="pinyin-text d-inline-block">{{ q.pinyin }}</div>{% endif %}
+                            <div class="hanzi-text">{{ q.content }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" name="q_{{ q.id }}">
+                                <option value="">Chọn đáp án...</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Nút nộp bài (Nằm dưới cùng bên trái, trên mobile sẽ ở dưới cùng) -->
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">Nộp Bài (交卷)</button>
+                </div>
             </form>
         </div>
 
-        <!-- ================= CỘT PHẢI ================= -->
-        <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
+        <!-- CỘT PHẢI: STICKY SIDEBAR -->
+        <div class="col-md-4 col-lg-3">
             <div class="sticky-sidebar">
-                <div class="panel-box text-center mb-4">
-                    <p class="text-uppercase fw-bold text-muted mb-4 small">Thời gian còn lại</p>
-                    <div class="timer-circle" id="countdown-circle">
-                        <span id="countdown">{{ exam.duration_minutes|default:40 }}:00</span>
-                    </div>
+                <h4 class="mb-3">Thời gian còn lại</h4>
+                <div class="timer-circle" id="countdown-timer">
+                    35:00
                 </div>
-
-                <div class="panel-box">
-                    <button class="btn btn-outline-secondary w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse">
-                        <i class="fas fa-list me-2"></i> Hiện / Ẩn Bảng Tiến Độ
-                    </button>
-                    
-                    <div class="collapse d-lg-block" id="gridCollapse">
-                        <p class="fw-bold mb-3 d-none d-lg-block" style="font-size: 1.1rem;"><i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ</p>
-                        <div class="grid-progress mb-4">
-                            {% for q in questions %}
-                                <div class="grid-item" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">{{ q.question_number }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <button type="button" class="btn btn-submit w-100" onclick="submitExam()"><i class="fas fa-paper-plane me-2"></i> NỘP BÀI THI</button>
+                <p class="text-muted small">Thời gian thi HSK 1 thường là 35 phút (bao gồm cả nghe và đọc).</p>
+                <hr>
+                <div class="d-grid">
+                    <!-- Nút nộp bài dự phòng ở Sidebar -->
+                    <button type="button" class="btn btn-outline-danger" onclick="document.getElementById('hsk-exam-form').submit();">Nộp bài ngay</button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <button id="backToTopBtn" onclick="scrollToTop()" title="Lên đầu trang" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 999; border: none; outline: none; background-color: #9B1C1C; color: white; cursor: pointer; width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 5px 15px rgba(155, 28, 28, 0.4); transition: all 0.3s ease; align-items: center; justify-content: center; font-size: 1.5rem;">
-        <i class="fas fa-arrow-up"></i>
-    </button>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+<!-- Script cho đồng hồ đếm ngược -->
 <script>
-    window.addEventListener('scroll', function() {
-        let btn = document.getElementById("backToTopBtn");
-        if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
-            btn.style.display = "flex"; btn.style.opacity = "1";
+    // Set thời gian thi (ví dụ 35 phút = 35 * 60 = 2100 giây)
+    let timeInSeconds = 35 * 60;
+    const timerElement = document.getElementById('countdown-timer');
+
+    function updateTimer() {
+        const minutes = Math.floor(timeInSeconds / 60);
+        let seconds = timeInSeconds % 60;
+        
+        // Format thêm số 0 đằng trước nếu giây < 10
+        if(seconds < 10) {
+            seconds = '0' + seconds;
+        }
+        
+        timerElement.textContent = `${minutes}:${seconds}`;
+        
+        if (timeInSeconds > 0) {
+            timeInSeconds--;
         } else {
-            btn.style.opacity = "0";
-            setTimeout(() => { if (btn.style.opacity == "0") btn.style.display = "none"; }, 300);
-        }
-    });
-
-    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
-    function scrollToQ(qNumber) { 
-        const el = document.getElementById('q' + qNumber); 
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
-            if (window.innerWidth < 992) {
-                let collapseEl = document.getElementById('gridCollapse');
-                let bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
-                if (bsCollapse) bsCollapse.hide();
-            }
+            clearInterval(timerInterval);
+            alert("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
+            document.getElementById('hsk-exam-form').submit();
         }
     }
-    
-    if (document.getElementById('countdown')) {
-        let timeInSeconds = {{ exam.duration_minutes|default:40 }} * 60;
-        function startTimer() {
-            let display = document.getElementById('countdown');
-            let timer = setInterval(function () {
-                let minutes = parseInt(timeInSeconds / 60, 10);
-                let seconds = parseInt(timeInSeconds % 60, 10);
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-                display.textContent = minutes + ":" + seconds;
-                if (--timeInSeconds < 0) {
-                    clearInterval(timer);
-                    alert("⏳ Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
-                    if(document.getElementById('exam-form')) { document.getElementById('exam-form').submit(); }
-                }
-            }, 1000);
-        }
-        window.onload = startTimer;
-    }
-    
-    function submitExam() {
-        let totalDone = document.querySelectorAll('.grid-item.done').length;
-        let totalQ = document.querySelectorAll('.grid-item').length;
-        if (totalDone < totalQ) {
-            let missing = totalQ - totalDone;
-            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) return;
-        } else {
-            if (!confirm("✅ Xác nhận nộp bài?")) return;
-        }
-        document.getElementById('exam-form').submit();
-    }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('.interleave-group').forEach(function(group) {
-            let pinyinRaw = group.querySelector('.raw-pinyin');
-            let chineseRaw = group.querySelector('.raw-chinese');
-            let output = group.querySelector('.interleaved-output');
-            if (output) {
-                let pHtml = pinyinRaw ? pinyinRaw.innerHTML : "";
-                let cHtml = chineseRaw ? chineseRaw.innerHTML : "";
-                let pLines = pHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
-                let cLines = cHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
-                let maxLines = Math.max(pLines.length, cLines.length);
-                let isContentGroup = group.classList.contains('content-group');
-                let cClass = isContentGroup ? "chinese-text fw-bold" : "chinese-text";
-                let html = '';
-                for(let i = 0; i < maxLines; i++) {
-                    let pStr = i < pLines.length ? pLines[i] : "";
-                    let cStr = i < cLines.length ? cLines[i] : "";
-                    if (pStr || cStr) {
-                        html += '<div style="margin-bottom: 12px;">';
-                        if (pStr) html += `<div class="pinyin-text" style="color: #64748B; margin-bottom: 2px;">${pStr}</div>`;
-                        if (cStr) html += `<div class="${cClass}" style="line-height: 1.5; margin-bottom: 0;">${cStr}</div>`;
-                        html += '</div>';
-                    }
-                }
-                output.innerHTML = html;
-            }
-        });
-
-        function parseOptions(text) {
-            let dict = {};
-            if (!text) return dict;
-            let cleanText = text.replace(/[\r\n\t\u3000]+/g, ' ').trim();
-            let parts = cleanText.split(/([A-F])[.、:：\s]+/);
-            for (let i = 1; i < parts.length; i += 2) {
-                let letter = parts[i].trim();
-                let content = parts[i+1] ? parts[i+1].trim() : "";
-                if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
-            }
-            return dict;
-        }
-
-        document.querySelectorAll('.format-shared-options').forEach(function(el) {
-            let rawText = el.innerText || el.textContent;
-            let textDict = parseOptions(rawText);
-            let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
-            let pinyinDict = {};
-            if (pinyinEl) {
-                let htmlContent = pinyinEl.innerHTML; 
-                let rawPinyinText = pinyinEl.textContent || pinyinEl.innerText;
-                let hasLetters = /([A-F])[.、:：\s]+/.test(rawPinyinText);
-                if (hasLetters) { pinyinDict = parseOptions(rawPinyinText); } 
-                else {
-                    let pinyinLines = htmlContent.split(/<br\s*\/?>/i).map(s => { let tmp = document.createElement('div'); tmp.innerHTML = s; return (tmp.textContent || tmp.innerText || "").trim(); }).filter(s => s.length > 0);
-                    let letters = Object.keys(textDict).sort(); 
-                    for (let i = 0; i < letters.length; i++) { if (pinyinLines[i]) pinyinDict[letters[i]] = pinyinLines[i]; }
-                }
-            }
-            let html = '<div class="shared-options-grid">';
-            let found = false;
-            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
-                if (textDict[letter]) {
-                    found = true;
-                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #64748B; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
-                    html += `<div class="shared-opt-item shadow-sm"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${textDict[letter]}</div></div></div>`;
-                }
-            });
-            html += '</div>';
-            if (found) { el.insertAdjacentHTML('afterend', html); el.style.display = 'none'; if (pinyinEl) pinyinEl.style.display = 'none'; } 
-            else { el.style.display = 'block'; el.classList.add('chinese-text', 'mb-2'); if (pinyinEl) { pinyinEl.style.display = 'block'; pinyinEl.classList.add('pinyin-text', 'mb-3'); pinyinEl.style.color = '#64748B'; } }
-        });
-    });
+    // Cập nhật mỗi giây
+    const timerInterval = setInterval(updateTimer, 1000);
 </script>
 {% endblock %}

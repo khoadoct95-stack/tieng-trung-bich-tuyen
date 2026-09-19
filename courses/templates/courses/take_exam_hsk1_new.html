@@ -1,4 +1,5 @@
 {% extends 'courses/base.html' %}
+{% load static %}
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
@@ -189,8 +190,9 @@
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
                                                     <label class="auto-crop-btn" style="cursor: default;">
-                                                        <div class="crop-window" style="background: #fff;">
-                                                            <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: contain; max-width: 100%; opacity: 0.5;">
+                                                        <!-- Dùng khung div aspect-ratio thay vì .crop-window -->
+                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_A.jpg' %}" alt="A" style="max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
                                                     </label>
@@ -198,18 +200,18 @@
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
                                                     <label class="auto-crop-btn" style="cursor: default;">
-                                                        <div class="crop-window" style="background: #fff;">
-                                                            <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: contain; max-width: 100%; opacity: 0.5;">
+                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_B.jpg' %}" alt="B" style="max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
                                                     </label>
                                                 </div>
                                                 <div class="col-4">
-                                                    <!-- Trạng thái được chọn (Checked) -->
+                                                    <!-- Trạng thái được chọn (Checked) cho đáp án C -->
                                                     <input type="radio" class="opt-radio" checked disabled>
                                                     <label class="auto-crop-btn" style="border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); cursor: default;">
-                                                        <div class="crop-window" style="background: #fff;">
-                                                            <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: contain; max-width: 100%;">
+                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
+                                                            <img src="{% static 'images/examples/hsk1_p1_C.jpg' %}" alt="C" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">C <span class="check-mark">✓</span></div>
                                                     </label>

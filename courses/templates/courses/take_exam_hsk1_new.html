@@ -30,7 +30,7 @@
     .q-options-area { margin-top: 15px; }
     .q-options-area.ms-5 { margin-left: 60px !important; }
 
-    /* Rổ hình ảnh dùng chung cho câu 11-15 (Giữ nguyên crop vì CSDL đang dùng 1 ảnh ghép) */
+    /* Rổ hình ảnh dùng chung cho câu 11-15 */
     .shared-pool { background: #fff; padding: 30px 40px; border-radius: 16px 16px 0 0; }
     .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 12px; background-color: #fff; border: 2px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: transform 0.3s, border-color 0.3s; }
@@ -59,7 +59,7 @@
     .circle-label:hover { border-color: #94A3B8; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); color: var(--text-main); }
     .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); }
     
-    /* Auto crop cho Câu 1-5 (vẫn giữ nguyên vì CSDL đang dùng ảnh ghép cho các câu hỏi chính) */
+    /* Auto crop cho Câu 1-5 */
     .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 2px solid transparent; border-radius: 16px; transition: all 0.3s ease; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
     .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); }
@@ -180,39 +180,34 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- KHU VỰC VÍ DỤ CỐ ĐỊNH (PHẦN 1) -->
+                                <!-- =================== VÍ DỤ PHẦN 1 =================== -->
                                 {% if first_q_obj.question_number == 1 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-start">
                                         <div class="ex-label">例如：</div>
                                         <div class="flex-grow-1">
                                             <div class="row g-4 mt-1">
-                                                <!-- Đáp án A -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default;">
+                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
                                                         <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
                                                             <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
                                                     </label>
                                                 </div>
-                                                
-                                                <!-- Đáp án B -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default;">
+                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
                                                         <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
                                                             <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
                                                     </label>
                                                 </div>
-                                                
-                                                <!-- Đáp án C (Được chọn, Đổi màu & Khóa cứng) -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default;">
+                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
                                                         <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
                                                             <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
@@ -223,6 +218,8 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- =================== VÍ DỤ PHẦN 2 =================== -->
                                 {% elif first_q_obj.question_number == 6 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-start">
@@ -235,21 +232,21 @@
                                             <div class="row g-3 mt-1">
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
                                                         <div><div class="pinyin-text small">zài xuéxí</div><div class="chinese-text">在学习</div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
                                                         <div><div class="pinyin-text small">hěn hǎotīng</div><div class="chinese-text">很好听</div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
                                                         <div><div class="pinyin-text small">fēicháng rè</div><div class="chinese-text">非常热 <span class="check-mark">✓</span></div></div>
                                                     </label>
@@ -258,6 +255,8 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- =================== VÍ DỤ PHẦN 3 =================== -->
                                 {% elif first_q_obj.question_number == 11 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
@@ -270,10 +269,12 @@
                                         </div>
                                         <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
                                             <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); cursor: default;">C</label>
+                                            <label class="circle-label" style="cursor: default; pointer-events: none;">C</label>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- =================== VÍ DỤ PHẦN 4 =================== -->
                                 {% elif first_q_obj.question_number == 16 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-start">
@@ -284,21 +285,21 @@
                                             <div class="row g-3 mt-1">
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
                                                         <div><div class="pinyin-text small">chāoshì</div><div class="chinese-text">超市 <span class="check-mark">✓</span></div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
                                                         <div><div class="pinyin-text small">yīyuàn</div><div class="chinese-text">医院</div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
                                                         <div><div class="pinyin-text small">xuéxiào</div><div class="chinese-text">学校</div></div>
                                                     </label>
@@ -307,6 +308,8 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- VÍ DỤ PHẦN ĐỌC 1 -->
                                 {% elif first_q_obj.question_number == 21 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
@@ -316,10 +319,12 @@
                                         </div>
                                         <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
                                             <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); cursor: default;">E</label>
+                                            <label class="circle-label" style="cursor: default; pointer-events: none;">E</label>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- VÍ DỤ PHẦN ĐỌC 2 -->
                                 {% elif first_q_obj.question_number == 26 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
@@ -329,10 +334,12 @@
                                         </div>
                                         <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
                                             <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); cursor: default;">F</label>
+                                            <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- VÍ DỤ PHẦN ĐỌC 3 -->
                                 {% elif first_q_obj.question_number == 31 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-center w-100">
@@ -345,10 +352,12 @@
                                         </div>
                                         <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
                                             <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); cursor: default;">D</label>
+                                            <label class="circle-label" style="cursor: default; pointer-events: none;">D</label>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- VÍ DỤ PHẦN ĐỌC 4 -->
                                 {% elif first_q_obj.question_number == 36 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-start">
@@ -359,21 +368,21 @@
                                             <div class="row g-3 mt-1">
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="border-color: var(--primary-color); background: var(--primary-light); box-shadow: var(--shadow-hover); cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
                                                         <div><div class="pinyin-text small">shíjiān</div><div class="chinese-text">时间 <span class="check-mark">✓</span></div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
                                                         <div><div class="pinyin-text small">míngzi</div><div class="chinese-text">名字</div></div>
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default;">
+                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
                                                         <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
                                                         <div><div class="pinyin-text small">fángjiānhào</div><div class="chinese-text">房间号</div></div>
                                                     </label>
@@ -385,7 +394,7 @@
                                 {% endif %}
                             {% endwith %}
 
-                            <!-- DANH SÁCH CÂU HỎI -->
+                            <!-- DANH SÁCH CÂU HỎI CHÍNH THỨC -->
                             {% for q in group.list %}
                                 <div class="question-row" id="q{{ q.question_number }}">
                                     <div class="q-header-inline">

@@ -180,37 +180,41 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- KHU VỰC VÍ DỤ CỐ ĐỊNH -->
+                                <!-- KHU VỰC VÍ DỤ CỐ ĐỊNH (PHẦN 1) -->
                                 {% if first_q_obj.question_number == 1 %}
                                 <div class="example-row">
                                     <div class="d-flex align-items-start">
                                         <div class="ex-label">例如：</div>
                                         <div class="flex-grow-1">
                                             <div class="row g-4 mt-1">
+                                                <!-- Đáp án A -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
                                                     <label class="auto-crop-btn" style="cursor: default;">
-                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
-                                                            <!-- ĐÃ GẮN CHẾT ĐƯỜNG DẪN CHÍNH XÁC -->
-                                                            <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                            <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
                                                     </label>
                                                 </div>
+                                                
+                                                <!-- Đáp án B -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
                                                     <label class="auto-crop-btn" style="cursor: default;">
-                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
-                                                            <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                            <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
                                                     </label>
                                                 </div>
+                                                
+                                                <!-- Đáp án C (Được chọn, Đổi màu & Khóa cứng) -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="auto-crop-btn" style="border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); cursor: default;">
-                                                        <div style="width: 100%; aspect-ratio: 5/4; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden;">
-                                                            <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                    <label class="auto-crop-btn" style="cursor: default;">
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                            <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">C <span class="check-mark">✓</span></div>
                                                     </label>

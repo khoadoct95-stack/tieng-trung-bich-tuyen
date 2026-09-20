@@ -172,9 +172,9 @@
                                         {% endif %}
                                     </div>
                                 {% endif %}
-                                <!-- ================= VÍ DỤ PHẦN 1 ================= -->
+                                <!-- ================= VÍ DỤ PHẦN 1 (Đã làm nền trắng đồng bộ) ================= -->
                                 {% if first_q_obj.question_number == 1 %}
-                                <div class="example-row">
+                                <div class="example-row" style="background-color: #fff;"> <!-- Ép nền trắng cho toàn bộ hàng ví dụ -->
                                     <div class="d-flex align-items-start">
                                         <div class="ex-label">例如：</div>
                                         <div class="flex-grow-1">
@@ -182,8 +182,9 @@
                                                 <!-- Đáp án A -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                                                        <!-- Đã đổi background-color sang #fff -->
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff;">
                                                             <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
@@ -193,8 +194,9 @@
                                                 <!-- Đáp án B -->
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                                                        <!-- Đã đổi background-color sang #fff -->
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff;">
                                                             <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
@@ -205,7 +207,8 @@
                                                 <div class="col-4">
                                                     <input type="radio" class="opt-radio" checked disabled>
                                                     <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
+                                                        <!-- Đã đổi background-color sang #fff -->
+                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff;">
                                                             <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                         </div>
                                                         <div class="text-center mt-3 fw-bold text-dark fs-5">C <span class="check-mark">✓</span></div>

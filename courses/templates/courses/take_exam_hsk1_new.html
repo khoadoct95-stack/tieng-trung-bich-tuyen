@@ -30,7 +30,7 @@
     .q-options-area { margin-top: 15px; }
     .q-options-area.ms-5 { margin-left: 60px !important; }
 
-    /* Rổ hình ảnh dùng chung cho câu 11-15 */
+    /* Rổ hình ảnh dùng chung cho câu 11-15 (Giữ nguyên crop vì CSDL đang dùng 1 ảnh ghép) */
     .shared-pool { background: #fff; padding: 30px 40px; border-radius: 16px 16px 0 0; }
     .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 12px; background-color: #fff; border: 2px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: transform 0.3s, border-color 0.3s; }
@@ -42,13 +42,6 @@
     .shared-opt-item { background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
     .shared-opt-letter { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); background: var(--primary-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; margin-right: 15px; }
     
-    /* VÍ DỤ */
-    .example-row { padding: 25px 40px; background: #f8fafc; border-bottom: 2px dashed #cbd5e1; }
-    .example-row:first-child { border-radius: 16px 16px 0 0; }
-    .ex-label { font-family: 'Noto Sans SC', sans-serif; font-size: 1.35rem; font-weight: 800; color: #475569; white-space: nowrap; margin-right: 15px; margin-top: 2px; }
-    .check-mark { color: #10B981; font-weight: 900; margin-left: 5px; font-size: 1.3rem; }
-    .box-answer { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 2px solid #64748b; font-weight: 900; font-size: 1.3rem; color: #334155; margin-left: auto; }
-    
     .opt-radio, .circle-radio { display: none; }
     .opt-label { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; background: #f8fafc; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
     .opt-label:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: #fff; border-color: #cbd5e1; }
@@ -59,7 +52,7 @@
     .circle-label:hover { border-color: #94A3B8; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); color: var(--text-main); }
     .circle-radio:checked + .circle-label { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(155, 28, 28, 0.3); }
     
-    /* Auto crop cho Câu 1-5 */
+    /* Auto crop cho Câu 1-5 (vẫn giữ nguyên vì CSDL đang dùng ảnh ghép cho các câu hỏi chính) */
     .auto-crop-btn { display: flex; flex-direction: column; height: 100%; cursor: pointer; border: 2px solid transparent; border-radius: 16px; transition: all 0.3s ease; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); }
     .auto-crop-btn:hover { border-color: #cbd5e1; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--primary-color); box-shadow: var(--shadow-hover); background: var(--primary-light); }
@@ -81,7 +74,7 @@
         .sticky-sidebar { position: relative; top: 0; margin-bottom: 20px; }
         .panel-box { padding: 15px; margin-bottom: 15px; }
         .timer-circle { width: 100px; height: 100px; font-size: 1.6rem; border-width: 4px; }
-        .question-row, .example-row { padding: 20px 20px; }
+        .question-row { padding: 20px 20px; }
         .q-options-area.ms-5 { margin-left: 0 !important; }
         .exam-main-title { font-size: 1.6rem; }
         .shared-pool { padding: 15px 20px; }
@@ -159,7 +152,7 @@
                         <div class="q-card-group">
                             
                             {% with first_q_obj=group.list.0 %}
-                                <!-- KHU VỰC DÙNG CHUNG -->
+                                <!-- KHU VỰC DÙNG CHUNG (CẦN GIỮ LẠI CHO CÂU HỎI NHÓM) -->
                                 {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
                                     <div class="shared-pool">
                                         {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
@@ -178,219 +171,6 @@
                                             </div>
                                         {% endif %}
                                     </div>
-                                {% endif %}
-
-                                <!-- =================== VÍ DỤ PHẦN 1 =================== -->
-                                {% if first_q_obj.question_number == 1 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="row g-4 mt-1">
-                                                <div class="col-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
-                                                            <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                        </div>
-                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">A</div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
-                                                            <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                        </div>
-                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">B</div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                        <div style="width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc;">
-                                                            <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                        </div>
-                                                        <div class="text-center mt-3 fw-bold text-dark fs-5">C <span class="check-mark">✓</span></div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- =================== VÍ DỤ PHẦN 2 =================== -->
-                                {% elif first_q_obj.question_number == 6 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-3">
-                                                <div class="pinyin-text">Jīntiān tiānqì zěnmeyàng?</div>
-                                                <div class="chinese-text">今天 天气 怎么样？</div>
-                                            </div>
-                                            <div class="row g-3 mt-1">
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
-                                                        <div><div class="pinyin-text small">zài xuéxí</div><div class="chinese-text">在学习</div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
-                                                        <div><div class="pinyin-text small">hěn hǎotīng</div><div class="chinese-text">很好听</div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
-                                                        <div><div class="pinyin-text small">fēicháng rè</div><div class="chinese-text">非常热 <span class="check-mark">✓</span></div></div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- =================== VÍ DỤ PHẦN 3 =================== -->
-                                {% elif first_q_obj.question_number == 11 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start flex-grow-1">
-                                            <div class="ex-label">例如：</div>
-                                            <div>
-                                                <div class="mb-2"><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo!</div><div class="chinese-text">女：你 好！</div></div>
-                                                <div><div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo! Hěn gāoxìng rènshi nǐ.</div><div class="chinese-text">男：你 好！很 高兴 认识 你。</div></div>
-                                            </div>
-                                        </div>
-                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
-                                            <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="cursor: default; pointer-events: none;">C</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- =================== VÍ DỤ PHẦN 4 =================== -->
-                                {% elif first_q_obj.question_number == 16 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-2"><div class="pinyin-text">Xiàwǔ wǒ qù chāoshì, wǒ xiǎng mǎi yìxiē shuǐguǒ.</div><div class="chinese-text">下午 我 去 超市，我 想 买 一些 水果。</div></div>
-                                            <div class="mb-4"><div class="pinyin-text" style="padding-left: 45px;">Shuōhuàrén xiàwǔ qù nǎlǐ?</div><div class="chinese-text">问：说话人 下午 去 哪里？</div></div>
-                                            <div class="row g-3 mt-1">
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
-                                                        <div><div class="pinyin-text small">chāoshì</div><div class="chinese-text">超市 <span class="check-mark">✓</span></div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
-                                                        <div><div class="pinyin-text small">yīyuàn</div><div class="chinese-text">医院</div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
-                                                        <div><div class="pinyin-text small">xuéxiào</div><div class="chinese-text">学校</div></div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- VÍ DỤ PHẦN ĐỌC 1 -->
-                                {% elif first_q_obj.question_number == 21 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start flex-grow-1">
-                                            <div class="ex-label">例如：</div>
-                                            <div><div class="pinyin-text">Wǒ hěn xǐhuan zhè běn shū.</div><div class="chinese-text">我 很 喜欢 这 本 书。</div></div>
-                                        </div>
-                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
-                                            <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="cursor: default; pointer-events: none;">E</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- VÍ DỤ PHẦN ĐỌC 2 -->
-                                {% elif first_q_obj.question_number == 26 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start flex-grow-1">
-                                            <div class="ex-label">例如：</div>
-                                            <div><div class="pinyin-text">Nǐ hē shuǐ ma?</div><div class="chinese-text">你 喝 水 吗？</div></div>
-                                        </div>
-                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
-                                            <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- VÍ DỤ PHẦN ĐỌC 3 -->
-                                {% elif first_q_obj.question_number == 31 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-center w-100">
-                                        <div class="d-flex align-items-start flex-grow-1">
-                                            <div class="ex-label">例如：</div>
-                                            <div>
-                                                <div class="pinyin-text">Nǐ <span style="display:inline-block; width: 60px;"></span> shénme míngzi?</div>
-                                                <div class="chinese-text">你 （<span class="ex-inline-box" style="border:none;">D</span>） 什么 名字？</div>
-                                            </div>
-                                        </div>
-                                        <div class="af-options-wrapper justify-content-end" style="margin-right: 10px;">
-                                            <input type="radio" class="circle-radio" checked disabled>
-                                            <label class="circle-label" style="cursor: default; pointer-events: none;">D</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- VÍ DỤ PHẦN ĐỌC 4 -->
-                                {% elif first_q_obj.question_number == 36 %}
-                                <div class="example-row">
-                                    <div class="d-flex align-items-start">
-                                        <div class="ex-label">例如：</div>
-                                        <div class="flex-grow-1">
-                                            <div class="mb-2"><div class="pinyin-text">Qǐngwèn xiànzài jǐ diǎn le?</div><div class="chinese-text">请问 现在 几 点 了？</div></div>
-                                            <div class="mb-4"><div class="pinyin-text" style="padding-left: 35px;">Shuōhuàrén xiǎng zhīdào shénme?</div><div class="chinese-text">★ 说话人 想 知道 什么？</div></div>
-                                            <div class="row g-3 mt-1">
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" checked disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">A.</span>
-                                                        <div><div class="pinyin-text small">shíjiān</div><div class="chinese-text">时间 <span class="check-mark">✓</span></div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">B.</span>
-                                                        <div><div class="pinyin-text small">míngzi</div><div class="chinese-text">名字</div></div>
-                                                    </label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="radio" class="opt-radio" disabled>
-                                                    <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                        <span class="fw-bold fs-4 me-3" style="color: var(--primary-color);">C.</span>
-                                                        <div><div class="pinyin-text small">fángjiānhào</div><div class="chinese-text">房间号</div></div>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 {% endif %}
                             {% endwith %}
 

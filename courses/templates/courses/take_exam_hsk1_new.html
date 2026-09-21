@@ -67,7 +67,7 @@
     .example-box { background: linear-gradient(to right, #FFFBEB, #FFFFFF); border-left: 4px solid #F59E0B; padding: 18px 24px; border-bottom: 1px solid var(--border-color); }
     .ex-badge { background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* ================= RỔ ẢNH (Giữ nguyên 6 cột cho ảnh) ================= */
+    /* ================= RỔ ẢNH ================= */
     .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
     .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; } 
     .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: pointer; }
@@ -75,12 +75,13 @@
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
     
-    .shared-img-label { font-size: 0.9rem; font-weight: 800; color: #0284C7; border: 1.5px solid #0284C7; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 8px auto 0 auto; background: #F0F9FF; }
+    /* ĐÃ ĐỒNG BỘ: Nhãn chữ dưới rổ ảnh giống y hệt nhãn rổ chữ */
+    .shared-img-label { font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: 10px auto 0 auto; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3); }
     
-    /* ================= RỔ CHỮ (Tách riêng thành 3 cột, lấp đầy chỗ trống ngang) ================= */
+    /* ================= RỔ CHỮ ================= */
     .shared-options-grid { 
         display: grid; 
-        grid-template-columns: repeat(3, 1fr); /* 3 CỘT: Cho phép chữ dàn ngang thoải mái */
+        grid-template-columns: repeat(3, 1fr); 
         gap: 15px; 
         width: 100%;
     }
@@ -132,15 +133,17 @@
     .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
     /* Reponsive */
+    @media (max-width: 1200px) {
+        .shared-options-grid { grid-template-columns: repeat(3, 1fr); } 
+    }
     @media (max-width: 991px) {
         .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } 
-        .shared-options-grid { grid-template-columns: repeat(2, 1fr); }
         .q-options-area.ms-5 { margin-left: 0 !important; }
         .example-box { padding: 15px; }
         .question-row { padding: 15px; }
     }
-    @media (max-width: 576px) {
-        .shared-options-grid { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+        .shared-options-grid { grid-template-columns: repeat(2, 1fr); } 
     }
 </style>
 {% endblock %}
@@ -392,7 +395,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- ================= VÍ DỤ PHẦN ĐỌC 4 (Câu 36-40) ĐƯỢC HOÀN TRẢ ================= -->
                                 {% elif first_q_obj.question_number == 36 %}
                                 <div class="example-box mt-4">
                                     <div class="ex-badge">Ví dụ · 例如</div>

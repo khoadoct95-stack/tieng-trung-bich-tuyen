@@ -286,6 +286,64 @@
                                         <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
                                     </div>
                                 </div>
+
+                                <!-- ================= VÍ DỤ PHẦN 4 (Câu 16-20) ================= -->
+                                {% elif first_q_obj.question_number == 16 %}
+                                <div class="example-box">
+                                    <div class="ex-badge">VÍ DỤ · 例如</div>
+                                    
+                                    <!-- Nội dung đoạn văn và câu hỏi -->
+                                    <div class="mb-4 ms-2">
+                                        <div class="mb-2">
+                                            <div class="pinyin-text">Xiàwǔ wǒ qù chāoshì, wǒ xiǎng mǎi yìxiē shuǐguǒ.</div>
+                                            <div class="chinese-text">下午 我 去 超市，我 想 买 一些 水果。</div>
+                                        </div>
+                                        <div>
+                                            <!-- padding-left để chữ pinyin lùi vào bằng với khoảng không của chữ 问：-->
+                                            <div class="pinyin-text" style="padding-left: 45px;">Shuōhuàrén xiàwǔ qù nǎlǐ?</div>
+                                            <div class="chinese-text">问：说话人 下午 去 哪里？</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Các đáp án -->
+                                    <div class="row g-3">
+                                        <!-- Đáp án A (Được chọn, Đổi màu xanh lá & Khóa cứng) -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" checked disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">A</span>
+                                                <div>
+                                                    <div class="pinyin-text small">chāoshì</div>
+                                                    <div class="chinese-text">超市</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Đáp án B -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">B</span>
+                                                <div>
+                                                    <div class="pinyin-text small">yīyuàn</div>
+                                                    <div class="chinese-text">医院</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Đáp án C -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">C</span>
+                                                <div>
+                                                    <div class="pinyin-text small">xuéxiào</div>
+                                                    <div class="chinese-text">学校</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 {% endif %}
                             {% endwith %}
 

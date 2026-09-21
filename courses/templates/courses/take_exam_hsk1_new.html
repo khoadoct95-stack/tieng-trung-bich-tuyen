@@ -15,7 +15,7 @@
         --card-bg: #FFFFFF; 
         --border-color: #E4E4E7; 
         --text-main: #27272A; 
-        --text-muted: #52525B; /* Tối hơn 1 chút để chữ trong rổ đáp án rõ nét hơn */
+        --text-muted: #52525B; 
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
         --shadow-md: 0 4px 12px rgba(0,0,0,0.05); 
         --shadow-hover: 0 8px 20px rgba(5, 150, 105, 0.12); 
@@ -49,19 +49,16 @@
     .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; transition: all 0.2s ease; background: #fff; flex-shrink: 0; }
     .opt-radio, .circle-radio { display: none; }
     
-    /* Đáp án chữ - câu hỏi lẻ */
     .opt-label { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; background: #fff; height: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
     .opt-label:hover { border-color: #A1A1AA; background: #FAFAFA; }
     .opt-radio:checked + .opt-label { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
     .opt-radio:checked + .opt-label .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
     
-    /* Đáp án ảnh (Phần 1) - Tinh chỉnh thu nhỏ ảnh lại */
     .auto-crop-btn { display: flex; flex-direction: column; align-items: center; height: 100%; cursor: pointer; border: 1.5px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; padding: 8px; background: #fff; }
     .auto-crop-btn:hover { border-color: #A1A1AA; }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--success-color); box-shadow: var(--shadow-hover); background: var(--success-light); }
     .opt-radio:checked + .auto-crop-btn .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
 
-    /* Phần 1: Giảm padding-top xuống 60% để ảnh bớt to */
     .crop-window { width: 85%; margin: 0 auto; padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; }
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
@@ -69,33 +66,58 @@
     .example-box { background: linear-gradient(to right, #FFFBEB, #FFFFFF); border-left: 4px solid #F59E0B; padding: 18px 24px; border-bottom: 1px solid var(--border-color); }
     .ex-badge { background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* ================= RỔ ẢNH (Phần 11-15, 21-25) - Tinh chỉnh to hơn ================= */
+    /* ================= RỔ ẢNH (Bỏ badge đè ảnh, dời chữ xuống dưới) ================= */
     .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
-    /* Giảm khoảng trống (gap) xuống, để dành không gian cho ảnh to ra */
-    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; padding: 0 10px; } 
-    /* Thay đổi padding-top để tỷ lệ ảnh hài hòa hơn, không bị dẹp */
-    .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: pointer; }
-    .shared-crop-window:hover { transform: scale(1.02); }
-    .crop-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.7); color: white; font-weight: 700; font-size: 0.85rem; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; } 
+    .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: pointer; }
+    .shared-crop-window:hover { transform: scale(1.03); border-color: #0284C7; }
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
     
-    /* ================= RỔ ĐÁP ÁN CHỮ - Khắc phục rớt dòng và mờ ================= */
-    /* Dùng flex wrap và căn giữa thay vì grid cứng để không bị rớt lẻ loi chữ F */
-    .shared-options-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-    .shared-opt-item { background: #ffffff; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; min-width: 130px; box-shadow: var(--shadow-sm); }
-    .shared-opt-letter { font-size: 0.9rem; font-weight: 800; color: white; background: #64748B; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0; margin-right: 10px; }
-    /* Tăng độ đậm và màu cho chữ trong rổ */
-    .shared-opt-item .chinese-text { font-size: 1.2rem !important; color: #18181b !important; font-weight: 600 !important; }
-    .shared-opt-item .pinyin-text { color: #3f3f46 !important; font-weight: 600 !important; }
+    /* Cấu hình nhãn chữ tròn bên dưới rổ ảnh */
+    .shared-img-label { font-size: 0.9rem; font-weight: 800; color: #0284C7; border: 1.5px solid #0284C7; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 8px auto 0 auto; background: #F0F9FF; }
     
-    /* Nút chọn hình tròn nhỏ gọn */
+    /* ================= RỔ ĐÁP ÁN CHỮ - TÂN TRANG RỰC RỠ & CÂN XỨNG ================= */
+    .shared-options-grid { 
+        display: grid; 
+        grid-template-columns: repeat(6, 1fr); /* Ép buộc chia 6 cột lấp đầy khoảng trống */
+        gap: 12px; 
+        width: 100%;
+    }
+    .shared-opt-item { 
+        background: #F0F9FF; /* Nền xanh pastel mềm mại */
+        border: 1.5px solid #BAE6FD; 
+        padding: 10px 12px; 
+        border-radius: 10px; 
+        display: flex; 
+        align-items: center; 
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08); 
+        transition: transform 0.2s, box-shadow 0.2s; 
+    }
+    .shared-opt-item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(2, 132, 199, 0.15); border-color: #7DD3FC; }
+    .shared-opt-letter { 
+        font-size: 0.95rem; 
+        font-weight: 800; 
+        color: white; 
+        background: linear-gradient(135deg, #0284C7, #0369A1); /* Gradient xanh đậm nổi bật */
+        width: 30px; 
+        height: 30px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        border-radius: 8px; 
+        flex-shrink: 0; 
+        margin-right: 12px; 
+        box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+    }
+    .shared-opt-item .chinese-text { font-size: 1.15rem !important; color: #0F172A !important; font-weight: 700 !important; }
+    .shared-opt-item .pinyin-text { color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem; }
+    
     .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; border: 1.5px solid #D4D4D8; border-radius: 50%; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s ease; background: #fff; margin: 0; }
     .circle-label:hover { border-color: #A1A1AA; color: var(--text-main); background: #FAFAFA; }
     .circle-radio:checked + .circle-label { background: var(--success-color); border-color: var(--success-color); color: white; transform: scale(1.05); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2); }
     .af-options-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
 
-    /* SIDEBAR & ĐẾM GIỜ */
     .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
     .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: 'Courier New', Courier, monospace; letter-spacing: -1px; background: var(--primary-light); }
@@ -109,11 +131,18 @@
 
     .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
+    /* Reponsive cho Rổ ảnh và Rổ chữ */
+    @media (max-width: 1200px) {
+        .shared-options-grid { grid-template-columns: repeat(3, 1fr); } /* Trải làm 2 dòng x 3 cột rất đều */
+    }
     @media (max-width: 991px) {
-        .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; } 
+        .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } 
         .q-options-area.ms-5 { margin-left: 0 !important; }
         .example-box { padding: 15px; }
         .question-row { padding: 15px; }
+    }
+    @media (max-width: 768px) {
+        .shared-options-grid { grid-template-columns: repeat(2, 1fr); } /* Trên đt trải làm 3 dòng x 2 cột */
     }
 </style>
 {% endblock %}
@@ -175,12 +204,12 @@
                                         
                                         {% if first_q_obj.image %}
                                             <div class="shared-img-grid">
-                                                <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ first_q_obj.image.url }}" alt="A"></div>
-                                                <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ first_q_obj.image.url }}" alt="B"></div>
-                                                <div class="shared-crop-window pos-C"><span class="crop-badge">C</span><img src="{{ first_q_obj.image.url }}" alt="C"></div>
-                                                <div class="shared-crop-window pos-D"><span class="crop-badge">D</span><img src="{{ first_q_obj.image.url }}" alt="D"></div>
-                                                <div class="shared-crop-window pos-E"><span class="crop-badge">E</span><img src="{{ first_q_obj.image.url }}" alt="E"></div>
-                                                <div class="shared-crop-window pos-F"><span class="crop-badge">F</span><img src="{{ first_q_obj.image.url }}" alt="F"></div>
+                                                <div><div class="shared-crop-window pos-A"><img src="{{ first_q_obj.image.url }}" alt="A"></div><div class="shared-img-label">A</div></div>
+                                                <div><div class="shared-crop-window pos-B"><img src="{{ first_q_obj.image.url }}" alt="B"></div><div class="shared-img-label">B</div></div>
+                                                <div><div class="shared-crop-window pos-C"><img src="{{ first_q_obj.image.url }}" alt="C"></div><div class="shared-img-label">C</div></div>
+                                                <div><div class="shared-crop-window pos-D"><img src="{{ first_q_obj.image.url }}" alt="D"></div><div class="shared-img-label">D</div></div>
+                                                <div><div class="shared-crop-window pos-E"><img src="{{ first_q_obj.image.url }}" alt="E"></div><div class="shared-img-label">E</div></div>
+                                                <div><div class="shared-crop-window pos-F"><img src="{{ first_q_obj.image.url }}" alt="F"></div><div class="shared-img-label">F</div></div>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -362,44 +391,6 @@
                                         <input type="radio" class="circle-radio" checked disabled><label class="circle-label" style="cursor: default; pointer-events: none;">D</label>
                                         <input type="radio" class="circle-radio" disabled><label class="circle-label" style="cursor: default; pointer-events: none;">E</label>
                                         <input type="radio" class="circle-radio" disabled><label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
-                                    </div>
-                                </div>
-                                
-                                {% elif first_q_obj.question_number == 36 %}
-                                <div class="example-box">
-                                    <div class="ex-badge">Ví dụ · 例如</div>
-                                    <div class="mb-3">
-                                        <div class="mb-1">
-                                            <div class="pinyin-text">Qǐngwèn xiànzài jǐ diǎn le?</div>
-                                            <div class="chinese-text">请问 现在 几 点 了？</div>
-                                        </div>
-                                        <div>
-                                            <div class="pinyin-text" style="padding-left: 25px;">Shuōhuàrén xiǎng zhīdào shénme?</div>
-                                            <div class="chinese-text">★ 说话人 想 知道 什么？</div>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2">
-                                        <div class="col-md-4">
-                                            <input type="radio" class="opt-radio" checked disabled>
-                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                <span class="opt-circle me-2">A</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">shíjiān</div><div class="chinese-text" style="font-size: 1rem;">时间</div></div>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="radio" class="opt-radio" disabled>
-                                            <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">B</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">míngzi</div><div class="chinese-text" style="font-size: 1rem;">名字</div></div>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="radio" class="opt-radio" disabled>
-                                            <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">C</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">fángjiānhào</div><div class="chinese-text" style="font-size: 1rem;">房间号</div></div>
-                                            </label>
-                                        </div>
                                     </div>
                                 </div>
                                 {% endif %}
@@ -650,7 +641,7 @@
             ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
                 if (textDict[letter]) {
                     found = true;
-                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: var(--text-muted); margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
+                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #475569; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
                     html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div></div>`;
                 }
             });

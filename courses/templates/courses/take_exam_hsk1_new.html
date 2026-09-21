@@ -378,6 +378,40 @@
                                         <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
                                     </div>
                                 </div>
+
+                                <!-- ================= VÍ DỤ PHẦN ĐỌC 2 (Câu 26-30) ================= -->
+                                {% elif first_q_obj.question_number == 26 %}
+                                <div class="example-box mt-4">
+                                    <div class="ex-badge">VÍ DỤ · 例如</div>
+                                    
+                                    <!-- Nội dung câu hỏi ví dụ -->
+                                    <div class="mb-4 ms-2">
+                                        <div class="pinyin-text">Nǐ hē shuǐ ma?</div>
+                                        <div class="chinese-text">你 喝 水 吗？</div>
+                                    </div>
+                                    
+                                    <!-- Các đáp án hình tròn A-F -->
+                                    <div class="af-options-wrapper ms-2">
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">A</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">B</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">C</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">D</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">E</label>
+                                        
+                                        <!-- Đáp án F (Được chọn, Đổi màu xanh lá & Khóa cứng) -->
+                                        <input type="radio" class="circle-radio" checked disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
+                                    </div>
+                                </div>
                                 {% endif %}
                             {% endwith %}
 

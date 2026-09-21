@@ -30,7 +30,6 @@
     .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;}
     .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 15px; letter-spacing: 0.5px; }
     
-    /* ================= THỂ LỆ BÀI THI & HƯỚNG DẪN ================= */
     .exam-rules-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 25px; box-shadow: var(--shadow-sm); margin-bottom: 25px; }
     .rules-title { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;}
     .rules-list { margin: 0; padding-left: 20px; color: var(--text-main); font-size: 0.95rem; line-height: 1.7; }
@@ -97,6 +96,11 @@
     .circle-label:hover { border-color: #A1A1AA; color: var(--text-main); background: #FAFAFA; }
     .circle-radio:checked + .circle-label { background: var(--success-color); border-color: var(--success-color); color: white; transform: scale(1.05); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2); }
     .af-options-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* ================= TÍNH NĂNG MỚI: LÀM MỜ KHI ĐƯỢC CHỌN & AUTO-FILL ================= */
+    .used-item { opacity: 0.35; filter: grayscale(80%); pointer-events: none; transition: all 0.3s ease; box-shadow: none !important; border-color: #E4E4E7 !important; }
+    .auto-fill-target { color: var(--success-color); font-weight: 900; margin: 0 5px; display: inline-block; min-width: 30px; text-align: center; border-bottom: 1.5px dashed var(--success-color); padding: 0 4px; }
+    .auto-fill-pinyin { color: #2563eb; font-weight: 700; margin: 0 5px; display: inline-block; min-width: 30px; text-align: center; }
 
     .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
@@ -208,7 +212,7 @@
 
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
-                                <!-- ================= RỔ DÙNG CHUNG ================= -->
+                                <!-- ================= RỔ DÙNG CHUNG (Gắn thêm class pool-item) ================= -->
                                 {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
                                     <div class="shared-pool">
                                         {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
@@ -218,12 +222,12 @@
                                         
                                         {% if first_q_obj.image %}
                                             <div class="shared-img-grid">
-                                                <div><div class="shared-crop-window pos-A"><img src="{{ first_q_obj.image.url }}" alt="A"></div><div class="shared-img-label">A</div></div>
-                                                <div><div class="shared-crop-window pos-B"><img src="{{ first_q_obj.image.url }}" alt="B"></div><div class="shared-img-label">B</div></div>
-                                                <div><div class="shared-crop-window pos-C"><img src="{{ first_q_obj.image.url }}" alt="C"></div><div class="shared-img-label">C</div></div>
-                                                <div><div class="shared-crop-window pos-D"><img src="{{ first_q_obj.image.url }}" alt="D"></div><div class="shared-img-label">D</div></div>
-                                                <div><div class="shared-crop-window pos-E"><img src="{{ first_q_obj.image.url }}" alt="E"></div><div class="shared-img-label">E</div></div>
-                                                <div><div class="shared-crop-window pos-F"><img src="{{ first_q_obj.image.url }}" alt="F"></div><div class="shared-img-label">F</div></div>
+                                                <div class="pool-item" data-letter="A"><div class="shared-crop-window pos-A"><img src="{{ first_q_obj.image.url }}" alt="A"></div><div class="shared-img-label">A</div></div>
+                                                <div class="pool-item" data-letter="B"><div class="shared-crop-window pos-B"><img src="{{ first_q_obj.image.url }}" alt="B"></div><div class="shared-img-label">B</div></div>
+                                                <div class="pool-item" data-letter="C"><div class="shared-crop-window pos-C"><img src="{{ first_q_obj.image.url }}" alt="C"></div><div class="shared-img-label">C</div></div>
+                                                <div class="pool-item" data-letter="D"><div class="shared-crop-window pos-D"><img src="{{ first_q_obj.image.url }}" alt="D"></div><div class="shared-img-label">D</div></div>
+                                                <div class="pool-item" data-letter="E"><div class="shared-crop-window pos-E"><img src="{{ first_q_obj.image.url }}" alt="E"></div><div class="shared-img-label">E</div></div>
+                                                <div class="pool-item" data-letter="F"><div class="shared-crop-window pos-F"><img src="{{ first_q_obj.image.url }}" alt="F"></div><div class="shared-img-label">F</div></div>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -630,6 +634,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // Tách dòng nội dung tiếng Trung / Pinyin
         document.querySelectorAll('.interleave-group').forEach(function(group) {
             let pinyinRaw = group.querySelector('.raw-pinyin');
             let chineseRaw = group.querySelector('.raw-chinese');
@@ -643,9 +648,19 @@
                 let isContentGroup = group.classList.contains('content-group');
                 let cClass = isContentGroup ? "chinese-text fw-bold" : "chinese-text";
                 let html = '';
+                
                 for(let i = 0; i < maxLines; i++) {
                     let pStr = i < pLines.length ? pLines[i] : "";
                     let cStr = i < cLines.length ? cLines[i] : "";
+                    
+                    // CHUẨN BỊ AUTO-FILL: Tìm các dấu ngoặc ( ) hoặc （ ） trong câu Hán/Pinyin để dọn chỗ trống
+                    if (cStr) {
+                        cStr = cStr.replace(/[(（]\s*[)）]/g, '（<span class="auto-fill-target"></span>）');
+                    }
+                    if (pStr) {
+                        pStr = pStr.replace(/[(（]\s*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+                    }
+
                     if (pStr || cStr) {
                         html += '<div style="margin-bottom: 4px;">';
                         if (pStr) html += `<div class="pinyin-text">${pStr}</div>`;
@@ -657,6 +672,7 @@
             }
         });
 
+        // Hàm hỗ trợ tách chữ từ rổ đáp án
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -670,6 +686,7 @@
             return dict;
         }
 
+        // Render Rổ đáp án chữ
         document.querySelectorAll('.format-shared-options').forEach(function(el) {
             let rawText = el.textContent || el.innerText || "";
             let textDict = parseOptions(rawText);
@@ -693,8 +710,15 @@
             ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
                 if (textDict[letter]) {
                     found = true;
+                    // LƯU TRỮ AUTO-FILL: Đưa data-text và data-pinyin vào thẻ HTML để JS lấy ra dễ dàng
+                    let safeText = textDict[letter].replace(/"/g, '&quot;');
+                    let safePinyin = (pinyinDict[letter] || '').replace(/"/g, '&quot;');
                     let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #475569; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
-                    html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div></div>`;
+                    
+                    html += `<div class="shared-opt-item pool-item" data-letter="${letter}" data-text="${safeText}" data-pinyin="${safePinyin}">
+                                <div class="shared-opt-letter">${letter}</div>
+                                <div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div>
+                             </div>`;
                 }
             });
             html += '</div>';
@@ -702,13 +726,50 @@
             if (found) { 
                 el.insertAdjacentHTML('afterend', html); 
             } 
-            else { 
-                el.classList.remove('visually-hidden'); 
-                el.classList.add('chinese-text', 'mb-2'); 
-                if (pinyinEl) { 
-                    pinyinEl.classList.remove('visually-hidden'); 
-                    pinyinEl.classList.add('pinyin-text', 'mb-3'); 
-                } 
+        });
+
+        // ================= XỬ LÝ LÀM MỜ VÀ AUTO-FILL KHI CHỌN ĐÁP ÁN =================
+        document.addEventListener('change', function(e) {
+            // Lắng nghe sự kiện đổi đáp án (bỏ qua các nút của ví dụ đã bị disabled)
+            if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
+                let wrapper = e.target.closest('.q-group-wrapper');
+                if (!wrapper) return;
+
+                // 1. TÍNH NĂNG LÀM MỜ (DIMMING)
+                // Lấy tất cả các lựa chọn đang được check trong khu vực này (trừ ví dụ)
+                let checkedRadios = wrapper.querySelectorAll('.circle-radio:checked:not([disabled]), .opt-radio:checked:not([disabled])');
+                let selectedValues = Array.from(checkedRadios).map(r => r.value);
+
+                // Duyệt qua tất cả các item trong rổ (ảnh hoặc chữ)
+                let poolItems = wrapper.querySelectorAll('.pool-item');
+                poolItems.forEach(item => {
+                    if (selectedValues.includes(item.getAttribute('data-letter'))) {
+                        item.classList.add('used-item'); // Thêm class làm mờ
+                    } else {
+                        item.classList.remove('used-item'); // Gỡ class làm mờ
+                    }
+                });
+
+                // 2. TÍNH NĂNG AUTO-FILL (ĐIỀN TỪ VÀO LỖ TRỐNG)
+                let questionRow = e.target.closest('.question-row');
+                if (questionRow) {
+                    let targetSpan = questionRow.querySelector('.auto-fill-target');
+                    let pinyinSpan = questionRow.querySelector('.auto-fill-pinyin');
+                    
+                    if (targetSpan) {
+                        let selectedLetter = e.target.value;
+                        let poolItem = wrapper.querySelector(`.pool-item[data-letter="${selectedLetter}"]`);
+                        
+                        if (poolItem) {
+                            let text = poolItem.getAttribute('data-text');
+                            let pinyin = poolItem.getAttribute('data-pinyin');
+                            
+                            // Nếu có text (tức là rổ chữ), điền text. Nếu rổ ảnh không có text, thì điền ký tự A,B,C.
+                            targetSpan.innerText = text ? text : selectedLetter;
+                            if (pinyinSpan) pinyinSpan.innerText = pinyin ? pinyin : '';
+                        }
+                    }
+                }
             }
         });
     });

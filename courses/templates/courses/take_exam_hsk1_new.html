@@ -7,15 +7,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root { 
-        --primary-color: #9F1239; /* Đỏ Rose chuyên nghiệp */
+        --primary-color: #9F1239; 
         --primary-light: #FFE4E6; 
-        --success-color: #059669; /* Xanh Emerald dịu mắt */
+        --success-color: #059669; 
         --success-light: #D1FAE5; 
-        --bg-color: #F4F4F5; /* Xám Zinc nền tảng */
+        --bg-color: #F4F4F5; 
         --card-bg: #FFFFFF; 
         --border-color: #E4E4E7; 
         --text-main: #27272A; 
-        --text-muted: #71717A; 
+        --text-muted: #52525B; /* Tối hơn 1 chút để chữ trong rổ đáp án rõ nét hơn */
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
         --shadow-md: 0 4px 12px rgba(0,0,0,0.05); 
         --shadow-hover: 0 8px 20px rgba(5, 150, 105, 0.12); 
@@ -23,22 +23,18 @@
     
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
     
-    /* TỔNG THỂ NHỎ GỌN */
     .exam-container { max-width: 1100px; margin: 0 auto; padding: 25px 15px; } 
     .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.5; white-space: pre-wrap; font-weight: 500; } 
     .pinyin-text { font-size: 0.95rem; color: #2563eb; margin-bottom: 2px; white-space: pre-wrap; font-weight: 600; letter-spacing: 0.2px;} 
     
-    /* HEADER & HUY HIỆU */
     .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;}
     .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 15px; letter-spacing: 0.5px; }
     
-    /* TIÊU ĐỀ PHẦN THI (Gọn gàng & Hiện đại) */
     .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; position: relative; margin-bottom: 15px; }
     .hsk-major-title::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: var(--primary-color); border-radius: 2px; }
     .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .hsk-group-range { font-size: 1rem; font-weight: 600; color: var(--text-muted); border-left: 3px solid #D4D4D8; padding-left: 10px; margin-bottom: 10px; }
     
-    /* KHUNG CÂU HỎI (Đặc & Phẳng) */
     .q-group-wrapper { margin-bottom: 35px; }
     .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
     .question-row { padding: 18px 24px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 80px; }
@@ -50,40 +46,48 @@
     .q-options-area { margin-top: 10px; }
     .q-options-area.ms-5 { margin-left: 40px !important; }
 
-    /* NÚT CHỌN ĐÁP ÁN CHỮ CÁI */
     .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; transition: all 0.2s ease; background: #fff; flex-shrink: 0; }
     .opt-radio, .circle-radio { display: none; }
+    
+    /* Đáp án chữ - câu hỏi lẻ */
     .opt-label { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; background: #fff; height: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
     .opt-label:hover { border-color: #A1A1AA; background: #FAFAFA; }
     .opt-radio:checked + .opt-label { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
     .opt-radio:checked + .opt-label .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
     
-    /* NÚT CHỌN HÌNH ẢNH */
+    /* Đáp án ảnh (Phần 1) - Tinh chỉnh thu nhỏ ảnh lại */
     .auto-crop-btn { display: flex; flex-direction: column; align-items: center; height: 100%; cursor: pointer; border: 1.5px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; padding: 8px; background: #fff; }
     .auto-crop-btn:hover { border-color: #A1A1AA; }
     .opt-radio:checked + .auto-crop-btn { border-color: var(--success-color); box-shadow: var(--shadow-hover); background: var(--success-light); }
     .opt-radio:checked + .auto-crop-btn .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
 
-    .crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; }
+    /* Phần 1: Giảm padding-top xuống 60% để ảnh bớt to */
+    .crop-window { width: 85%; margin: 0 auto; padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; }
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
 
-    /* ================= VÍ DỤ TÁCH BIỆT & CHUYÊN NGHIỆP ================= */
     .example-box { background: linear-gradient(to right, #FFFBEB, #FFFFFF); border-left: 4px solid #F59E0B; padding: 18px 24px; border-bottom: 1px solid var(--border-color); }
     .ex-badge { background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* ================= RỔ ẢNH SIÊU GỌN (6 CỘT) ================= */
-    .shared-pool { background: #FAFAFA; padding: 16px 24px; border-bottom: 1px solid var(--border-color); }
-    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; } /* ĐIỂM NHẤN: 6 ảnh 1 hàng */
-    .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-sm); }
-    .crop-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.6); color: white; font-weight: 700; font-size: 0.8rem; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 4px; z-index: 10; }
+    /* ================= RỔ ẢNH (Phần 11-15, 21-25) - Tinh chỉnh to hơn ================= */
+    .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+    /* Giảm khoảng trống (gap) xuống, để dành không gian cho ảnh to ra */
+    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; padding: 0 10px; } 
+    /* Thay đổi padding-top để tỷ lệ ảnh hài hòa hơn, không bị dẹp */
+    .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: pointer; }
+    .shared-crop-window:hover { transform: scale(1.02); }
+    .crop-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.7); color: white; font-weight: 700; font-size: 0.85rem; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
     
-    /* Rổ chữ */
-    .shared-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-    .shared-opt-item { background: #ffffff; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; }
-    .shared-opt-letter { font-size: 0.85rem; font-weight: 800; color: white; background: var(--text-muted); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0; margin-right: 10px; }
+    /* ================= RỔ ĐÁP ÁN CHỮ - Khắc phục rớt dòng và mờ ================= */
+    /* Dùng flex wrap và căn giữa thay vì grid cứng để không bị rớt lẻ loi chữ F */
+    .shared-options-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    .shared-opt-item { background: #ffffff; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; min-width: 130px; box-shadow: var(--shadow-sm); }
+    .shared-opt-letter { font-size: 0.9rem; font-weight: 800; color: white; background: #64748B; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0; margin-right: 10px; }
+    /* Tăng độ đậm và màu cho chữ trong rổ */
+    .shared-opt-item .chinese-text { font-size: 1.2rem !important; color: #18181b !important; font-weight: 600 !important; }
+    .shared-opt-item .pinyin-text { color: #3f3f46 !important; font-weight: 600 !important; }
     
     /* Nút chọn hình tròn nhỏ gọn */
     .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; border: 1.5px solid #D4D4D8; border-radius: 50%; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s ease; background: #fff; margin: 0; }
@@ -106,7 +110,7 @@
     .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
     @media (max-width: 991px) {
-        .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; } /* 3 cột trên mobile */
+        .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; } 
         .q-options-area.ms-5 { margin-left: 0 !important; }
         .example-box { padding: 15px; }
         .question-row { padding: 15px; }
@@ -161,7 +165,7 @@
                         <div class="q-card-group">
                             
                             {% with first_q_obj=group.list.0 %}
-                                <!-- ================= RỔ ẢNH DÙNG CHUNG ================= -->
+                                <!-- ================= RỔ ẢNH & ĐÁP ÁN CHUNG ================= -->
                                 {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
                                     <div class="shared-pool">
                                         {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
@@ -190,7 +194,7 @@
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none; background: transparent; border-color: #D4D4D8;">
-                                                <div style="width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7;">
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
                                                     <img src="/static/images/examples/hsk1_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                 </div>
                                                 <div class="opt-circle mt-2">A</div>
@@ -199,7 +203,7 @@
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none; background: transparent; border-color: #D4D4D8;">
-                                                <div style="width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7;">
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
                                                     <img src="/static/images/examples/hsk1_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                 </div>
                                                 <div class="opt-circle mt-2">B</div>
@@ -208,7 +212,7 @@
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" checked disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                <div style="width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7;">
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
                                                     <img src="/static/images/examples/hsk1_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
                                                 </div>
                                                 <div class="opt-circle mt-2">C</div>
@@ -647,7 +651,7 @@
                 if (textDict[letter]) {
                     found = true;
                     let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: var(--text-muted); margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
-                    html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text" style="font-size: 1.15rem; line-height: 1.3;">${textDict[letter]}</div></div></div>`;
+                    html += `<div class="shared-opt-item"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div></div>`;
                 }
             });
             html += '</div>';

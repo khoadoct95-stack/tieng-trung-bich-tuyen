@@ -4,7 +4,7 @@ import subprocess
 import pandas as pd
 import zipfile
 import re
-import random # THÊM THƯ VIỆN NÀY ĐỂ TRỘN TỪ VỰNG NGẪU NHIÊN CHO GAME
+import random 
 from io import BytesIO
 from PIL import Image
 from django.core.files.base import ContentFile
@@ -223,28 +223,26 @@ def profile_view(request):
 @csrf_exempt
 def github_webhook(request):
     if request.method == 'POST':
-        # 1. Tự động kéo code mới nhất
         subprocess.call(['git', 'pull'], cwd='/home/khoadoct95/tieng-trung-bich-tuyen')
-        
-        # 2. Tự động khởi động lại máy chủ (tương đương nút Reload)
         wsgi_file = '/var/www/khoadoct95_pythonanywhere_com_wsgi.py'
         os.utime(wsgi_file, None)
-        
         return HttpResponse('Cập nhật thành công!', status=200)
     return HttpResponse('Chỉ nhận lệnh POST', status=405)
 
 # ==========================================
-# 6. LÀM BÀI THI & TRẠM PHÂN LUỒNG TEMPLATE
+# 6. LÀM BÀI THI CẬP NHẬT CHẤM ĐIỂM CHUẨN
 # ==========================================
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
+    total_questions = questions.count()
 
     if request.method == 'POST':
         total_correct = 0
         user_answers_dict = {}
 
+        # Chấm điểm chi tiết từng câu
         for q in questions:
             submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
             user_answers_dict[str(q.id)] = submitted_answer 
@@ -253,6 +251,7 @@ def take_exam(request, exam_id):
             if submitted_answer and submitted_answer == correct_ans:
                 total_correct += 1
 
+        # CÔNG THỨC CHẤM ĐIỂM HSK: Mỗi câu 5 điểm. Đạt >= 120 điểm là đậu.
         score = total_correct * 5
 
         result = ExamResult.objects.create(
@@ -260,8 +259,9 @@ def take_exam(request, exam_id):
             exam=exam,
             score=score,
             total_correct=total_correct,
+            total_questions=total_questions,
             user_answers=user_answers_dict,
-            time_spent=0
+            time_spent=0 # Có thể dùng JS lưu thời gian thực tế sau
         )
 
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
@@ -277,26 +277,17 @@ def take_exam(request, exam_id):
         'global_best': global_best if global_best is not None else "--"
     }
 
+    # Phân luồng Template dựa trên HSK Level
     if exam.hsk_level == 1:
         if exam.exam_type == 'old':
             return render(request, 'courses/take_exam_hsk1_old.html', context)
         else:
             return render(request, 'courses/take_exam_hsk1_new.html', context)
-    elif exam.hsk_level == 2:
-        if exam.exam_type == 'old':
-            return render(request, 'courses/take_exam_hsk2_old.html', context)
-        else:
-            return render(request, 'courses/take_exam_hsk2_new.html', context)
-    elif exam.hsk_level == 3:
-        if exam.exam_type == 'old':
-            return render(request, 'courses/take_exam_hsk3_old.html', context)
-        else:
-            return render(request, 'courses/take_exam_hsk3_new.html', context)
-
+            
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 
 # ==========================================
-# 7. XEM LẠI CHI TIẾT BÀI LÀM
+# 7. XEM LẠI CHI TIẾT BÀI LÀM (REVIEW)
 # ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
@@ -304,6 +295,7 @@ def review_exam(request, result_id):
     exam = result.exam
     questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
 
+    # Trích xuất và so sánh đáp án của từng câu từ DB
     for q in questions:
         raw_user = result.user_answers.get(str(q.id), '')
         q.user_ans = str(raw_user).strip().upper() if raw_user else ''
@@ -325,13 +317,15 @@ def review_exam(request, result_id):
 @login_required(login_url='login')
 def exam_result(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
-    total_questions = ExamQuestion.objects.filter(exam=result.exam).count()
-    percentage = int((result.total_correct / total_questions) * 100) if total_questions > 0 else 0
+    
+    # Tính tỷ lệ phần trăm
+    total = result.total_questions
+    percentage = int((result.total_correct / total) * 100) if total > 0 else 0
     is_passed = result.score >= 120
 
     return render(request, 'courses/exam_result.html', {
         'result': result,
-        'total_questions': total_questions,
+        'total_questions': total,
         'percentage': percentage,
         'is_passed': is_passed
     })
@@ -575,13 +569,9 @@ def upload_exam_images_zip(request):
 # ==========================================
 @login_required
 def game_shooter_view(request):
-    """
-    Hiển thị giao diện của Game Ngự Kiếm Phá Tự kèm số lượng từ vựng
-    """
     curriculums = Curriculum.objects.all()
     lessons = Lesson.objects.all().order_by('curriculum', 'order')
     
-    # 1. Đếm số từ vựng cho từng Cấp độ
     curriculums_data = []
     for c in curriculums:
         count = Vocabulary.objects.filter(level=c.title).count()
@@ -590,7 +580,6 @@ def game_shooter_view(request):
             'vocab_count': count
         })
         
-    # 2. Đếm số từ vựng cho từng Bài học
     lessons_data = []
     for l in lessons:
         count = l.vocabularies.count()
@@ -610,21 +599,16 @@ def game_shooter_view(request):
 
 @login_required
 def api_get_vocab_for_game(request):
-    """
-    API để cung cấp từ vựng cho Game (Theo Bài học hoặc Cấp độ)
-    """
     level = request.GET.get('level')
     lesson_id = request.GET.get('lesson_id')
     
     if lesson_id:
         vocabs = Vocabulary.objects.filter(lesson_id=lesson_id)
     elif level:
-        # Lọc theo cấp độ (trường level ta đã thêm vào ở bước model trước đó)
         vocabs = Vocabulary.objects.filter(level=level)
     else:
         vocabs = Vocabulary.objects.none()
 
-    # Xáo trộn từ vựng ngẫu nhiên để game không bị lặp lại thứ tự
     vocab_list = list(vocabs.values('hanzi', 'pinyin', 'meaning'))
     random.shuffle(vocab_list)
     
@@ -633,18 +617,12 @@ def api_get_vocab_for_game(request):
 
 @login_required
 def api_save_game_record(request):
-    """
-    API lưu trữ Kỷ lục người chơi và trả về Kỷ lục cao nhất hiện tại của Server.
-    Hỗ trợ cả Ngự Kiếm (shooter) và Gấu Trúc (panda).
-    """
     if request.method == 'POST':
         data = json.loads(request.body)
         score = data.get('score', 0)
         time_taken = data.get('time_taken', 0)
         level = data.get('level', '')
         lesson_id = data.get('lesson_id', '')
-        
-        # Thêm dòng này để nhận diện Game nào đang gửi điểm
         game_type = data.get('game_type', 'shooter')
 
         lesson_obj = None
@@ -654,14 +632,13 @@ def api_save_game_record(request):
         if score > 0:
             GameHistory.objects.create(
                 user=request.user,
-                game_type=game_type,  # Lưu đúng loại game
+                game_type=game_type,  
                 score=score,
                 time_taken=time_taken,
                 level=level,
                 lesson=lesson_obj
             )
         
-        # Tìm người đang giữ kỷ lục cho đúng loại game đó
         if lesson_obj:
             top_record = GameHistory.objects.filter(game_type=game_type, lesson=lesson_obj).order_by('-score', 'time_taken').first()
         else:
@@ -687,9 +664,6 @@ def api_save_game_record(request):
 
 @login_required
 def game_panda_view(request):
-    """
-    Hiển thị giao diện của Game 2: Gấu Trúc Vượt Ải
-    """
     curriculums = Curriculum.objects.all()
     lessons = Lesson.objects.all().order_by('curriculum', 'order')
     

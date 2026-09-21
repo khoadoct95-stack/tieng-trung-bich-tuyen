@@ -14,7 +14,7 @@ class Curriculum(models.Model):
         max_length=5, 
         default='學', 
         verbose_name='Ký tự Ấn chương', 
-        help_text='Nhập 1 chữ Hán (VD: 啓, 練, 達)'
+        help_text='Nhập 1 chữ Hán (VD: 啓, 练, 達)'
     )
     subtitle = models.CharField(
         max_length=100, 
@@ -22,6 +22,10 @@ class Curriculum(models.Model):
         verbose_name='Mục tiêu học tập',
         help_text='VD: NHẬP MÔN CƠ BẢN'
     )
+
+    class Meta:
+        verbose_name = "Giáo trình"
+        verbose_name_plural = "1. Quản lý Giáo trình"
 
     def __str__(self):
         return self.title
@@ -37,17 +41,26 @@ class Lesson(models.Model):
     
     description = models.TextField(blank=True, null=True, verbose_name="Mô tả ngắn")
 
+    class Meta:
+        verbose_name = "Bài học"
+        verbose_name_plural = "2. Quản lý Bài học"
+        ordering = ['curriculum', 'order']
+
     def __str__(self):
-        return f"Bài {self.order}: {self.title_hanzi}"
+        return f"{self.curriculum.title} - Bài {self.order}: {self.title_hanzi}"
 
 
 class Vocabulary(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='vocabularies', verbose_name="Thuộc Bài học")
-    level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ HSK", help_text="VD: HSK 1, HSK 2 (Để lọc trong Admin)")
+    level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ HSK", help_text="VD: HSK 1, HSK 2")
     
     hanzi = models.CharField(max_length=50, verbose_name="Chữ Hán")
     pinyin = models.CharField(max_length=100, verbose_name="Pinyin")
     meaning = models.CharField(max_length=200, verbose_name="Nghĩa Tiếng Việt")
+
+    class Meta:
+        verbose_name = "Từ vựng"
+        verbose_name_plural = "3. Quản lý Từ vựng"
 
     def __str__(self):
         if self.level:
@@ -62,11 +75,16 @@ class Vocabulary(models.Model):
 class GameHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Học viên")
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Bài học")
-    level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ (Chơi toàn cấp)")
+    level = models.CharField(max_length=50, blank=True, null=True, verbose_name="Cấp độ")
     game_type = models.CharField(max_length=50, verbose_name="Loại Game") 
     score = models.IntegerField(default=0, verbose_name="Điểm/Số thẻ")
     time_taken = models.IntegerField(help_text="Thời gian hoàn thành hoặc trụ vững (giây)", verbose_name="Thời gian (s)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày chơi")
+
+    class Meta:
+        verbose_name = "Lịch sử Game"
+        verbose_name_plural = "4. Lịch sử chơi Game"
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.game_type} - {self.score} điểm"
@@ -79,14 +97,18 @@ class GameHistory(models.Model):
 class Exam(models.Model):
     title = models.CharField(max_length=255, verbose_name="Tên đề thi") 
     hsk_level = models.IntegerField(default=1, verbose_name="Cấp độ HSK") 
-    duration_minutes = models.IntegerField(default=60, verbose_name="Thời gian làm bài (phút)")
-    listening_audio = models.FileField(upload_to='exam_audios/', blank=True, null=True, verbose_name="File Audio phần Nghe") 
+    duration_minutes = models.IntegerField(default=40, verbose_name="Thời gian làm bài (phút)")
+    listening_audio = models.FileField(upload_to='exam_audios/', blank=True, null=True, verbose_name="File Audio toàn bài") 
     description = models.TextField(blank=True, null=True, verbose_name="Mô tả đề thi")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     exam_type = models.CharField(max_length=10, default='new', choices=[('new', 'HSK 3.0'), ('old', 'HSK Bản cũ')], verbose_name="Loại đề thi")
 
+    class Meta:
+        verbose_name = "Đề thi"
+        verbose_name_plural = "5. Quản lý Đề thi"
+
     def __str__(self):
-        return self.title
+        return f"HSK {self.hsk_level} - {self.title}"
 
 
 class ExamQuestion(models.Model):
@@ -101,7 +123,7 @@ class ExamQuestion(models.Model):
 
     content = models.TextField(blank=True, null=True, verbose_name="Câu hỏi (Chữ Hán)")
     content_pinyin = models.TextField(blank=True, null=True, verbose_name="Câu hỏi (Pinyin)")
-    image = models.ImageField(upload_to='exam_images/', blank=True, null=True, verbose_name="Hình ảnh đính kèm câu hỏi")
+    image = models.ImageField(upload_to='exam_images/', blank=True, null=True, verbose_name="Hình ảnh đính kèm")
     
     # Text Đáp án
     option_a = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án A (Chữ)")
@@ -114,22 +136,36 @@ class ExamQuestion(models.Model):
     option_e = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án E")
     option_f = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án F")
     
-
     correct_answer = models.CharField(max_length=5, verbose_name="Đáp án đúng (A/B/C/D/E/F)")
     explanation = models.TextField(blank=True, null=True, verbose_name="Giải thích chi tiết")
 
+    class Meta:
+        verbose_name = "Câu hỏi"
+        verbose_name_plural = "6. Quản lý Câu hỏi"
+        ordering = ['exam', 'question_number']
+
     def __str__(self):
-        return f"Đề {self.exam.title} - Câu {self.question_number}"
+        return f"{self.exam.title} - Câu {self.question_number}"
 
 
 class ExamResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Học viên")
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, verbose_name="Đề thi")
+    
     score = models.FloatField(verbose_name="Điểm số đạt được")
     total_correct = models.IntegerField(verbose_name="Số câu đúng")
+    total_questions = models.IntegerField(verbose_name="Tổng số câu", default=40)
+    
     time_spent = models.IntegerField(verbose_name="Thời gian làm bài (giây)")
-    completed_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày thi")
-    user_answers = models.JSONField(default=dict, blank=True)
+    completed_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày nộp bài")
+    
+    # Lưu dưới dạng dictionary (JSON): {"1": "A", "2": "C"} để tra cứu lại sau này
+    user_answers = models.JSONField(verbose_name="Chi tiết đáp án của User", default=dict, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Kết quả thi"
+        verbose_name_plural = "7. Quản lý Điểm thi"
+        ordering = ['-completed_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.exam.title} - {self.score} điểm"

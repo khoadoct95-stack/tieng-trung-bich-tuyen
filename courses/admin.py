@@ -147,7 +147,7 @@ class ExamAdmin(admin.ModelAdmin):
                         match_option = re.search(r'^q(\d+)_([a-f])\.(jpg|jpeg|png)$', clean_filename)
                         if match_option:
                             q_num = int(match_option.group(1))
-                            option = match_option.group(2) # a, b, c, d, e, f
+                            option = match_option.group(2) 
                             try:
                                 question = ExamQuestion.objects.get(exam=exam, question_number=q_num)
                                 image_data = z.read(filename)
@@ -156,9 +156,9 @@ class ExamAdmin(admin.ModelAdmin):
                                 success_count += 1
                             except ExamQuestion.DoesNotExist:
                                 pass
-                            continue # Chuyển sang file tiếp theo
+                            continue 
 
-                        # Trường hợp 2: Ảnh chính của câu hỏi (q1.jpg, q2.png) - Giữ nguyên logic cũ của bạn
+                        # Trường hợp 2: Ảnh chính của câu hỏi (q1.jpg, q2.png)
                         match_main = re.search(r'^q(\d+)\.(jpg|jpeg|png)$', clean_filename)
                         if match_main:
                             q_num = int(match_main.group(1))
@@ -274,8 +274,32 @@ class ExamQuestionAdmin(admin.ModelAdmin):
     list_filter = ('exam', 'section_type', 'question_group')
     ordering = ('exam', 'question_number')
 
+# BẢN NÂNG CẤP CHUYÊN NGHIỆP CHO KẾT QUẢ BÀI THI
 @admin.register(ExamResult)
 class ExamResultAdmin(admin.ModelAdmin):
-    list_display = ('user', 'exam', 'score', 'total_correct', 'completed_at')
-    list_filter = ('exam', 'completed_at')
-    search_fields = ('user__username', 'exam__title')
+    # 1. Các cột hiển thị siêu trực quan
+    list_display = ('user', 'exam', 'get_hsk_level', 'score_display', 'correct_ratio', 'completed_at')
+    
+    # 2. Bộ lọc thông minh bên phải
+    list_filter = ('exam__hsk_level', 'exam', 'completed_at')
+    
+    # 3. Thanh tìm kiếm mạnh mẽ
+    search_fields = ('user__username', 'user__email', 'user__first_name', 'exam__title')
+    
+    # 4. Bảo vệ dữ liệu thi của học viên (Admin chỉ được xem, không được sửa điểm)
+    readonly_fields = ('user', 'exam', 'score', 'total_correct', 'total_questions', 'time_spent', 'user_answers', 'completed_at')
+
+    # ==== CÁC HÀM XỬ LÝ GIAO DIỆN CỘT ====
+    def get_hsk_level(self, obj):
+        return f"HSK {obj.exam.hsk_level}"
+    get_hsk_level.short_description = 'Cấp độ'
+    get_hsk_level.admin_order_field = 'exam__hsk_level' # Cho phép click để sort
+
+    def score_display(self, obj):
+        return f"{obj.score} điểm"
+    score_display.short_description = 'Điểm số'
+    score_display.admin_order_field = 'score'
+
+    def correct_ratio(self, obj):
+        return f"{obj.total_correct} / {obj.total_questions}"
+    correct_ratio.short_description = 'Số câu đúng'

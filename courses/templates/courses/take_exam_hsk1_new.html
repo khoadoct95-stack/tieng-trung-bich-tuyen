@@ -90,6 +90,9 @@
     .grid-item:hover { background: #E2E8F0; }
     .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2); }
     .btn-submit { background: var(--primary-color); color: white; font-weight: 800; border-radius: 30px; padding: 12px; font-size: 1.1rem; border: none; transition: transform 0.2s; }
+
+    /* Class mới giúp ẩn nội dung nhưng JavaScript vẫn đọc được 100% */
+    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 </style>
 {% endblock %}
 
@@ -144,8 +147,9 @@
                                 {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
                                     <div class="shared-pool">
                                         {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
-                                            <div class="format-shared-options" style="display: none;">{{ first_q_obj.passage_text }}</div>
-                                            <div class="format-shared-pinyin" style="display: none;">{{ first_q_obj.passage_pinyin|default:""|linebreaksbr }}</div>
+                                            <!-- Đã đổi từ display:none sang visually-hidden để JS chắc chắn đọc được -->
+                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                            <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
                                         {% endif %}
                                         
                                         {% if first_q_obj.image %}
@@ -602,7 +606,8 @@
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
-            let cleanText = text.replace(/[\r\n\t\u3000]+/g, ' ').trim();
+            // Xóa thẻ HTML nếu có và thay khoảng trắng cho an toàn
+            let cleanText = text.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/[\r\n\t\u3000]+/g, ' ').trim();
             let parts = cleanText.split(/([A-F])[.、:：\s]+/);
             for (let i = 1; i < parts.length; i += 2) {
                 let letter = parts[i].trim();
@@ -613,13 +618,15 @@
         }
 
         document.querySelectorAll('.format-shared-options').forEach(function(el) {
-            let rawText = el.innerText || el.textContent;
+            // Dùng textContent để lấy chữ ngay cả khi thẻ bị ẩn (visually-hidden)
+            let rawText = el.textContent || el.innerText || "";
             let textDict = parseOptions(rawText);
+            
             let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
             let pinyinDict = {};
             if (pinyinEl) {
                 let htmlContent = pinyinEl.innerHTML; 
-                let rawPinyinText = pinyinEl.textContent || pinyinEl.innerText;
+                let rawPinyinText = pinyinEl.textContent || pinyinEl.innerText || "";
                 let hasLetters = /([A-F])[.、:：\s]+/.test(rawPinyinText);
                 if (hasLetters) { pinyinDict = parseOptions(rawPinyinText); } 
                 else {
@@ -628,6 +635,7 @@
                     for (let i = 0; i < letters.length; i++) { if (pinyinLines[i]) pinyinDict[letters[i]] = pinyinLines[i]; }
                 }
             }
+            
             let html = '<div class="shared-options-grid">';
             let found = false;
             ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
@@ -638,8 +646,19 @@
                 }
             });
             html += '</div>';
-            if (found) { el.insertAdjacentHTML('afterend', html); el.style.display = 'none'; if (pinyinEl) pinyinEl.style.display = 'none'; } 
-            else { el.style.display = 'block'; el.classList.add('chinese-text', 'mb-2'); if (pinyinEl) { pinyinEl.style.display = 'block'; pinyinEl.classList.add('pinyin-text', 'mb-3'); pinyinEl.style.color = '#64748B'; } }
+            
+            if (found) { 
+                el.insertAdjacentHTML('afterend', html); 
+            } 
+            else { 
+                el.classList.remove('visually-hidden'); 
+                el.classList.add('chinese-text', 'mb-2'); 
+                if (pinyinEl) { 
+                    pinyinEl.classList.remove('visually-hidden'); 
+                    pinyinEl.classList.add('pinyin-text', 'mb-3'); 
+                    pinyinEl.style.color = '#64748B'; 
+                } 
+            }
         });
     });
 </script>

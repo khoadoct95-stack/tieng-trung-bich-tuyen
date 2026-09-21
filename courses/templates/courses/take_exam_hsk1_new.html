@@ -33,14 +33,13 @@
     }
     
     .chinese-text { 
-        /* Cấu trúc font Hán ngữ an toàn cho mọi hệ điều hành */
         font-family: 'Noto Sans SC', "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; 
         font-size: 1.15rem; 
         color: #18181b; 
         line-height: 1.6; 
         white-space: pre-wrap; 
         font-weight: 500; 
-        word-wrap: break-word; /* Chống tràn khung */
+        word-wrap: break-word;
     } 
     
     .pinyin-text { 
@@ -53,6 +52,17 @@
         word-wrap: break-word;
     } 
     
+    /* LOGIC BẬT TẮT PINYIN THÔNG MINH */
+    body.hide-pinyin .question-row .pinyin-text,
+    body.hide-pinyin .shared-pool .pinyin-text,
+    body.hide-pinyin .auto-fill-pinyin {
+        display: none !important;
+    }
+    
+    /* Custom Toggle Switch */
+    .custom-switch:checked { background-color: var(--success-color) !important; border-color: var(--success-color) !important; }
+    .custom-switch:focus { box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.25) !important; }
+
     /* ================= BỐ CỤC CHUNG ================= */
     .exam-container { max-width: 1350px; margin: 0 auto; padding: 30px 15px; } 
     .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;}
@@ -198,12 +208,12 @@
                 {% regroup questions by question_group as grouped_questions %}
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
-                        <!-- HEADER TỪNG PHẦN THI -->
+                        <!-- HEADER TỪNG PHẦN THI ĐÃ THÊM TIẾNG VIỆT -->
                         {% with first_q_obj=group.list.0 %}
                             {% if first_q_obj.question_number == 1 %}
-                                <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力</div></div>
+                                <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600; font-family: 'Inter', sans-serif;">(NGHE HIỂU)</span></div></div>
                             {% elif first_q_obj.question_number == 21 %}
-                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">二、阅 读</div></div>
+                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">二、阅 读 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600; font-family: 'Inter', sans-serif;">(ĐỌC HIỂU)</span></div></div>
                             {% endif %}
 
                             <div class="text-center mb-2 mt-1">
@@ -271,7 +281,7 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- ================= VÍ DỤ TẤT CẢ CÁC PHẦN ================= -->
+                                <!-- ================= CÁC KHỐI VÍ DỤ ĐÃ KHÓA CỨNG ================= -->
                                 {% if first_q_obj.question_number == 1 %}
                                 <div class="example-box">
                                     <div class="ex-badge">Ví dụ · 例如</div>
@@ -580,6 +590,17 @@
         <!-- ================= CỘT PHẢI ================= -->
         <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
             <div class="sticky-sidebar">
+                
+                <!-- BẬT TẮT PINYIN TÍCH HỢP -->
+                <div class="panel-box text-center mb-3 p-3">
+                    <p class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.8rem; letter-spacing: 0.5px;"><i class="fas fa-language me-1"></i> Chế độ Pinyin</p>
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 m-0" style="padding-left: 0;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Tắt</span>
+                        <input class="form-check-input m-0 custom-switch" type="checkbox" id="pinyinToggle" checked style="width: 3em; height: 1.5em; cursor: pointer;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--success-color);" id="pinyinToggleLabel">Bật</span>
+                    </div>
+                </div>
+
                 <div class="panel-box text-center mb-3">
                     <p class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.85rem; letter-spacing: 0.5px;">Thời gian còn lại</p>
                     <div class="timer-circle" id="countdown-circle">
@@ -615,6 +636,21 @@
 
 {% block extra_js %}
 <script>
+    // XỬ LÝ NÚT BẬT TẮT PINYIN
+    const pinyinToggle = document.getElementById('pinyinToggle');
+    const pinyinToggleLabel = document.getElementById('pinyinToggleLabel');
+    if (pinyinToggle) {
+        pinyinToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.remove('hide-pinyin');
+                pinyinToggleLabel.style.color = 'var(--success-color)';
+            } else {
+                document.body.classList.add('hide-pinyin');
+                pinyinToggleLabel.style.color = 'var(--text-muted)';
+            }
+        });
+    }
+
     window.addEventListener('scroll', function() {
         let btn = document.getElementById("backToTopBtn");
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {

@@ -23,7 +23,6 @@
     
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
     
-    /* MỞ RỘNG GIAO DIỆN TẬN DỤNG KHOẢNG TRỐNG 2 BÊN */
     .exam-container { max-width: 1350px; margin: 0 auto; padding: 25px 15px; } 
     .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.5; white-space: pre-wrap; font-weight: 500; } 
     .pinyin-text { font-size: 0.95rem; color: #2563eb; margin-bottom: 2px; white-space: pre-wrap; font-weight: 600; letter-spacing: 0.2px;} 
@@ -31,10 +30,21 @@
     .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;}
     .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 15px; letter-spacing: 0.5px; }
     
+    /* ================= THỂ LỆ BÀI THI & HƯỚNG DẪN ================= */
+    .exam-rules-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 25px; box-shadow: var(--shadow-sm); margin-bottom: 25px; }
+    .rules-title { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;}
+    .rules-list { margin: 0; padding-left: 20px; color: var(--text-main); font-size: 0.95rem; line-height: 1.7; }
+    .rules-list li { margin-bottom: 8px; }
+    .rules-list li:last-child { margin-bottom: 0; }
+    
+    .part-instruction { background: #F0F9FF; border-left: 4px solid #0284C7; padding: 14px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .part-instruction .zh { font-family: 'Noto Sans SC', sans-serif; font-size: 1.1rem; font-weight: 700; color: #0369A1; margin-bottom: 4px; }
+    .part-instruction .vi { font-size: 0.95rem; color: #475569; font-style: italic; }
+
     .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; position: relative; margin-bottom: 15px; }
     .hsk-major-title::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: var(--primary-color); border-radius: 2px; }
     .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .hsk-group-range { font-size: 1rem; font-weight: 600; color: var(--text-muted); border-left: 3px solid #D4D4D8; padding-left: 10px; margin-bottom: 10px; }
+    .hsk-group-range { font-size: 1rem; font-weight: 600; color: var(--text-muted); border-left: 3px solid #D4D4D8; padding-left: 10px; margin-bottom: 15px; }
     
     .q-group-wrapper { margin-bottom: 35px; }
     .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
@@ -67,7 +77,6 @@
     .example-box { background: linear-gradient(to right, #FFFBEB, #FFFFFF); border-left: 4px solid #F59E0B; padding: 18px 24px; border-bottom: 1px solid var(--border-color); }
     .ex-badge { background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* ================= RỔ ẢNH ================= */
     .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
     .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; } 
     .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff; border: 1px solid #D4D4D8; box-shadow: var(--shadow-md); transition: transform 0.2s; cursor: pointer; }
@@ -75,42 +84,12 @@
     .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
     
-    /* ĐÃ ĐỒNG BỘ: Nhãn chữ dưới rổ ảnh giống y hệt nhãn rổ chữ */
     .shared-img-label { font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: 10px auto 0 auto; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3); }
     
-    /* ================= RỔ CHỮ ================= */
-    .shared-options-grid { 
-        display: grid; 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 15px; 
-        width: 100%;
-    }
-    .shared-opt-item { 
-        background: #F0F9FF; 
-        border: 1.5px solid #BAE6FD; 
-        padding: 10px 15px; 
-        border-radius: 10px; 
-        display: flex; 
-        align-items: center; 
-        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08); 
-        transition: transform 0.2s, box-shadow 0.2s; 
-    }
+    .shared-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+    .shared-opt-item { background: #F0F9FF; border: 1.5px solid #BAE6FD; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08); transition: transform 0.2s, box-shadow 0.2s; }
     .shared-opt-item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(2, 132, 199, 0.15); border-color: #7DD3FC; }
-    .shared-opt-letter { 
-        font-size: 0.95rem; 
-        font-weight: 800; 
-        color: white; 
-        background: linear-gradient(135deg, #0284C7, #0369A1); 
-        width: 30px; 
-        height: 30px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        border-radius: 8px; 
-        flex-shrink: 0; 
-        margin-right: 15px; 
-        box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
-    }
+    .shared-opt-letter { font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; margin-right: 15px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3); }
     .shared-opt-item .chinese-text { font-size: 1.15rem !important; color: #0F172A !important; font-weight: 700 !important; line-height: 1.4 !important; }
     .shared-opt-item .pinyin-text { color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem; margin-bottom: 2px;}
     
@@ -132,19 +111,14 @@
 
     .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
-    /* Reponsive */
-    @media (max-width: 1200px) {
-        .shared-options-grid { grid-template-columns: repeat(3, 1fr); } 
-    }
+    @media (max-width: 1200px) { .shared-options-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 991px) {
         .shared-img-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } 
         .q-options-area.ms-5 { margin-left: 0 !important; }
         .example-box { padding: 15px; }
         .question-row { padding: 15px; }
     }
-    @media (max-width: 768px) {
-        .shared-options-grid { grid-template-columns: repeat(2, 1fr); } 
-    }
+    @media (max-width: 768px) { .shared-options-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
 {% endblock %}
 
@@ -156,6 +130,17 @@
             <div class="text-center mb-4 mt-1">
                 <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> HSK {{ exam.hsk_level }}</div>
                 <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
+            <!-- THỂ LỆ BÀI THI -->
+            <div class="exam-rules-box">
+                <div class="rules-title"><i class="fas fa-info-circle text-primary"></i> THỂ LỆ BÀI THI HSK 1 (3.0)</div>
+                <ul class="rules-list">
+                    <li><strong>Cấu trúc:</strong> Bài thi HSK (Cấp 1) gồm 2 phần, tổng cộng 40 câu hỏi.</li>
+                    <li><strong>Nghe hiểu:</strong> 20 câu (Khoảng 12 phút). Sau khi nghe xong, thí sinh có 3 phút để hoàn thiện đáp án lên phiếu trả lời.</li>
+                    <li><strong>Đọc hiểu:</strong> 20 câu (Thời gian làm bài 20 phút).</li>
+                    <li><strong>Thời gian:</strong> Tổng thời gian làm bài khoảng 40 phút (đã bao gồm 5 phút điền thông tin cá nhân).</li>
+                </ul>
             </div>
 
             {% if exam.listening_audio %}
@@ -190,10 +175,38 @@
                             <div class="mb-2">
                                 <div class="hsk-group-range">第 {{ first_q_obj.question_number }}—{% if first_q_obj.question_number == 1 %}5{% elif first_q_obj.question_number == 6 %}10{% elif first_q_obj.question_number == 11 %}15{% elif first_q_obj.question_number == 16 %}20{% elif first_q_obj.question_number == 21 %}25{% elif first_q_obj.question_number == 26 %}30{% elif first_q_obj.question_number == 31 %}35{% elif first_q_obj.question_number == 36 %}40{% endif %} 题</div>
                             </div>
+
+                            <!-- HƯỚNG DẪN TỪNG PHẦN THI -->
+                            <div class="part-instruction">
+                                {% if first_q_obj.question_number == 1 %}
+                                    <div class="zh">听录音，选出对应的图片。</div>
+                                    <div class="vi">Nghe và chọn bức tranh đúng với nội dung nghe được.</div>
+                                {% elif first_q_obj.question_number == 6 %}
+                                    <div class="zh">听句子，选出句子中出现的词语。</div>
+                                    <div class="vi">Nghe câu rồi chọn từ/cụm từ xuất hiện trong câu.</div>
+                                {% elif first_q_obj.question_number == 11 %}
+                                    <div class="zh">听对话，选出对应的图片（每张图只使用一次）。</div>
+                                    <div class="vi">Nghe hội thoại ngắn, chọn tranh phù hợp (mỗi tranh chỉ dùng 1 lần).</div>
+                                {% elif first_q_obj.question_number == 16 %}
+                                    <div class="zh">听一段话和一个问题，选出正确答案。</div>
+                                    <div class="vi">Nghe một đoạn ngắn và câu hỏi, chọn đáp án đúng.</div>
+                                {% elif first_q_obj.question_number == 21 %}
+                                    <div class="zh">读句子，选出对应的图片（每张图只使用一次）。</div>
+                                    <div class="vi">Đọc câu, chọn tranh phù hợp (mỗi tranh chỉ dùng 1 lần).</div>
+                                {% elif first_q_obj.question_number == 26 %}
+                                    <div class="zh">选择合适的答句。</div>
+                                    <div class="vi">Nối câu hỏi/câu nói bên trái với câu trả lời phù hợp.</div>
+                                {% elif first_q_obj.question_number == 31 %}
+                                    <div class="zh">选词填空。</div>
+                                    <div class="vi">Chọn từ thích hợp trong khung để điền vào chỗ trống.</div>
+                                {% elif first_q_obj.question_number == 36 %}
+                                    <div class="zh">读一段话，选择正确答案。</div>
+                                    <div class="vi">Đọc đoạn văn ngắn rồi chọn đáp án đúng cho câu hỏi.</div>
+                                {% endif %}
+                            </div>
                         {% endwith %}
 
                         <div class="q-card-group">
-                            
                             {% with first_q_obj=group.list.0 %}
                                 <!-- ================= RỔ DÙNG CHUNG ================= -->
                                 {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 21 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 %}
@@ -216,7 +229,7 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- ================= CÁC KHỐI VÍ DỤ ================= -->
+                                <!-- ================= CÁC KHỐI VÍ DỤ ĐÃ KHÓA CỨNG ================= -->
                                 {% if first_q_obj.question_number == 1 %}
                                 <div class="example-box">
                                     <div class="ex-badge">Ví dụ · 例如</div>

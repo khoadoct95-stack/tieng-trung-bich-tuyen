@@ -246,6 +246,46 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- ================= VÍ DỤ PHẦN 3 (Câu 11-15) ================= -->
+                                {% elif first_q_obj.question_number == 11 %}
+                                <div class="example-box mt-4"> <!-- mt-4 để tạo khoảng cách đẹp mắt với rổ ảnh phía trên -->
+                                    <div class="ex-badge">VÍ DỤ · 例如</div>
+                                    
+                                    <!-- Nội dung câu hỏi đoạn hội thoại ví dụ -->
+                                    <div class="mb-4 ms-2">
+                                        <div class="mb-2">
+                                            <div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo!</div>
+                                            <div class="chinese-text">女：你 好！</div>
+                                        </div>
+                                        <div>
+                                            <div class="pinyin-text" style="padding-left: 45px;">Nǐ hǎo! Hěn gāoxìng rènshi nǐ.</div>
+                                            <div class="chinese-text">男：你 好！很 高兴 认识 你。</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Các đáp án hình tròn A-F -->
+                                    <div class="af-options-wrapper ms-2">
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">A</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">B</label>
+                                        
+                                        <!-- Đáp án C (Được chọn, Đổi màu xanh lá & Khóa cứng) -->
+                                        <input type="radio" class="circle-radio" checked disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">C</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">D</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">E</label>
+                                        
+                                        <input type="radio" class="circle-radio" disabled>
+                                        <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
+                                    </div>
+                                </div>
                                 {% endif %}
                             {% endwith %}
 

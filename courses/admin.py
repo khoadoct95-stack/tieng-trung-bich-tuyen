@@ -1,3 +1,5 @@
+from django.utils.html import format_html
+from django.urls import reverse
 from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect
@@ -277,23 +279,19 @@ class ExamQuestionAdmin(admin.ModelAdmin):
 # BẢN NÂNG CẤP CHUYÊN NGHIỆP CHO KẾT QUẢ BÀI THI
 @admin.register(ExamResult)
 class ExamResultAdmin(admin.ModelAdmin):
-    # 1. Các cột hiển thị siêu trực quan
-    list_display = ('user', 'exam', 'get_hsk_level', 'score_display', 'correct_ratio', 'completed_at')
-    
-    # 2. Bộ lọc thông minh bên phải
+    # Thêm cột view_student_exam vào danh sách hiển thị
+    list_display = ('user', 'exam', 'get_hsk_level', 'score_display', 'correct_ratio', 'completed_at', 'view_student_exam')
     list_filter = ('exam__hsk_level', 'exam', 'completed_at')
-    
-    # 3. Thanh tìm kiếm mạnh mẽ
     search_fields = ('user__username', 'user__email', 'user__first_name', 'exam__title')
     
-    # 4. Bảo vệ dữ liệu thi của học viên (Admin chỉ được xem, không được sửa điểm)
-    readonly_fields = ('user', 'exam', 'score', 'total_correct', 'total_questions', 'time_spent', 'user_answers', 'completed_at')
+    # Bổ sung view_student_exam vào readonly_fields để hiện trong trang chi tiết
+    readonly_fields = ('user', 'exam', 'score', 'total_correct', 'total_questions', 'time_spent', 'user_answers', 'completed_at', 'view_student_exam')
 
     # ==== CÁC HÀM XỬ LÝ GIAO DIỆN CỘT ====
     def get_hsk_level(self, obj):
         return f"HSK {obj.exam.hsk_level}"
     get_hsk_level.short_description = 'Cấp độ'
-    get_hsk_level.admin_order_field = 'exam__hsk_level' # Cho phép click để sort
+    get_hsk_level.admin_order_field = 'exam__hsk_level'
 
     def score_display(self, obj):
         return f"{obj.score} điểm"
@@ -303,3 +301,16 @@ class ExamResultAdmin(admin.ModelAdmin):
     def correct_ratio(self, obj):
         return f"{obj.total_correct} / {obj.total_questions}"
     correct_ratio.short_description = 'Số câu đúng'
+
+    # ==== NÚT BẤM XEM CHI TIẾT BÀI THI ====
+    def view_student_exam(self, obj):
+        if obj.id:
+            # Tạo đường dẫn tới trang review_exam của frontend
+            url = reverse('review_exam', args=[obj.id])
+            # Tạo nút bấm HTML siêu đẹp
+            return format_html(
+                '<a href="{}" target="_blank" style="background-color: #0284C7; color: white; padding: 8px 15px; font-weight: 600; border-radius: 6px; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">👀 Xem chi tiết bài làm</a>',
+                url
+            )
+        return "Chưa có dữ liệu"
+    view_student_exam.short_description = 'Hành động'

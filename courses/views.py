@@ -291,7 +291,12 @@ def take_exam(request, exam_id):
 # ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
-    result = get_object_or_404(ExamResult, id=result_id, user=request.user)
+    # NÂNG CẤP BẢO MẬT: Nếu là Admin/Giáo viên thì được xem tất cả. Nếu là Học viên thì chỉ xem được bài của mình.
+    if request.user.is_staff or request.user.is_superuser:
+        result = get_object_or_404(ExamResult, id=result_id)
+    else:
+        result = get_object_or_404(ExamResult, id=result_id, user=request.user)
+        
     exam = result.exam
     questions = ExamQuestion.objects.filter(exam=exam).order_by('question_number')
 

@@ -391,6 +391,64 @@
                                         <label class="circle-label" style="cursor: default; pointer-events: none;">F</label>
                                     </div>
                                 </div>
+
+                                <!-- ================= VÍ DỤ PHẦN ĐỌC 4 (Câu 36-40) ================= -->
+                                {% elif first_q_obj.question_number == 36 %}
+                                <div class="example-box">
+                                    <div class="ex-badge">VÍ DỤ · 例如</div>
+                                    
+                                    <!-- Nội dung đoạn văn và câu hỏi -->
+                                    <div class="mb-4 ms-2">
+                                        <div class="mb-2">
+                                            <div class="pinyin-text">Qǐngwèn xiànzài jǐ diǎn le?</div>
+                                            <div class="chinese-text">请问 现在 几 点 了？</div>
+                                        </div>
+                                        <div>
+                                            <!-- Padding 35px để pinyin lùi vào thẳng hàng với chữ sau biểu tượng ★ -->
+                                            <div class="pinyin-text" style="padding-left: 35px;">Shuōhuàrén xiǎng zhīdào shénme?</div>
+                                            <div class="chinese-text">★ 说话人 想 知道 什么？</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Các đáp án -->
+                                    <div class="row g-3">
+                                        <!-- Đáp án A (Được chọn, Đổi màu xanh lá & Khóa cứng) -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" checked disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">A</span>
+                                                <div>
+                                                    <div class="pinyin-text small">shíjiān</div>
+                                                    <div class="chinese-text">时间</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Đáp án B -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">B</span>
+                                                <div>
+                                                    <div class="pinyin-text small">míngzi</div>
+                                                    <div class="chinese-text">名字</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- Đáp án C -->
+                                        <div class="col-md-4">
+                                            <input type="radio" class="opt-radio" disabled>
+                                            <label class="opt-label" style="cursor: default; pointer-events: none;">
+                                                <span class="opt-circle me-3">C</span>
+                                                <div>
+                                                    <div class="pinyin-text small">fángjiānhào</div>
+                                                    <div class="chinese-text">房间号</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 {% endif %}
                             {% endwith %}
 

@@ -83,6 +83,18 @@
     .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .hsk-group-range { font-size: 1rem; font-weight: 600; color: var(--text-muted); border-left: 3px solid #D4D4D8; padding-left: 10px; margin-bottom: 15px; }
     
+    /* ================= THANH AUDIO BÁM DÍNH (STICKY) ================= */
+    .sticky-audio {
+        position: sticky;
+        top: 15px;
+        z-index: 105; /* Nổi lên trên nội dung câu hỏi bên trái */
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid var(--border-color);
+        transition: box-shadow 0.3s ease;
+    }
+    
     .q-group-wrapper { margin-bottom: 35px; }
     .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
     .question-row { padding: 20px 24px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 80px; }
@@ -196,8 +208,8 @@
             </div>
 
             {% if exam.listening_audio %}
-            <div class="q-card-group mb-4" style="padding: 12px 20px;">
-                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem; color: var(--text-muted);"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
+            <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
                 <audio controls class="w-100" style="height: 35px; outline: none;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
             </div>
             {% endif %}
@@ -208,12 +220,22 @@
                 {% regroup questions by question_group as grouped_questions %}
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
-                        <!-- HEADER TỪNG PHẦN THI ĐÃ THÊM TIẾNG VIỆT -->
+                        <!-- HEADER TỪNG PHẦN THI -->
                         {% with first_q_obj=group.list.0 %}
                             {% if first_q_obj.question_number == 1 %}
-                                <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600; font-family: 'Inter', sans-serif;">(NGHE HIỂU)</span></div></div>
+                                <div class="text-center mt-2 mb-3">
+                                    <div class="hsk-major-title">
+                                        一、听 力 
+                                        <span style="font-size: 1.15rem; color: var(--primary-color); font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; margin-left: 8px;">(NGHE HIỂU)</span>
+                                    </div>
+                                </div>
                             {% elif first_q_obj.question_number == 21 %}
-                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">二、阅 读 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600; font-family: 'Inter', sans-serif;">(ĐỌC HIỂU)</span></div></div>
+                                <div class="text-center mt-5 mb-3">
+                                    <div class="hsk-major-title">
+                                        二、阅 读 
+                                        <span style="font-size: 1.15rem; color: var(--primary-color); font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; margin-left: 8px;">(ĐỌC HIỂU)</span>
+                                    </div>
+                                </div>
                             {% endif %}
 
                             <div class="text-center mb-2 mt-1">
@@ -708,6 +730,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // Tách dòng nội dung tiếng Trung / Pinyin
         document.querySelectorAll('.interleave-group').forEach(function(group) {
             let pinyinRaw = group.querySelector('.raw-pinyin');
             let chineseRaw = group.querySelector('.raw-chinese');
@@ -725,8 +748,13 @@
                     let pStr = i < pLines.length ? pLines[i] : "";
                     let cStr = i < cLines.length ? cLines[i] : "";
                     
-                    if (cStr) cStr = cStr.replace(/[(（]\s*[)）]/g, '（<span class="auto-fill-target"></span>）');
-                    if (pStr) pStr = pStr.replace(/[(（]\s*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+                    // CHUẨN BỊ AUTO-FILL
+                    if (cStr) {
+                        cStr = cStr.replace(/[(（]\s*[)）]/g, '（<span class="auto-fill-target"></span>）');
+                    }
+                    if (pStr) {
+                        pStr = pStr.replace(/[(（]\s*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+                    }
 
                     if (pStr || cStr) {
                         html += '<div style="margin-bottom: 4px;">';
@@ -790,6 +818,7 @@
             if (found) { el.insertAdjacentHTML('afterend', html); } 
         });
 
+        // ================= XỬ LÝ LÀM MỜ VÀ AUTO-FILL =================
         document.addEventListener('change', function(e) {
             if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
                 let wrapper = e.target.closest('.q-group-wrapper');
@@ -819,6 +848,7 @@
                         if (poolItem) {
                             let text = poolItem.getAttribute('data-text');
                             let pinyin = poolItem.getAttribute('data-pinyin');
+                            
                             targetSpan.innerText = text ? text : selectedLetter;
                             if (pinyinSpan) pinyinSpan.innerText = pinyin ? pinyin : '';
                         }

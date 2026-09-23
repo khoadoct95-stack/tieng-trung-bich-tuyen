@@ -114,7 +114,8 @@ class Exam(models.Model):
 class ExamQuestion(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='questions', verbose_name="Thuộc đề thi")
     question_number = models.IntegerField(verbose_name="Số thứ tự câu")
-    section_type = models.CharField(max_length=50, choices=[('listening', 'Nghe hiểu'), ('reading', 'Đọc hiểu')], verbose_name="Phần thi")
+    # CẬP NHẬT: Thêm 'writing' vào choices
+    section_type = models.CharField(max_length=50, choices=[('listening', 'Nghe hiểu'), ('reading', 'Đọc hiểu'), ('writing', 'Viết')], verbose_name="Phần thi")
     question_group = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nhóm câu hỏi")
 
     shared_image = models.ImageField(upload_to='exam_images/shared/', blank=True, null=True, verbose_name="Ảnh dùng chung (A-F)")
@@ -136,7 +137,8 @@ class ExamQuestion(models.Model):
     option_e = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án E")
     option_f = models.CharField(max_length=255, blank=True, null=True, verbose_name="Đáp án F")
     
-    correct_answer = models.CharField(max_length=5, verbose_name="Đáp án đúng (A/B/C/D/E/F)")
+    # Ở HSK2 cột này sẽ lưu "A", "B" hoặc lưu CHỮ HÁN cho câu 56-60
+    correct_answer = models.CharField(max_length=5, verbose_name="Đáp án đúng (A/B/C/D/E/F hoặc Chữ Hán)")
     explanation = models.TextField(blank=True, null=True, verbose_name="Giải thích chi tiết")
 
     class Meta:

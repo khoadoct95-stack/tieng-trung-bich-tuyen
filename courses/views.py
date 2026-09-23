@@ -251,8 +251,10 @@ def take_exam(request, exam_id):
             if submitted_answer and submitted_answer == correct_ans:
                 total_correct += 1
 
-        # CÔNG THỨC CHẤM ĐIỂM HSK: Mỗi câu 5 điểm. Đạt >= 120 điểm là đậu.
-        score = total_correct * 5
+        # CÔNG THỨC CHẤM ĐIỂM TƯƠNG ĐỐI
+        # HSK 1,2 quy chuẩn 200 điểm tối đa. Nếu số câu khác, chia tỷ lệ.
+        score_per_question = 200 / total_questions if total_questions > 0 else 0
+        score = int(total_correct * score_per_question)
 
         result = ExamResult.objects.create(
             user=request.user,
@@ -283,6 +285,9 @@ def take_exam(request, exam_id):
             return render(request, 'courses/take_exam_hsk1_old.html', context)
         else:
             return render(request, 'courses/take_exam_hsk1_new.html', context)
+    elif exam.hsk_level == 2:
+        # Template mới dành riêng cho HSK 2
+        return render(request, 'courses/take_exam_hsk2_new.html', context)
             
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 

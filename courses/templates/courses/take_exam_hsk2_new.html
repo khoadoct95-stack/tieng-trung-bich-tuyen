@@ -1,0 +1,463 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+{% block title %}Thi thử - {{ exam.title }}{% endblock %}
+
+{% block extra_head %}
+<!-- Kế thừa nguyên vẹn style css như HSK 1 của bạn -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.6; font-weight: 500; word-wrap: break-word; } 
+    .pinyin-text { font-size: 0.95rem; color: #2563eb; margin-bottom: 2px; font-weight: 600; } 
+    body.hide-pinyin .question-row .pinyin-text, body.hide-pinyin .shared-pool .pinyin-text, body.hide-pinyin .auto-fill-pinyin { display: none !important; }
+    .custom-switch:checked { background-color: var(--success-color) !important; border-color: var(--success-color) !important; }
+    .exam-container { max-width: 1350px; margin: 0 auto; padding: 30px 15px; } 
+    .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 5px;}
+    .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 15px; }
+    .exam-rules-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 25px; box-shadow: var(--shadow-sm); margin-bottom: 25px; }
+    .rules-title { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;}
+    .rules-list { margin: 0; padding-left: 20px; font-size: 0.95rem; line-height: 1.7; }
+    .part-instruction { background: #F0F9FF; border-left: 4px solid #0284C7; padding: 14px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+    .part-instruction .zh { font-family: 'Noto Sans SC', sans-serif; font-size: 1.1rem; font-weight: 700; color: #0369A1; margin-bottom: 4px; }
+    .part-instruction .vi { font-size: 0.95rem; color: #475569; font-style: italic; }
+    .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; position: relative; margin-bottom: 15px; }
+    .hsk-major-title::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: var(--primary-color); border-radius: 2px; }
+    .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; }
+    .hsk-group-range { font-size: 1rem; font-weight: 600; color: var(--text-muted); border-left: 3px solid #D4D4D8; padding-left: 10px; margin-bottom: 15px; }
+    .sticky-audio { position: sticky; top: 15px; z-index: 105; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important; border: 1px solid var(--border-color); }
+    .q-group-wrapper { margin-bottom: 35px; }
+    .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .question-row { padding: 20px 24px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 80px; }
+    .question-row:first-child { border-top: none; }
+    .question-row:hover { background: #FAFAFA; }
+    .q-header-inline { display: flex; align-items: flex-start; gap: 12px; }
+    .q-number-text { font-size: 1.15rem; font-weight: 800; color: var(--success-color); min-width: 28px; margin-top: 2px; }
+    .q-options-area { margin-top: 10px; } .q-options-area.ms-5 { margin-left: 40px !important; }
+    .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; }
+    .opt-radio, .circle-radio { display: none; }
+    .opt-label, .auto-crop-btn { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; background: #fff; height: 100%; }
+    .auto-crop-btn { flex-direction: column; padding: 8px; }
+    .opt-radio:checked + .opt-label, .opt-radio:checked + .auto-crop-btn { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
+    .opt-radio:checked + .opt-label .opt-circle, .opt-radio:checked + .auto-crop-btn .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .crop-window { width: 85%; margin: 0 auto; padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px; }
+    .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
+    .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
+    .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; } 
+    .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff; border: 1px solid #D4D4D8; }
+    .shared-crop-window img { position: absolute; width: 200%; height: 300%; object-fit: fill; }
+    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
+    .shared-img-label, .shared-opt-letter { font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .shared-img-label { margin: 10px auto 0 auto; }
+    .shared-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+    .shared-opt-item { background: #F0F9FF; border: 1.5px solid #BAE6FD; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; }
+    .shared-opt-letter { margin-right: 15px; }
+    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; border: 1.5px solid #D4D4D8; border-radius: 50%; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-muted); background: #fff; margin: 0; }
+    .circle-radio:checked + .circle-label { background: var(--success-color); border-color: var(--success-color); color: white; transform: scale(1.05); }
+    .af-options-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pool-item { transition: all 0.3s ease; }
+    .used-item { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+    .auto-fill-target { color: var(--success-color); font-weight: 900; margin: 0 4px; display: inline-block; min-width: 32px; text-align: center; border-bottom: 1.5px dashed var(--success-color); padding: 0 4px; }
+    .auto-fill-pinyin { color: #2563eb; font-weight: 700; margin: 0 4px; display: inline-block; min-width: 32px; text-align: center; }
+    .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
+    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
+    .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: monospace; background: var(--primary-light); }
+    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; background: #FAFAFA; }
+    .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 8px; padding: 12px; font-size: 1.05rem; border: none; }
+    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+    /* INPUT CHO HSK 2 */
+    .input-chinese { text-align: center; font-size: 1.5rem; height: 50px; border: 2px solid #BAE6FD; border-radius: 10px; color: var(--primary-color); font-family: 'Noto Sans SC'; outline: none; transition: 0.2s; }
+    .input-chinese:focus { border-color: #0284C7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); }
+    @media (max-width: 1200px) { .shared-options-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 991px) { .shared-img-grid { grid-template-columns: repeat(3, 1fr); } .q-options-area.ms-5 { margin-left: 0 !important; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <div class="row">
+        <!-- ================= CỘT TRÁI ================= -->
+        <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
+            <div class="text-center mb-4 mt-1">
+                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> HSK {{ exam.hsk_level }}</div>
+                <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
+            <!-- THỂ LỆ BÀI THI HSK 2 -->
+            <div class="exam-rules-box">
+                <div class="rules-title"><i class="fas fa-info-circle text-primary"></i> THỂ LỆ BÀI THI HSK 2 (3.0)</div>
+                <ul class="rules-list">
+                    <li><strong>Cấu trúc:</strong> Bài thi HSK (Cấp 2) gồm 3 phần: Nghe, Đọc và Viết. Tổng cộng 60 câu hỏi.</li>
+                    <li><strong>Nghe hiểu (25 câu):</strong> Thời gian khoảng 15 phút.</li>
+                    <li><strong>Đọc hiểu (25 câu):</strong> Thời gian làm bài 22 phút.</li>
+                    <li><strong>Viết (10 câu):</strong> Thời gian làm bài 15 phút. Trong đó có yêu cầu tự gõ chữ Hán.</li>
+                    <li><strong>Lưu ý:</strong> Vui lòng chuẩn bị sẵn bộ gõ Pinyin trên máy để làm bài phần Viết.</li>
+                </ul>
+            </div>
+
+            {% if exam.listening_audio %}
+            <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
+                <audio controls class="w-100" style="height: 35px; outline: none;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
+            </div>
+            {% endif %}
+
+            <form id="exam-form" action="" method="POST">
+                {% csrf_token %}
+                
+                {% regroup questions by question_group as grouped_questions %}
+                {% for group in grouped_questions %}
+                    <div class="q-group-wrapper">
+                        <!-- HEADER TỪNG PHẦN THI -->
+                        {% with first_q_obj=group.list.0 %}
+                            {% if first_q_obj.question_number == 1 %}
+                                <div class="text-center mt-2 mb-3">
+                                    <div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div>
+                                </div>
+                            {% elif first_q_obj.question_number == 26 %}
+                                <div class="text-center mt-5 mb-3">
+                                    <div class="hsk-major-title">二、阅 读 <span style="font-size: 1.15rem; font-weight: 800;">(ĐỌC HIỂU)</span></div>
+                                </div>
+                            {% elif first_q_obj.question_number == 51 %}
+                                <div class="text-center mt-5 mb-3">
+                                    <div class="hsk-major-title">三、书 写 <span style="font-size: 1.15rem; font-weight: 800;">(VIẾT)</span></div>
+                                </div>
+                            {% endif %}
+
+                            <div class="text-center mb-2 mt-1">
+                                <div class="hsk-part-title">
+                                    {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 26 or first_q_obj.question_number == 51 %}第一部分{% endif %}
+                                    {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 31 or first_q_obj.question_number == 56 %}第二部分{% endif %}
+                                    {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 36 %}第三部分{% endif %}
+                                    {% if first_q_obj.question_number == 16 or first_q_obj.question_number == 41 %}第四部分{% endif %}
+                                    {% if first_q_obj.question_number == 46 %}第五部分{% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- HƯỚNG DẪN TỪNG PHẦN THI (HSK2) -->
+                            <div class="part-instruction">
+                                {% if first_q_obj.question_number == 1 %}
+                                    <div class="zh">听录音，选出对应的图片。</div><div class="vi">Nghe và chọn bức tranh đúng với nội dung nghe được.</div>
+                                {% elif first_q_obj.question_number == 6 or first_q_obj.question_number == 11 %}
+                                    <div class="zh">听对话，选出对应的图片（每张图只使用一次）。</div><div class="vi">Nghe hội thoại, chọn tranh phù hợp (mỗi tranh chỉ dùng 1 lần).</div>
+                                {% elif first_q_obj.question_number == 16 %}
+                                    <div class="zh">听一段话和一个问题，选出正确答案。</div><div class="vi">Nghe một đoạn ngắn và câu hỏi, chọn đáp án đúng.</div>
+                                {% elif first_q_obj.question_number == 26 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 %}
+                                    <div class="zh">选择合适的答句/句子。</div><div class="vi">Nối câu hỏi/câu nói với câu trả lời tương ứng.</div>
+                                {% elif first_q_obj.question_number == 31 %}
+                                    <div class="zh">选词填空。</div><div class="vi">Chọn từ thích hợp trong khung để điền vào chỗ trống.</div>
+                                {% elif first_q_obj.question_number == 46 %}
+                                    <div class="zh">读一段话，选择正确答案。</div><div class="vi">Đọc đoạn văn ngắn rồi chọn đáp án đúng cho câu hỏi.</div>
+                                {% elif first_q_obj.question_number == 51 %}
+                                    <div class="zh">选择对应的偏旁部首。</div><div class="vi">Chọn bộ thủ thích hợp để hoàn thành chữ Hán.</div>
+                                {% elif first_q_obj.question_number == 56 %}
+                                    <div class="zh">根据拼音写汉字。</div><div class="vi">Điền chữ Hán dựa vào Pinyin và ngữ cảnh. (Vui lòng gõ chữ Hán vào ô trống)</div>
+                                {% endif %}
+                            </div>
+                        {% endwith %}
+
+                        <div class="q-card-group">
+                            {% with first_q_obj=group.list.0 %}
+                                <!-- ================= RỔ DÙNG CHUNG ================= -->
+                                {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
+                                    <div class="shared-pool">
+                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                            <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                        {% endif %}
+                                        
+                                        {% if first_q_obj.image %}
+                                            <div class="shared-img-grid">
+                                                {% for opt in "ABCDEF"|make_list %}
+                                                <div class="pool-item" data-letter="{{ opt }}"><div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div><div class="shared-img-label">{{ opt }}</div></div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+
+                            <!-- ================= DANH SÁCH CÂU HỎI THẬT ================= -->
+                            {% for q in group.list %}
+                                <div class="question-row" id="q{{ q.question_number }}">
+                                    <div class="q-header-inline">
+                                        <div class="q-number-text">{{ q.question_number }}.</div>
+                                        <div class="q-content-area w-100">
+                                            {% if q.passage_text and q.question_number not in '6,11,26,31,36,41,51' %}
+                                                <div class="interleave-group passage-group border-bottom mb-2 pb-2">
+                                                    <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
+                                                    <div class="raw-chinese" style="display: none;">{{ q.passage_text|default:""|linebreaksbr }}</div>
+                                                    <div class="interleaved-output"></div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
+                                                <div class="interleave-group content-group">
+                                                    <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
+                                                    <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{{ q.content|linebreaksbr }}{% endif %}</div>
+                                                    <div class="interleaved-output"></div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="q-options-area ms-5">
+                                        <!-- PHẦN VIẾT CHỮ HÁN TỰ LUẬN (CÂU 56-60) -->
+                                        {% if q.question_number >= 56 %}
+                                            <div class="row mt-2">
+                                                <div class="col-12 col-md-6">
+                                                    <input type="text" name="q_{{ q.id }}" class="form-control input-chinese" placeholder="Gõ chữ Hán vào đây..." onkeyup="if(this.value.trim() !== '') { document.getElementById('grid-btn-{{ q.question_number }}').classList.add('done'); } else { document.getElementById('grid-btn-{{ q.question_number }}').classList.remove('done'); }">
+                                                </div>
+                                            </div>
+                                        <!-- PHẦN CHỌN ĐÁP ÁN NỐI (A-F) -->
+                                        {% elif q.question_number >= 26 and q.question_number <= 45 or q.question_number >= 51 and q.question_number <= 55 or q.question_number >= 6 and q.question_number <= 15 %}
+                                            <div class="af-options-wrapper">
+                                                {% for opt in "ABCDEF"|make_list %}
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                                {% endfor %}
+                                            </div>
+                                        <!-- PHẦN TRẮC NGHIỆM ẢNH -->
+                                        {% elif q.image %}
+                                            <div class="row g-3 mt-1">
+                                                {% for opt in "ABC"|make_list %}
+                                                <div class="col-4">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="auto-crop-btn" for="q{{ q.id }}_{{ opt }}">
+                                                        <div class="crop-window show-part-{{ opt }}"><img src="{{ q.image.url }}" alt="{{ opt }}"></div>
+                                                        <div class="opt-circle mt-2">{{ opt }}</div>
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        <!-- PHẦN TRẮC NGHIỆM TEXT -->
+                                        {% else %}
+                                            <div class="row g-2 mt-1">
+                                                {% if q.option_a or q.option_a_pinyin %}
+                                                <div class="col-md-4">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label" for="q{{ q.id }}_A_txt"><span class="opt-circle me-2">A</span><div><div class="pinyin-text small">{{ q.option_a_pinyin|default:"" }}</div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_a|default:"" }}</div></div></label>
+                                                </div>
+                                                {% endif %}
+                                                {% if q.option_b or q.option_b_pinyin %}
+                                                <div class="col-md-4">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label" for="q{{ q.id }}_B_txt"><span class="opt-circle me-2">B</span><div><div class="pinyin-text small">{{ q.option_b_pinyin|default:"" }}</div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_b|default:"" }}</div></div></label>
+                                                </div>
+                                                {% endif %}
+                                                {% if q.option_c or q.option_c_pinyin %}
+                                                <div class="col-md-4">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label" for="q{{ q.id }}_C_txt"><span class="opt-circle me-2">C</span><div><div class="pinyin-text small">{{ q.option_c_pinyin|default:"" }}</div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_c|default:"" }}</div></div></label>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- ================= CỘT PHẢI (SIDEBAR) ================= -->
+        <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
+            <div class="sticky-sidebar">
+                <div class="panel-box text-center mb-3 p-3">
+                    <p class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.8rem;"><i class="fas fa-language me-1"></i> Chế độ Pinyin</p>
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 m-0" style="padding-left: 0;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Tắt</span>
+                        <input class="form-check-input m-0 custom-switch" type="checkbox" id="pinyinToggle" checked style="width: 3em; height: 1.5em; cursor: pointer;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--success-color);" id="pinyinToggleLabel">Bật</span>
+                    </div>
+                </div>
+
+                <div class="panel-box text-center mb-3">
+                    <p class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.85rem;">Thời gian còn lại</p>
+                    <div class="timer-circle" id="countdown-circle">
+                        <span id="countdown">{{ exam.duration_minutes|default:60 }}:00</span>
+                    </div>
+                </div>
+
+                <div class="panel-box">
+                    <button class="btn w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse" style="background: #E4E4E7; color: var(--text-main);">
+                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ
+                    </button>
+                    
+                    <div class="collapse d-lg-block" id="gridCollapse">
+                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ</p>
+                        <div class="grid-progress mb-4">
+                            {% for q in questions %}
+                                <div class="grid-item" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">{{ q.question_number }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-submit w-100" onclick="submitExam()"><i class="fas fa-paper-plane me-2"></i> NỘP BÀI THI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Giữ nguyên toàn bộ JS y hệt file HSK 1 của bạn -->
+<script>
+    const pinyinToggle = document.getElementById('pinyinToggle');
+    const pinyinToggleLabel = document.getElementById('pinyinToggleLabel');
+    if (pinyinToggle) {
+        pinyinToggle.addEventListener('change', function() {
+            if (this.checked) { document.body.classList.remove('hide-pinyin'); pinyinToggleLabel.style.color = 'var(--success-color)';
+            } else { document.body.classList.add('hide-pinyin'); pinyinToggleLabel.style.color = 'var(--text-muted)'; }
+        });
+    }
+
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
+    function scrollToQ(qNumber) { 
+        const el = document.getElementById('q' + qNumber); 
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+    
+    if (document.getElementById('countdown')) {
+        let timeInSeconds = {{ exam.duration_minutes|default:60 }} * 60;
+        function startTimer() {
+            let display = document.getElementById('countdown');
+            let timer = setInterval(function () {
+                let minutes = parseInt(timeInSeconds / 60, 10);
+                let seconds = parseInt(timeInSeconds % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+                if (--timeInSeconds < 0) {
+                    clearInterval(timer);
+                    alert("⏳ Đã hết thời gian! Tự động nộp bài.");
+                    if(document.getElementById('exam-form')) { document.getElementById('exam-form').submit(); }
+                }
+            }, 1000);
+        }
+        window.onload = startTimer;
+    }
+    
+    function submitExam() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = document.querySelectorAll('.grid-item').length;
+        if (totalDone < totalQ) {
+            let missing = totalQ - totalDone;
+            if (!confirm(`⚠️ CẢNH BÁO: Còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN nộp bài không?`)) return;
+        } else {
+            if (!confirm("✅ Xác nhận nộp bài?")) return;
+        }
+        document.getElementById('exam-form').submit();
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.interleave-group').forEach(function(group) {
+            let pinyinRaw = group.querySelector('.raw-pinyin');
+            let chineseRaw = group.querySelector('.raw-chinese');
+            let output = group.querySelector('.interleaved-output');
+            if (output) {
+                let pHtml = pinyinRaw ? pinyinRaw.innerHTML : "";
+                let cHtml = chineseRaw ? chineseRaw.innerHTML : "";
+                let pLines = pHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
+                let cLines = cHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
+                let maxLines = Math.max(pLines.length, cLines.length);
+                let html = '';
+                
+                for(let i = 0; i < maxLines; i++) {
+                    let pStr = i < pLines.length ? pLines[i] : "";
+                    let cStr = i < cLines.length ? cLines[i] : "";
+                    if (cStr) cStr = cStr.replace(/[(（]\s*[)）]/g, '（<span class="auto-fill-target"></span>）');
+                    if (pStr) pStr = pStr.replace(/[(（]\s*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+
+                    if (pStr || cStr) {
+                        html += '<div style="margin-bottom: 4px;">';
+                        if (pStr) html += `<div class="pinyin-text">${pStr}</div>`;
+                        if (cStr) html += `<div class="chinese-text">${cStr}</div>`;
+                        html += '</div>';
+                    }
+                }
+                output.innerHTML = html;
+            }
+        });
+
+        function parseOptions(text) {
+            let dict = {};
+            if (!text) return dict;
+            let cleanText = text.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/[\r\n\t\u3000]+/g, ' ').trim();
+            let parts = cleanText.split(/([A-F])[.、:：\s]+/);
+            for (let i = 1; i < parts.length; i += 2) {
+                let letter = parts[i].trim();
+                let content = parts[i+1] ? parts[i+1].trim() : "";
+                if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
+            }
+            return dict;
+        }
+
+        document.querySelectorAll('.format-shared-options').forEach(function(el) {
+            let textDict = parseOptions(el.textContent || el.innerText || "");
+            let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
+            let pinyinDict = {};
+            if (pinyinEl) {
+                let rawPinyinText = pinyinEl.textContent || pinyinEl.innerText || "";
+                if (/([A-F])[.、:：\s]+/.test(rawPinyinText)) { pinyinDict = parseOptions(rawPinyinText); } 
+                else {
+                    let pinyinLines = pinyinEl.innerHTML.split(/<br\s*\/?>/i).map(s => { let tmp = document.createElement('div'); tmp.innerHTML = s; return (tmp.textContent || tmp.innerText || "").trim(); }).filter(s => s.length > 0);
+                    let letters = Object.keys(textDict).sort(); 
+                    for (let i = 0; i < letters.length; i++) { if (pinyinLines[i]) pinyinDict[letters[i]] = pinyinLines[i]; }
+                }
+            }
+            
+            let html = '<div class="shared-options-grid">';
+            let found = false;
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+                if (textDict[letter]) {
+                    found = true;
+                    let safeText = textDict[letter].replace(/"/g, '&quot;');
+                    let safePinyin = (pinyinDict[letter] || '').replace(/"/g, '&quot;');
+                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #475569; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
+                    
+                    html += `<div class="shared-opt-item pool-item" data-letter="${letter}" data-text="${safeText}" data-pinyin="${safePinyin}"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div></div>`;
+                }
+            });
+            html += '</div>';
+            if (found) el.insertAdjacentHTML('afterend', html); 
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
+                let wrapper = e.target.closest('.q-group-wrapper');
+                if (!wrapper) return;
+
+                let checkedRadios = wrapper.querySelectorAll('.circle-radio:checked:not([disabled]), .opt-radio:checked:not([disabled])');
+                let selectedValues = Array.from(checkedRadios).map(r => r.value);
+
+                wrapper.querySelectorAll('.pool-item').forEach(item => {
+                    if (selectedValues.includes(item.getAttribute('data-letter'))) item.classList.add('used-item');
+                    else item.classList.remove('used-item');
+                });
+
+                let questionRow = e.target.closest('.question-row');
+                if (questionRow) {
+                    let targetSpan = questionRow.querySelector('.auto-fill-target');
+                    let pinyinSpan = questionRow.querySelector('.auto-fill-pinyin');
+                    if (targetSpan) {
+                        let poolItem = wrapper.querySelector(`.pool-item[data-letter="${e.target.value}"]`);
+                        if (poolItem) {
+                            targetSpan.innerText = poolItem.getAttribute('data-text') || e.target.value;
+                            if (pinyinSpan) pinyinSpan.innerText = poolItem.getAttribute('data-pinyin') || '';
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

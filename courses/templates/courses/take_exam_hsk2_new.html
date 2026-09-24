@@ -440,6 +440,10 @@
             for (let i = 1; i < parts.length; i += 2) {
                 let letter = parts[i].trim();
                 let content = parts[i+1] ? parts[i+1].trim() : "";
+                
+                // ĐOẠN CODE MỚI: Tự động xóa dấu gạch chéo / và khoảng trắng thừa ở cuối
+                content = content.replace(/\/+$/, '').trim();
+                
                 if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
             }
             return dict;

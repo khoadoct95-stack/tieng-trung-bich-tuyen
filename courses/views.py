@@ -478,7 +478,7 @@ def import_excel(request):
     return render(request, 'admin/import_excel.html')
 
 # ==========================================
-# 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT
+# 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT (BẢN BAO LỖI)
 # ==========================================
 @login_required
 def upload_exam_images_zip(request):
@@ -493,6 +493,7 @@ def upload_exam_images_zip(request):
         exam = get_object_or_404(Exam, id=exam_id)
         image_groups = {}
         single_images = {}
+        processed_groups = [] # Lưu danh sách các nhóm đã ghép thành công
 
         try:
             with zipfile.ZipFile(zip_file, 'r') as z:
@@ -517,69 +518,76 @@ def upload_exam_images_zip(request):
                             q_num = match_single.group(1)
                             single_images[q_num] = z.read(filename)
 
-            # Xử lý ảnh lẻ (câu 1-5, câu 51-55...)
+            # 1. Xử lý ảnh lẻ
             for q_num, file_data in single_images.items():
                 question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
                 if question:
                     question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
 
-            # Xử lý ghép ảnh rổ chung (câu 6, 11, 26, 51)
+            # 2. Xử lý ghép ảnh rổ chung (BAO LỖI, THIẾU ẢNH VẪN GHÉP)
             for q_num, letters_dict in image_groups.items():
-                # Tìm câu hỏi tương ứng trong DB
                 question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
                 
-                # Nếu không tìm thấy câu hỏi chính xác (ví dụ bạn đặt tên là q11_a nhưng câu hỏi bắt đầu nhóm là 11),
-                # thì gán cho câu hỏi đầu tiên của nhóm đó.
+                # Fallback: Nếu không tìm thấy, đưa về câu đầu tiên của nhóm
                 if not question:
-                    if int(q_num) in range(6, 11):
-                        question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
-                    elif int(q_num) in range(11, 16):
-                        question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
-                    elif int(q_num) in range(26, 31):
-                        question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
-                    elif int(q_num) in range(51, 56):
-                         question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
+                    if int(q_num) in range(6, 11): question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
+                    elif int(q_num) in range(11, 16): question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
+                    elif int(q_num) in range(26, 31): question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
+                    elif int(q_num) in range(51, 56): question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
 
                 if not question:
                     continue
 
-                if 'A' in letters_dict and 'B' in letters_dict and 'C' in letters_dict and 'D' not in letters_dict:
-                    imgA = Image.open(BytesIO(letters_dict['A'])).convert('RGB')
-                    imgB = Image.open(BytesIO(letters_dict['B'])).convert('RGB')
-                    imgC = Image.open(BytesIO(letters_dict['C'])).convert('RGB')
-                    
-                    w, h = imgA.size
-                    imgB = imgB.resize((w, h))
-                    imgC = imgC.resize((w, h))
-                    
+                # Lấy danh sách các chữ cái có trong zip
+                keys = list(letters_dict.keys())
+                if not keys: continue
+
+                # Đọc các ảnh vào bộ nhớ
+                imgs = {}
+                for k in keys:
+                    try:
+                        imgs[k] = Image.open(BytesIO(letters_dict[k])).convert('RGB')
+                    except:
+                        pass
+                
+                if not imgs: continue
+                
+                # Lấy kích thước chuẩn từ ảnh đầu tiên tìm thấy
+                base_k = list(imgs.keys())[0]
+                w, h = imgs[base_k].size
+                for k in imgs:
+                    imgs[k] = imgs[k].resize((w, h))
+
+                # Phân loại ghép 3 ảnh hay 6 ảnh
+                if set(keys).issubset({'A', 'B', 'C'}) and len(keys) <= 3:
+                    # Rổ 3 ảnh (A, B, C nằm ngang)
                     composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
-                    composite.paste(imgA, (0, 0))
-                    composite.paste(imgB, (w, 0))
-                    composite.paste(imgC, (w * 2, 0))
-                    
-                    img_io = BytesIO()
-                    composite.save(img_io, format='JPEG', quality=90)
-                    question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
-
-                elif all(k in letters_dict for k in ['A', 'B', 'C', 'D', 'E', 'F']):
-                    imgs = {k: Image.open(BytesIO(letters_dict[k])).convert('RGB') for k in ['A','B','C','D','E','F']}
-                    w, h = imgs['A'].size
-                    for k in imgs:
-                        imgs[k] = imgs[k].resize((w, h))
-                        
+                    if 'A' in imgs: composite.paste(imgs['A'], (0, 0))
+                    if 'B' in imgs: composite.paste(imgs['B'], (w, 0))
+                    if 'C' in imgs: composite.paste(imgs['C'], (w * 2, 0))
+                else:
+                    # Rổ 6 ảnh (A,B / C,D / E,F)
                     composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
-                    composite.paste(imgs['A'], (0, 0))
-                    composite.paste(imgs['B'], (w, 0))
-                    composite.paste(imgs['C'], (0, h))
-                    composite.paste(imgs['D'], (w, h))
-                    composite.paste(imgs['E'], (0, h * 2))
-                    composite.paste(imgs['F'], (w, h * 2))
-                    
-                    img_io = BytesIO()
-                    composite.save(img_io, format='JPEG', quality=90)
-                    question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+                    positions = {
+                        'A': (0, 0),       'B': (w, 0),
+                        'C': (0, h),       'D': (w, h),
+                        'E': (0, h * 2),   'F': (w, h * 2)
+                    }
+                    for k, pos in positions.items():
+                        if k in imgs:
+                            composite.paste(imgs[k], pos)
 
-            messages.success(request, "🎉 Đã gắn và tự động ghép ảnh thành công từ file ZIP!")
+                # Lưu vào Database
+                img_io = BytesIO()
+                composite.save(img_io, format='JPEG', quality=90)
+                question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+                processed_groups.append(str(q_num)) # Ghi nhận thành công
+
+            if processed_groups:
+                messages.success(request, f"🎉 Đã ghép ảnh thành công cho các nhóm câu: {', '.join(processed_groups)}")
+            else:
+                messages.warning(request, "⚠️ File ZIP hợp lệ nhưng không tìm thấy ảnh nào đúng chuẩn tên (vd: q11_a.jpg)")
+            
             return redirect('exam_list')
             
         except Exception as e:

@@ -162,18 +162,24 @@
 
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
-                                <!-- ================= RỔ DÙNG CHUNG ================= -->
-                                {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
+                                <!-- ================= RỔ DÙNG CHUNG (TỐI ƯU HSK 2) ================= -->
+                                <!-- Đã thêm điều kiện hiển thị rổ ảnh cho câu 11 -->
+                                {% if first_q_obj.question_number in '6,11,26,31,36,41,51' %}
                                     <div class="shared-pool">
-                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                        <!-- CHỈ HIỂN THỊ RỔ TEXT NẾU CÓ DỮ LIỆU THẬT SỰ -->
+                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' and first_q_obj.question_number not in '6,11,26' %}
                                             <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
                                             <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
                                         {% endif %}
                                         
-                                        {% if first_q_obj.image %}
+                                        <!-- CHỈ HIỂN THỊ RỔ ẢNH CHO PHẦN 6, 11, 26 -->
+                                        {% if first_q_obj.image and first_q_obj.question_number in '6,11,26' %}
                                             <div class="shared-img-grid">
                                                 {% for opt in "ABCDEF"|make_list %}
-                                                <div class="pool-item" data-letter="{{ opt }}"><div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div><div class="shared-img-label">{{ opt }}</div></div>
+                                                <div class="pool-item" data-letter="{{ opt }}">
+                                                    <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                    <div class="shared-img-label">{{ opt }}</div>
+                                                </div>
                                                 {% endfor %}
                                             </div>
                                         {% endif %}
@@ -187,14 +193,17 @@
                                     <div class="q-header-inline">
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
-                                            {% if q.passage_text and q.question_number not in '6,11,26,31,36,41,51' %}
+                                            <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (CHO PHẦN 46-50) -->
+                                            <!-- Bỏ điều kiện q.passage_text != 'nan' để đảm bảo luôn hiện nếu có nội dung -->
+                                            {% if q.passage_text and q.question_number >= 46 and q.question_number <= 50 %}
                                                 <div class="interleave-group passage-group border-bottom mb-2 pb-2">
                                                     <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
-                                                    <div class="raw-chinese" style="display: none;">{{ q.passage_text|default:""|linebreaksbr }}</div>
+                                                    <div class="raw-chinese" style="display: none;">{{ q.passage_text|linebreaksbr }}</div>
                                                     <div class="interleaved-output"></div>
                                                 </div>
                                             {% endif %}
                                             
+                                            <!-- CÂU HỎI -->
                                             {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
                                                 <div class="interleave-group content-group">
                                                     <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
@@ -206,6 +215,13 @@
                                     </div>
 
                                     <div class="q-options-area ms-5">
+                                        <!-- HIỂN THỊ ẢNH CHỮ HÁN KHUYẾT NÉT (CÂU 51-55) -->
+                                        {% if q.question_number >= 51 and q.question_number <= 55 and q.image %}
+                                            <div class="mb-3 text-center" style="max-width: 150px;">
+                                                <img src="{{ q.image.url }}" style="width: 100%; border: 1.5px solid #E4E4E7; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                            </div>
+                                        {% endif %}
+
                                         <!-- PHẦN VIẾT CHỮ HÁN TỰ LUẬN (CÂU 56-60) -->
                                         {% if q.question_number >= 56 %}
                                             <div class="row mt-2">
@@ -213,6 +229,7 @@
                                                     <input type="text" name="q_{{ q.id }}" class="form-control input-chinese" placeholder="Gõ chữ Hán vào đây..." onkeyup="if(this.value.trim() !== '') { document.getElementById('grid-btn-{{ q.question_number }}').classList.add('done'); } else { document.getElementById('grid-btn-{{ q.question_number }}').classList.remove('done'); }">
                                                 </div>
                                             </div>
+                                            
                                         <!-- PHẦN CHỌN ĐÁP ÁN NỐI (A-F) -->
                                         {% elif q.question_number >= 26 and q.question_number <= 45 or q.question_number >= 51 and q.question_number <= 55 or q.question_number >= 6 and q.question_number <= 15 %}
                                             <div class="af-options-wrapper">
@@ -221,8 +238,9 @@
                                                     <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
                                                 {% endfor %}
                                             </div>
-                                        <!-- PHẦN TRẮC NGHIỆM ẢNH -->
-                                        {% elif q.image %}
+                                            
+                                        <!-- PHẦN TRẮC NGHIỆM ẢNH (CÂU 1-5) -->
+                                        {% elif q.image and q.question_number <= 5 %}
                                             <div class="row g-3 mt-1">
                                                 {% for opt in "ABC"|make_list %}
                                                 <div class="col-4">
@@ -234,7 +252,8 @@
                                                 </div>
                                                 {% endfor %}
                                             </div>
-                                        <!-- PHẦN TRẮC NGHIỆM TEXT -->
+                                            
+                                        <!-- PHẦN TRẮC NGHIỆM TEXT THÔNG THƯỜNG -->
                                         {% else %}
                                             <div class="row g-2 mt-1">
                                                 {% if q.option_a or q.option_a_pinyin %}

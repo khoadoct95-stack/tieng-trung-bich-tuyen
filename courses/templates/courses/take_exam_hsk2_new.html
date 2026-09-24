@@ -221,12 +221,15 @@
                                             {% endif %}
                                             
                                             <!-- CÂU HỎI -->
-                                            {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
-                                                <div class="interleave-group content-group">
-                                                    <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
-                                                    <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{{ q.content|linebreaksbr }}{% endif %}</div>
-                                                    <div class="interleaved-output"></div>
-                                                </div>
+                                            <!-- Bổ sung điều kiện KHÔNG hiển thị text ở câu 51-55 vì đã có ảnh -->
+                                            {% if q.question_number < 51 or q.question_number > 55 %}
+                                                {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
+                                                    <div class="interleave-group content-group">
+                                                        <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
+                                                        <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{{ q.content|linebreaksbr }}{% endif %}</div>
+                                                        <div class="interleaved-output"></div>
+                                                    </div>
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                     </div>

@@ -517,13 +517,29 @@ def upload_exam_images_zip(request):
                             q_num = match_single.group(1)
                             single_images[q_num] = z.read(filename)
 
+            # Xử lý ảnh lẻ (câu 1-5, câu 51-55...)
             for q_num, file_data in single_images.items():
                 question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
                 if question:
                     question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
 
+            # Xử lý ghép ảnh rổ chung (câu 6, 11, 26, 51)
             for q_num, letters_dict in image_groups.items():
+                # Tìm câu hỏi tương ứng trong DB
                 question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+                
+                # Nếu không tìm thấy câu hỏi chính xác (ví dụ bạn đặt tên là q11_a nhưng câu hỏi bắt đầu nhóm là 11),
+                # thì gán cho câu hỏi đầu tiên của nhóm đó.
+                if not question:
+                    if int(q_num) in range(6, 11):
+                        question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
+                    elif int(q_num) in range(11, 16):
+                        question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
+                    elif int(q_num) in range(26, 31):
+                        question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
+                    elif int(q_num) in range(51, 56):
+                         question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
+
                 if not question:
                     continue
 

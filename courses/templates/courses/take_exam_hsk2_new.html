@@ -163,25 +163,33 @@
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
                                 <!-- ================= RỔ DÙNG CHUNG (TỐI ƯU HSK 2) ================= -->
-                                <!-- Đã thêm điều kiện hiển thị rổ ảnh cho câu 11 -->
-                                {% if first_q_obj.question_number in '6,11,26,31,36,41,51' %}
+                                {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
                                     <div class="shared-pool">
-                                        <!-- CHỈ HIỂN THỊ RỔ TEXT NẾU CÓ DỮ LIỆU THẬT SỰ -->
-                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' and first_q_obj.question_number not in '6,11,26' %}
-                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
-                                            <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                        <!-- RỔ TEXT (Chỉ áp dụng cho các câu 31, 36, 41, 51) -->
+                                        {% if first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
+                                            {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                                <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                                <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                            {% endif %}
                                         {% endif %}
                                         
-                                        <!-- CHỈ HIỂN THỊ RỔ ẢNH CHO PHẦN 6, 11, 26 -->
-                                        {% if first_q_obj.image and first_q_obj.question_number in '6,11,26' %}
-                                            <div class="shared-img-grid">
-                                                {% for opt in "ABCDEF"|make_list %}
-                                                <div class="pool-item" data-letter="{{ opt }}">
-                                                    <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
-                                                    <div class="shared-img-label">{{ opt }}</div>
+                                        <!-- RỔ ẢNH (Chỉ áp dụng cho các câu 6, 11, 26) -->
+                                        {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 %}
+                                            {% if first_q_obj.image %}
+                                                <div class="shared-img-grid">
+                                                    {% for opt in "ABCDEF"|make_list %}
+                                                    <div class="pool-item" data-letter="{{ opt }}">
+                                                        <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                        <div class="shared-img-label">{{ opt }}</div>
+                                                    </div>
+                                                    {% endfor %}
                                                 </div>
-                                                {% endfor %}
-                                            </div>
+                                            {% else %}
+                                                <!-- HIỆN CẢNH BÁO NẾU DATABASE CHƯA CÓ ẢNH -->
+                                                <div class="p-3 text-danger fw-bold text-center">
+                                                    <i class="fas fa-exclamation-triangle"></i> Cảnh báo: Rổ ảnh cho câu {{ first_q_obj.question_number }} chưa được upload thành công. Vui lòng nén các ảnh (Ví dụ: q{{ first_q_obj.question_number }}_a.jpg, q{{ first_q_obj.question_number }}_b.jpg...) vào file ZIP và Upload lại.
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 {% endif %}
@@ -194,7 +202,6 @@
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
                                             <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (CHO PHẦN 46-50) -->
-                                            <!-- Bỏ điều kiện q.passage_text != 'nan' để đảm bảo luôn hiện nếu có nội dung -->
                                             {% if q.passage_text and q.question_number >= 46 and q.question_number <= 50 %}
                                                 <div class="interleave-group passage-group border-bottom mb-2 pb-2">
                                                     <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>

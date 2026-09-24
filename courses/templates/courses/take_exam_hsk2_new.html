@@ -163,31 +163,39 @@
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
                                 <!-- ================= RỔ DÙNG CHUNG (TỐI ƯU HSK 2) ================= -->
-                                {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
+                                {% if first_q_obj.question_number in '6,11,26,31,36,41,51' %}
                                     <div class="shared-pool">
-                                        <!-- RỔ TEXT (Chỉ áp dụng cho các câu 31, 36, 41, 51) -->
-                                        {% if first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
-                                            {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
-                                                <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
-                                                <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
-                                            {% endif %}
+                                        <!-- CHỈ HIỂN THỊ RỔ TEXT NẾU CÓ DỮ LIỆU THẬT SỰ -->
+                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' and first_q_obj.question_number not in '6,11,26' %}
+                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                            <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
                                         {% endif %}
                                         
-                                        <!-- RỔ ẢNH (Chỉ áp dụng cho các câu 6, 11, 26) -->
-                                        {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 %}
+                                        <!-- CHỈ HIỂN THỊ RỔ ẢNH CHO PHẦN 6, 11, 26 -->
+                                        {% if first_q_obj.question_number in '6,11,26' %}
                                             {% if first_q_obj.image %}
                                                 <div class="shared-img-grid">
-                                                    {% for opt in "ABCDEF"|make_list %}
-                                                    <div class="pool-item" data-letter="{{ opt }}">
-                                                        <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
-                                                        <div class="shared-img-label">{{ opt }}</div>
-                                                    </div>
-                                                    {% endfor %}
+                                                    <!-- NẾU LÀ CÂU 11 CHỈ HIỆN 5 ẢNH (A ĐẾN E) -->
+                                                    {% if first_q_obj.question_number == 11 %}
+                                                        {% for opt in "ABCDE"|make_list %}
+                                                        <div class="pool-item" data-letter="{{ opt }}">
+                                                            <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                            <div class="shared-img-label">{{ opt }}</div>
+                                                        </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <!-- CÁC CÂU KHÁC HIỆN ĐỦ 6 ẢNH (A ĐẾN F) -->
+                                                        {% for opt in "ABCDEF"|make_list %}
+                                                        <div class="pool-item" data-letter="{{ opt }}">
+                                                            <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                            <div class="shared-img-label">{{ opt }}</div>
+                                                        </div>
+                                                        {% endfor %}
+                                                    {% endif %}
                                                 </div>
                                             {% else %}
-                                                <!-- HIỆN CẢNH BÁO NẾU DATABASE CHƯA CÓ ẢNH -->
                                                 <div class="p-3 text-danger fw-bold text-center">
-                                                    <i class="fas fa-exclamation-triangle"></i> Cảnh báo: Rổ ảnh cho câu {{ first_q_obj.question_number }} chưa được upload thành công. Vui lòng nén các ảnh (Ví dụ: q{{ first_q_obj.question_number }}_a.jpg, q{{ first_q_obj.question_number }}_b.jpg...) vào file ZIP và Upload lại.
+                                                    <i class="fas fa-exclamation-triangle"></i> Cảnh báo: Rổ ảnh cho câu {{ first_q_obj.question_number }} chưa được upload thành công. Vui lòng nén các ảnh vào file ZIP và Upload lại.
                                                 </div>
                                             {% endif %}
                                         {% endif %}
@@ -202,7 +210,7 @@
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
                                             <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (CHO PHẦN 46-50) -->
-                                            {% if q.passage_text and q.question_number >= 46 and q.question_number <= 50 %}
+                                            {% if q.passage_text and q.passage_text != 'nan' and q.question_number >= 46 and q.question_number <= 50 %}
                                                 <div class="interleave-group passage-group border-bottom mb-2 pb-2">
                                                     <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
                                                     <div class="raw-chinese" style="display: none;">{{ q.passage_text|linebreaksbr }}</div>
@@ -237,13 +245,21 @@
                                                 </div>
                                             </div>
                                             
-                                        <!-- PHẦN CHỌN ĐÁP ÁN NỐI (A-F) -->
+                                        <!-- PHẦN CHỌN ĐÁP ÁN NỐI (A-F / A-E) -->
                                         {% elif q.question_number >= 26 and q.question_number <= 45 or q.question_number >= 51 and q.question_number <= 55 or q.question_number >= 6 and q.question_number <= 15 %}
                                             <div class="af-options-wrapper">
-                                                {% for opt in "ABCDEF"|make_list %}
-                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
-                                                {% endfor %}
+                                                <!-- NẾU TỪ CÂU 11 ĐẾN 15 CHỈ HIỆN 5 NÚT BẤM -->
+                                                {% if q.question_number >= 11 and q.question_number <= 15 %}
+                                                    {% for opt in "ABCDE"|make_list %}
+                                                        <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
+                                                        <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    {% for opt in "ABCDEF"|make_list %}
+                                                        <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
+                                                        <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                                    {% endfor %}
+                                                {% endif %}
                                             </div>
                                             
                                         <!-- PHẦN TRẮC NGHIỆM ẢNH (CÂU 1-5) -->

@@ -163,16 +163,18 @@
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
                                 <!-- ================= RỔ DÙNG CHUNG (TỐI ƯU HSK 2) ================= -->
-                                {% if first_q_obj.question_number in '6,11,26,31,36,41,51' %}
+                                {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
                                     <div class="shared-pool">
                                         <!-- CHỈ HIỂN THỊ RỔ TEXT NẾU CÓ DỮ LIỆU THẬT SỰ -->
-                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' and first_q_obj.question_number not in '6,11,26' %}
-                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
-                                            <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                        {% if first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
+                                            {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                                <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                                <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                            {% endif %}
                                         {% endif %}
                                         
                                         <!-- CHỈ HIỂN THỊ RỔ ẢNH CHO PHẦN 6, 11, 26 -->
-                                        {% if first_q_obj.question_number in '6,11,26' %}
+                                        {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 %}
                                             {% if first_q_obj.image %}
                                                 <div class="shared-img-grid">
                                                     <!-- NẾU LÀ CÂU 11 CHỈ HIỆN 5 ẢNH (A ĐẾN E) -->

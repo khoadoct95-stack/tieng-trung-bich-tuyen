@@ -11,7 +11,7 @@
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
     .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.6; font-weight: 500; word-wrap: break-word; } 
     .pinyin-text { font-size: 0.95rem; color: #2563eb; margin-bottom: 2px; font-weight: 600; } 
-    body.hide-pinyin .question-row .pinyin-text, body.hide-pinyin .shared-pool .pinyin-text, body.hide-pinyin .auto-fill-pinyin { display: none !important; }
+    body.hide-pinyin .question-row .pinyin-text, body.hide-pinyin .shared-pool .pinyin-text, body.hide-pinyin .example-row .pinyin-text, body.hide-pinyin .auto-fill-pinyin { display: none !important; }
     .custom-switch:checked { background-color: var(--success-color) !important; border-color: var(--success-color) !important; }
     .exam-container { max-width: 1350px; margin: 0 auto; padding: 30px 15px; } 
     .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 5px;}
@@ -171,6 +171,65 @@
         transform: translate(8px, 8px) scale(0.74, 0.74);
     }
 
+    /* ================= KHUNG VÍ DỤ CỐ ĐỊNH (例如) - ĐỘC LẬP 100% ================= */
+    .example-row {
+        background: #FFFBEB;
+        border-bottom: 1.5px dashed #FDE68A;
+        padding: 16px 24px;
+    }
+    .example-badge {
+        background: #F59E0B;
+        color: #fff;
+        font-family: 'Noto Sans SC', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        margin-top: 2px;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+    }
+    .ex-line { margin-bottom: 6px; }
+    .ex-line:last-child { margin-bottom: 0; }
+    .ex-icon-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 10px;
+        border: 1.5px solid #E4E4E7;
+        border-radius: 8px;
+        background: #fff;
+        height: 100%;
+    }
+    .ex-icon-card.correct {
+        border-color: var(--success-color);
+        background: var(--success-light);
+    }
+    .ex-answer-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 2px solid var(--success-color);
+        background: var(--success-light);
+        color: var(--success-color);
+        font-weight: 800;
+        font-size: 1rem;
+        border-radius: 6px;
+    }
+    .ex-fill-text {
+        color: var(--success-color);
+        font-weight: 900;
+        margin: 0 4px;
+        display: inline-block;
+        min-width: 32px;
+        text-align: center;
+        border-bottom: 1.5px dashed var(--success-color);
+        padding: 0 4px;
+    }
+
     @media (max-width: 1200px) { .shared-options-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 991px) { .shared-img-grid { grid-template-columns: repeat(3, 1fr); } .q-options-area.ms-5 { margin-left: 0 !important; } }
 </style>
@@ -304,6 +363,235 @@
                                         {% endif %}
                                     </div>
                                 {% endif %}
+
+                                <!-- ================= KHUNG VÍ DỤ CỐ ĐỊNH (例如) - ĐỘC LẬP 100% ================= -->
+                                <!-- 1. VÍ DỤ CÂU 1-5 -->
+                                {% if first_q_obj.question_number == 1 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center">
+                                            <span class="example-badge">例如</span>
+                                            <div class="q-content-area w-100">
+                                                <div class="row g-3" style="max-width: 540px;">
+                                                    <div class="col-4">
+                                                        <div class="ex-icon-card correct">
+                                                            <i class="fas fa-bus fa-2x mb-2 text-dark"></i>
+                                                            <div class="fw-bold text-success">A <i class="fas fa-check"></i></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="ex-icon-card">
+                                                            <i class="fas fa-plane fa-2x mb-2 text-secondary"></i>
+                                                            <div class="fw-bold text-muted">B</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="ex-icon-card">
+                                                            <i class="fas fa-bicycle fa-2x mb-2 text-secondary"></i>
+                                                            <div class="fw-bold text-muted">C</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <!-- 2. VÍ DỤ CÂU 6-10 (Và dùng chung cho 11-15) -->
+                                {% elif first_q_obj.question_number == 6 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center justify-content-between">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <span class="example-badge">例如</span>
+                                                <div>
+                                                    <div class="ex-line">
+                                                        <div class="pinyin-text">Nǐ xǐhuan shénme yùndòng?</div>
+                                                        <div class="chinese-text">男：你 喜欢 什么 运动？</div>
+                                                    </div>
+                                                    <div class="ex-line">
+                                                        <div class="pinyin-text">Wǒ zuì xǐhuan tī zúqiú.</div>
+                                                        <div class="chinese-text">女：我 最 喜欢 踢 足球。</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ex-answer-box">D</div>
+                                        </div>
+                                    </div>
+
+                                <!-- 3. VÍ DỤ CÂU 16-25 -->
+                                {% elif first_q_obj.question_number == 16 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline">
+                                            <span class="example-badge">例如</span>
+                                            <div class="q-content-area w-100">
+                                                <div class="ex-line">
+                                                    <div class="pinyin-text">Gěi nín bǐ, qǐng zài zhèr xiě yíxià nín de xìngmíng.</div>
+                                                    <div class="chinese-text">男：给 您 笔，请 在 这儿 写 一下 您 的 姓名。</div>
+                                                </div>
+                                                <div class="ex-line">
+                                                    <div class="pinyin-text">Hǎo de, shì zhèr ma?</div>
+                                                    <div class="chinese-text">女：好 的，是 这儿 吗？</div>
+                                                </div>
+                                                <div class="ex-line mb-2">
+                                                    <div class="pinyin-text">Nǚ de yào xiě shénme?</div>
+                                                    <div class="chinese-text">问：女 的 要 写 什么？</div>
+                                                </div>
+                                                <div class="row g-2 mt-1">
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="border-color: var(--success-color); background: var(--success-light); cursor: default;">
+                                                            <span class="opt-circle me-2" style="background: var(--success-color); border-color: var(--success-color); color: #fff;">A</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">xìngmíng</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">姓名 <i class="fas fa-check text-success ms-1"></i></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="cursor: default;">
+                                                            <span class="opt-circle me-2">B</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">shíjiān</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">时间</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="cursor: default;">
+                                                            <span class="opt-circle me-2">C</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">wèntí</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">问题</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <!-- 4. VÍ DỤ CÂU 26-30 -->
+                                {% elif first_q_obj.question_number == 26 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center justify-content-between">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <span class="example-badge">例如</span>
+                                                <div>
+                                                    <div class="pinyin-text">Měi gè Xīngqīliù, wǒ dōu qù dǎ lánqiú.</div>
+                                                    <div class="chinese-text">每 个 星期六，我 都 去 打 篮球。</div>
+                                                </div>
+                                            </div>
+                                            <div class="ex-answer-box">D</div>
+                                        </div>
+                                    </div>
+
+                                <!-- 5. VÍ DỤ CÂU 31-35 -->
+                                {% elif first_q_obj.question_number == 31 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center">
+                                            <span class="example-badge">例如</span>
+                                            <div>
+                                                <div class="pinyin-text">Tí tài duō le, suǒyǐ wǒ méi zuò</div>
+                                                <div class="chinese-text">题 太 多 了，所以 我 没 做（<span class="ex-fill-text">E</span>）。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <!-- 6. VÍ DỤ CÂU 36-40 (Và dùng chung cho 41-45) -->
+                                {% elif first_q_obj.question_number == 36 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center justify-content-between">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <span class="example-badge">例如</span>
+                                                <div>
+                                                    <div class="pinyin-text">Qǐngwèn Lǐ lǎoshī zài ma?</div>
+                                                    <div class="chinese-text">请问 李 老师 在 吗？</div>
+                                                </div>
+                                            </div>
+                                            <div class="ex-answer-box">E</div>
+                                        </div>
+                                    </div>
+
+                                <!-- 7. VÍ DỤ CÂU 46-50 -->
+                                {% elif first_q_obj.question_number == 46 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline">
+                                            <span class="example-badge">例如</span>
+                                            <div class="q-content-area w-100">
+                                                <div class="ex-line border-bottom pb-2 mb-2">
+                                                    <div class="pinyin-text">Wǒ ài tiàowǔ, dàn tiào de bú tài hǎo.</div>
+                                                    <div class="chinese-text">我 爱 跳舞，但 跳 得 不 太 好。</div>
+                                                </div>
+                                                <div class="ex-line mb-2">
+                                                    <div class="pinyin-text">Tā:</div>
+                                                    <div class="chinese-text">★ 他：</div>
+                                                </div>
+                                                <div class="row g-2 mt-1">
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="cursor: default;">
+                                                            <span class="opt-circle me-2">A</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">xiàkè le</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">下课 了</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="border-color: var(--success-color); background: var(--success-light); cursor: default;">
+                                                            <span class="opt-circle me-2" style="background: var(--success-color); border-color: var(--success-color); color: #fff;">B</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">xǐhuan tiàowǔ</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">喜欢 跳舞 <i class="fas fa-check text-success ms-1"></i></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="opt-label" style="cursor: default;">
+                                                            <span class="opt-circle me-2">C</span>
+                                                            <div>
+                                                                <div class="pinyin-text small">shì xiǎoxuéshēng</div>
+                                                                <div class="chinese-text" style="font-size: 1rem;">是 小学生</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <!-- 8. VÍ DỤ CÂU 51-55 (Chữ 什么 với bộ 十 màu đỏ) -->
+                                {% elif first_q_obj.question_number == 51 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="example-badge">例如</span>
+                                                <div class="tianzige-wrapper mb-0">
+                                                    <div class="tianzige-col">
+                                                        <div class="tianzige-pinyin pinyin-text" style="margin:0;">shén</div>
+                                                        <div class="tianzige-hanzi">
+                                                            <span class="hanzi-char" style="transform: translateX(-14px) scale(0.75, 0.95);">亻</span>
+                                                            <span class="hanzi-char" style="position: absolute; transform: translateX(8px) scale(0.85, 0.95); color: #DC2626; font-weight: 700;">十</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tianzige-col">
+                                                        <div class="tianzige-pinyin pinyin-text" style="margin:0;">me</div>
+                                                        <div class="tianzige-hanzi"><span class="hanzi-char">么</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ex-answer-box">E</div>
+                                        </div>
+                                    </div>
+
+                                <!-- 9. VÍ DỤ CÂU 56-60 -->
+                                {% elif first_q_obj.question_number == 56 %}
+                                    <div class="example-row">
+                                        <div class="q-header-inline align-items-center">
+                                            <span class="example-badge">例如</span>
+                                            <div>
+                                                <div class="pinyin-text">Nǐ xiǎng hē chá hái shì hē kāfēi?</div>
+                                                <div class="chinese-text">你 想 喝 茶 还（<span class="ex-fill-text">是</span>）喝 咖啡？</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             {% endwith %}
 
                             <!-- ================= DANH SÁCH CÂU HỎI THẬT ================= -->
@@ -322,7 +610,7 @@
                                             {% endif %}
                                             
                                             <!-- CÂU HỎI -->
-                                            <!-- Bổ sung điều kiện KHÔNG hiển thị text ở câu 51-55 vì đã có ảnh -->
+                                            <!-- Bổ sung điều kiện KHÔNG hiển thị text ở câu 51-55 vì đã có khung Ô chữ điền -->
                                             {% if q.question_number < 51 or q.question_number > 55 %}
                                                 {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
                                                     <div class="interleave-group content-group">
@@ -460,7 +748,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Giữ nguyên toàn bộ JS y hệt file HSK 1 của bạn -->
 <script>
     const pinyinToggle = document.getElementById('pinyinToggle');
     const pinyinToggleLabel = document.getElementById('pinyinToggleLabel');
@@ -567,7 +854,7 @@
             // Khuyết phải (Right)
             '列': 'R', '则': 'R', '刚': 'R', '创': 'R', '别': 'R', '利': 'R', '到': 'R', '制': 'R', '刷': 'R', '刻': 'R', '前': 'R', '剧': 'R', '剩': 'R', '副': 'R', '割': 'R', '故': 'R', '政': 'R', '效': 'R', '敌': 'R', '敏': 'R', '救': 'R', '教': 'R', '敢': 'R', '散': 'R', '敬': 'R', '数': 'R', '整': 'R',
             // Khuyết trái (Left) - Phổ biến nhất trong HSK 2
-            '工': 'L', '旦': 'L', '董': 'L', '什': 'L', '他': 'L', '们': 'L', '付': 'L', '代': 'L', '令': 'L', '以': 'L', '仰': 'L', '件': 'L', '任': 'L', '份': 'L', '仿': 'L', '企': 'L', '伊': 'L', '伍': 'L', '伏': 'L', '伐': 'L', '休': 'L', '优': 'L', '伙': 'L', '会': 'L', '伟': 'L', '传': 'L', '伤': 'L', '伦': 'L', '伪': 'L', '伯': 'L', '估': 'L', '伴': 'L', '伶': 'L', '伸': 'L', '伺': 'L', '似': 'L', '伽': 'L', '但': 'L', '位': 'L', '低': 'L', '住': 'L', '佐': 'L', '佑': 'L', '体': 'L', '何': 'L', '余': 'L', '佛': 'L', '作': 'L', '你': 'L', '佣': 'L', '佩': 'L', '佳': 'L', '使': 'L', '侄': 'L', '侈': 'L', '例': 'L', '侍': 'L', '侗': 'L', '供': 'L', '依': 'L', '侠': 'L', '侣': 'L', '侥': 'L', '侦': 'L', '侧': 'L', '侨': 'L', '': 'L', '侬': 'L', '侮': 'L', '侯': 'L', '侵': 'L', '便': 'L', '促': 'L', '俄': 'L', '俊': 'L', '俎': 'L', '俏': 'L', '俐': 'L', '俑': 'L', '俗': 'L', '俘': 'L', '俚': 'L', '俜': 'L', '保': 'L', '俞': 'L', '俟': 'L', '信': 'L', '俨': 'L', '俩': 'L', '俪': 'L', '俭': 'L', '修': 'L', '俯': 'L', '俱': 'L', '俳': 'L', '俸': 'L', '俺': 'L', '俾': 'L', '倓': 'L', '俶': 'L', '倅': 'L', '倆': 'L', '仓': 'L', '倍': 'L', '们': 'L', '倒': 'L', '倔': 'L', '倘': 'L', '候': 'L', '倚': 'L', '倜': 'L', '借': 'L', '倡': 'L', '倥': 'L', '倦': 'L', '倨': 'L', '倩': 'L', '倪': 'L', '伦': 'L', '倬': 'L', '倭': 'L', '倮': 'L', '债': 'L', '值': 'L', '倾': 'L', '偃': 'L', '假': 'L', '偈': 'L', '伟': 'L', '偏': 'L', '偕': 'L', '做': 'L', '停': 'L', '健': 'L', '偬': 'L', '偶': 'L', '偷': 'L', '偻': 'L', '偾': 'L', '偿': 'L', '傀': 'L', '傅': 'L', '傈': 'L', '傍': 'L', '滇': 'L', '傥': 'L', '傧': 'L', '储': 'L', '傩': 'L', '催': 'L', '傲': 'L', '傺': 'L', '傻': 'L', '像': 'L', '僖': 'L', '僚': 'L', '僦': 'L', '僧': 'L', '僬': 'L', '僭': 'L', '僮': 'L', '僳': 'L', '僵': 'L', '僻': 'L', '儆': 'L', '儇': 'L', '儋': 'L', '儒': 'L', '儡': 'L', '可': 'L', '台': 'L', '只': 'L', '召': 'L', '叮': 'L', '可': 'L', '史': 'L', '右': 'L', '叶': 'L', '号': 'L', '司': 'L', '叹': 'L', '叼': 'L', '叽': 'L', '吁': 'L', '吃': 'L', '各': 'L', '合': 'L', '吉': 'L', '吊': 'L', '同': 'L', '名': 'L', '后': 'L', '吏': 'L', '吐': 'L', '向': 'L', '吒': 'L', '吓': 'L', '吕': 'L', '吗': 'L', '君': 'L', '吝': 'L', '吞': 'L', '吟': 'L', '吠': 'L', '吡': 'L', '吣': 'L', '否': 'L', '吧': 'L', '吨': 'L', '吩': 'L', '含': 'L', '听': 'L', '吭': 'L', '吮': 'L', '启': 'L', '吱': 'L', '吲': 'L', '吴': 'L', '吵': 'L', '呐': 'L', '吷': 'L', '吸': 'L', '吹': 'L', '吻': 'L', '吼': 'L', '吽': 'L', '吾': 'L', '告': 'L', '呀': 'L', '吕': 'L', '呃': 'L', '呆': 'L', '呈': 'L', '告': 'L', '呋': 'L', '尺': 'L', '尼': 'L', '尽': 'L', '尾': 'L', '尿': 'L', '局': 'L', '屁': 'L', '层': 'L', '居': 'L', '屈': 'L', '届': 'L', '屋': 'L', '屎': 'L', '屏': 'L', '屐': 'L', '屑': 'L', '展': 'L', '屙': 'L', '属': 'L', '屠': 'L', '屡': 'L', '屣': 'L', '履': 'L', '屦': 'L', '屯': 'L', '山': 'L', '屹': 'L', '屺': 'L', '屿': 'L', '岁': 'L', '岂': 'L', '岈': 'L', '岌': 'L', '岍': 'L', '岐': 'L', '岑': 'L', '岔': 'L', '岖': 'L', '岗': 'L', '岘': 'L', '岙': 'L', '岚': 'L', '岛': 'L', '岜': 'L', '岢': 'L', '岣': 'L', '岩': 'L', '岫': 'L', '岬': 'L', '岭': 'L', '岱': 'L', '岳': 'L', '岵': 'L', '岷': 'L', '岸': 'L', '岿': 'L', '峁': 'L', '峄': 'L', '峋': 'L', '峒': 'L', '峙': 'L', '峡': 'L', '峤': 'L', '峥': 'L', '峦': 'L', '峨': 'L', '峪': 'L', '峭': 'L', '峰': 'L', '峻': 'L', '崂': 'L', '崃': 'L', '崆': 'L', '崇': 'L', '崎': 'L', '崔': 'L', '崖': 'L', '岗': 'L', '崛': 'L', '崞': 'L', '峥': 'L', '崤': 'L', '崦': 'L', '崧': 'L', '崩': 'L', '崭': 'L', '崮': 'L', '崴': 'L', '崽': 'L', '崾': 'L', '嵇': 'L', '嵊': 'L', '嵋': 'L', '嵌': 'L', '嵘': 'L', '嵛': 'L', '嵝': 'L', '嵩': 'L', '嵫': 'L', '嵬': 'L', '嵯': 'L', '嵴': 'L', '嶂': 'L', '嶙': 'L', '嶝': 'L', '嶷': 'L', '巅': 'L', '巍': 'L', '川': 'L', '州': 'L', '巡': 'L', '巢': 'L', '巧': 'L', '巨': 'L', '巩': 'L', '巫': 'L', '差': 'L', '己': 'L', '已': 'L', '巳': 'L', '巴': 'L', '巷': 'L', '巽': 'L', '巾': 'L', '币': 'L', '市': 'L', '布': 'L', '帅': 'L', '帆': 'L', '师': 'L', '希': 'L', '帏': 'L', '帐': 'L', '帑': 'L', '帔': 'L', '帕': 'L', '帖': 'L', '帘': 'L', '帙': 'L', '帚': 'L', '帛': 'L', '帜': 'L', '帝': 'L', '带': 'L', '帧': 'L', '席': 'L', '帮': 'L', '帱': 'L', '帷': 'L', '常': 'L', '帻': 'L', '帼': 'L', '帽': 'L', '幂': 'L', '幄': 'L', '幅': 'L', '幌': 'L', '幔': 'L', '幕': 'L', '幛': 'L', '幞': 'L', '幡': 'L', '幢': 'L', '币': 'L', '干': 'L', '平': 'L', '年': 'L', '并': 'L', '幸': 'L', '幺': 'L', '幻': 'L', '幼': 'L', '幽': 'L', '几': 'L', '广': 'L', '庀': 'L', '庆': 'L', '庇': 'L', '床': 'L', '庋': 'L', '序': 'L', '庐': 'L', '庑': 'L', '库': 'L', '应': 'L', '底': 'L', '庖': 'L', '店': 'L', '庙': 'L', '庚': 'L', '府': 'L', '庞': 'L', '废': 'L', '庠': 'L', '庥': 'L', '度': 'L', '座': 'L', '庭': 'L', '庳': 'L', '庵': 'L', '庶': 'L', '康': 'L', '庸': 'L', '庹': 'L', '庾': 'L', '廉': 'L', '廊': 'L', '廑': 'L', '廒': 'L', '廓': 'L', '廖': 'L', '廛': 'L', '廨': 'L', '廪': 'L', '延': 'L', '廷': 'L', '建': 'L', '廿': 'L', '开': 'L', '弁': 'L', '异': 'L', '弃': 'L', '弄': 'L', '弈': 'L', '弊': 'L', '弋': 'L', '式': 'L', '弑': 'L', '弓': 'L', '引': 'L', '弗': 'L', '弘': 'L', '弛': 'L', '弟': 'L', '张': 'L', '弥': 'L', '弦': 'L', '弧': 'L', '弩': 'L', '弭': 'L', '弯': 'L', '弱': 'L', '弹': 'L', '强': 'L', '弼': 'L', '彀': 'L', '归': 'L', '当': 'L', '录': 'L', '彖': 'L', '彗': 'L', '彘': 'L', '彝': 'L', '形': 'L', '彤': 'L', '彦': 'L', '彩': 'L', '彪': 'L', '彬': 'L', '彭': 'L', '彰': 'L', '影': 'L', '彳': 'L', '彷': 'L', '役': 'L', '彻': 'L', '彼': 'L', '往': 'L', '征': 'L', '徂': 'L', '待': 'L', '徇': 'L', '很': 'L', '徉': 'L', '徊': 'L', '律': 'L', '后': 'L', '徐': 'L', '径': 'L', '徒': 'L', '得': 'L', '徘': 'L', '徙': 'L', '徛': 'L', '徜': 'L', '从': 'L', '徕': 'L', '御': 'L', '徨': 'L', '复': 'L', '循': 'L', '微': 'L', '征': 'L', '德': 'L', '彻': 'L', '徼': 'L', '徽': 'L'
+            '工': 'L', '旦': 'L', '董': 'L', '什': 'L', '他': 'L', '们': 'L', '付': 'L', '代': 'L', '令': 'L', '以': 'L', '仰': 'L', '件': 'L', '任': 'L', '份': 'L', '仿': 'L', '企': 'L', '伊': 'L', '伍': 'L', '伏': 'L', '伐': 'L', '休': 'L', '优': 'L', '伙': 'L', '会': 'L', '伟': 'L', '传': 'L', '伤': 'L', '伦': 'L', '伪': 'L', '伯': 'L', '估': 'L', '伴': 'L', '伶': 'L', '伸': 'L', '伺': 'L', '似': 'L', '伽': 'L', '但': 'L', '位': 'L', '低': 'L', '住': 'L', '佐': 'L', '佑': 'L', '体': 'L', '何': 'L', '余': 'L', '佛': 'L', '作': 'L', '你': 'L', '佣': 'L', '佩': 'L', '佳': 'L', '使': 'L', '侄': 'L', '侈': 'L', '例': 'L', '侍': 'L', '侗': 'L', '供': 'L', '依': 'L', '侠': 'L', '侣': 'L', '侥': 'L', '侦': 'L', '侧': 'L', '侨': 'L', '侬': 'L', '侮': 'L', '侯': 'L', '侵': 'L', '便': 'L', '促': 'L', '俄': 'L', '俊': 'L', '俎': 'L', '俏': 'L', '俐': 'L', '俑': 'L', '俗': 'L', '俘': 'L', '俚': 'L', '俜': 'L', '保': 'L', '俞': 'L', '俟': 'L', '信': 'L', '俨': 'L', '俩': 'L', '俪': 'L', '俭': 'L', '修': 'L', '俯': 'L', '俱': 'L', '俳': 'L', '俸': 'L', '俺': 'L', '俾': 'L', '倓': 'L', '俶': 'L', '倅': 'L', '倆': 'L', '仓': 'L', '倍': 'L', '倒': 'L', '倔': 'L', '倘': 'L', '候': 'L', '倚': 'L', '倜': 'L', '借': 'L', '倡': 'L', '倥': 'L', '倦': 'L', '倨': 'L', '倩': 'L', '倪': 'L', '倬': 'L', '倭': 'L', '倮': 'L', '债': 'L', '值': 'L', '倾': 'L', '偃': 'L', '假': 'L', '偈': 'L', '偏': 'L', '偕': 'L', '做': 'L', '停': 'L', '健': 'L', '偬': 'L', '偶': 'L', '偷': 'L', '偻': 'L', '偾': 'L', '偿': 'L', '傀': 'L', '傅': 'L', '傈': 'L', '傍': 'L', '滇': 'L', '傥': 'L', '傧': 'L', '储': 'L', '傩': 'L', '催': 'L', '傲': 'L', '傺': 'L', '傻': 'L', '像': 'L', '僖': 'L', '僚': 'L', '僦': 'L', '僧': 'L', '僬': 'L', '僭': 'L', '僮': 'L', '僳': 'L', '僵': 'L', '僻': 'L', '儆': 'L', '儇': 'L', '儋': 'L', '儒': 'L', '儡': 'L', '可': 'L', '台': 'L', '只': 'L', '召': 'L', '叮': 'L', '史': 'L', '右': 'L', '叶': 'L', '号': 'L', '司': 'L', '叹': 'L', '叼': 'L', '叽': 'L', '吁': 'L', '吃': 'L', '吉': 'L', '吊': 'L', '后': 'L', '吏': 'L', '吐': 'L', '向': 'L', '吒': 'L', '吓': 'L', '吕': 'L', '吗': 'L', '君': 'L', '吝': 'L', '吞': 'L', '吟': 'L', '吠': 'L', '吡': 'L', '吣': 'L', '否': 'L', '吧': 'L', '吨': 'L', '吩': 'L', '含': 'L', '听': 'L', '吭': 'L', '吮': 'L', '启': 'L', '吱': 'L', '吲': 'L', '吴': 'L', '吵': 'L', '呐': 'L', '吷': 'L', '吸': 'L', '吹': 'L', '吻': 'L', '吼': 'L', '吽': 'L', '吾': 'L', '告': 'L', '呀': 'L', '呃': 'L', '呆': 'L', '呈': 'L', '呋': 'L', '尺': 'L', '尼': 'L', '尽': 'L', '尾': 'L', '尿': 'L', '局': 'L', '屁': 'L', '层': 'L', '居': 'L', '屈': 'L', '届': 'L', '屋': 'L', '屎': 'L', '屏': 'L', '屐': 'L', '屑': 'L', '展': 'L', '屙': 'L', '属': 'L', '屠': 'L', '屡': 'L', '屣': 'L', '履': 'L', '屦': 'L', '屯': 'L', '山': 'L', '屹': 'L', '屺': 'L', '屿': 'L', '岁': 'L', '岂': 'L', '岈': 'L', '岌': 'L', '岍': 'L', '岐': 'L', '岑': 'L', '岔': 'L', '岖': 'L', '岗': 'L', '岘': 'L', '岙': 'L', '岚': 'L', '岛': 'L', '岜': 'L', '岢': 'L', '岣': 'L', '岩': 'L', '岫': 'L', '岬': 'L', '岭': 'L', '岱': 'L', '岳': 'L', '岵': 'L', '岷': 'L', '岸': 'L', '岿': 'L', '峁': 'L', '峄': 'L', '峋': 'L', '峒': 'L', '峙': 'L', '峡': 'L', '峤': 'L', '峥': 'L', '峦': 'L', '峨': 'L', '峪': 'L', '峭': 'L', '峰': 'L', '峻': 'L', '崂': 'L', '崃': 'L', '崆': 'L', '崇': 'L', '崎': 'L', '崔': 'L', '崖': 'L', '崛': 'L', '崞': 'L', '崤': 'L', '崦': 'L', '崧': 'L', '崩': 'L', '崭': 'L', '崮': 'L', '崴': 'L', '崽': 'L', '崾': 'L', '嵇': 'L', '嵊': 'L', '嵋': 'L', '嵌': 'L', '嵘': 'L', '嵛': 'L', '嵝': 'L', '嵩': 'L', '嵫': 'L', '嵬': 'L', '嵯': 'L', '嵴': 'L', '嶂': 'L', '嶙': 'L', '嶝': 'L', '嶷': 'L', '巅': 'L', '巍': 'L', '川': 'L', '州': 'L', '巡': 'L', '巢': 'L', '巧': 'L', '巨': 'L', '巩': 'L', '巫': 'L', '差': 'L', '己': 'L', '已': 'L', '巳': 'L', '巴': 'L', '巷': 'L', '巽': 'L', '巾': 'L', '币': 'L', '市': 'L', '布': 'L', '帅': 'L', '帆': 'L', '师': 'L', '希': 'L', '帏': 'L', '帐': 'L', '帑': 'L', '帔': 'L', '帕': 'L', '帖': 'L', '帘': 'L', '帙': 'L', '帚': 'L', '帛': 'L', '帜': 'L', '帝': 'L', '带': 'L', '帧': 'L', '席': 'L', '帮': 'L', '帱': 'L', '帷': 'L', '常': 'L', '帻': 'L', '帼': 'L', '帽': 'L', '幂': 'L', '幄': 'L', '幅': 'L', '幌': 'L', '幔': 'L', '幕': 'L', '幛': 'L', '幞': 'L', '幡': 'L', '幢': 'L', '干': 'L', '年': 'L', '并': 'L', '幸': 'L', '幺': 'L', '幻': 'L', '幼': 'L', '幽': 'L', '几': 'L', '广': 'L', '庀': 'L', '庆': 'L', '庇': 'L', '床': 'L', '庋': 'L', '序': 'L', '庐': 'L', '庑': 'L', '库': 'L', '应': 'L', '底': 'L', '庖': 'L', '店': 'L', '庙': 'L', '庚': 'L', '府': 'L', '庞': 'L', '废': 'L', '庠': 'L', '庥': 'L', '度': 'L', '座': 'L', '庭': 'L', '庳': 'L', '庵': 'L', '庶': 'L', '康': 'L', '庸': 'L', '庹': 'L', '庾': 'L', '廉': 'L', '廊': 'L', '廑': 'L', '廒': 'L', '廓': 'L', '廖': 'L', '廛': 'L', '廨': 'L', '廪': 'L', '延': 'L', '廷': 'L', '建': 'L', '廿': 'L', '开': 'L', '弁': 'L', '异': 'L', '弃': 'L', '弄': 'L', '弈': 'L', '弊': 'L', '弋': 'L', '式': 'L', '弑': 'L', '弓': 'L', '引': 'L', '弗': 'L', '弘': 'L', '弛': 'L', '弟': 'L', '张': 'L', '弥': 'L', '弦': 'L', '弧': 'L', '弩': 'L', '弭': 'L', '弯': 'L', '弱': 'L', '弹': 'L', '强': 'L', '弼': 'L', '彀': 'L', '归': 'L', '当': 'L', '录': 'L', '彖': 'L', '彗': 'L', '彘': 'L', '彝': 'L', '形': 'L', '彤': 'L', '彦': 'L', '彩': 'L', '彪': 'L', '彬': 'L', '彭': 'L', '彰': 'L', '影': 'L', '彳': 'L', '彷': 'L', '役': 'L', '彻': 'L', '彼': 'L', '往': 'L', '征': 'L', '徂': 'L', '待': 'L', '徇': 'L', '很': 'L', '徉': 'L', '徊': 'L', '律': 'L', '徐': 'L', '径': 'L', '徒': 'L', '得': 'L', '徘': 'L', '徙': 'L', '徛': 'L', '徜': 'L', '从': 'L', '徕': 'L', '御': 'L', '徨': 'L', '复': 'L', '循': 'L', '微': 'L', '德': 'L', '徼': 'L', '徽': 'L'
         };
 
         document.querySelectorAll('.tianzige-render').forEach(function(el) {
@@ -576,10 +863,10 @@
             
             // Phân tách ký hiệu hướng khuyết [L], [R], [T], [B], [BL], [TL] đi kèm từng chữ Hán
             let cleanHanzi = rawHanzi.replace(/\s+/g, '');
-            let regex = /(\[(?:BL\vert{}TL\vert{}L\vert{}R\vert{}T\vert{}B)\])?([^\[\]]{1})/gi;
+            let regex = /(\[(?:BL|TL|L|R|T|B)\])?([^\[\]]{1})/gi;
             let items = [];
             let match;
-            let hasExplicitTag = /\[(?:BL\vert{}TL\vert{}L\vert{}R\vert{}T\vert{}B)\]/i.test(cleanHanzi);
+            let hasExplicitTag = /\[(?:BL|TL|L|R|T|B)\]/i.test(cleanHanzi);
 
             while ((match = regex.exec(cleanHanzi)) !== null) {
                 let tag = match[1] ? match[1].replace(/[\[\]]/g, '').toUpperCase() : '';

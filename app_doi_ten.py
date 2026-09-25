@@ -28,8 +28,6 @@ STRUCTURES = {
         "11_a", "11_b", "11_c", "11_d", "11_e", "11_f",
         # Đọc Phần 1 (26-30): Dùng chung rổ ảnh A-F (VỪA BỔ SUNG)
         "26_a", "26_b", "26_c", "26_d", "26_e", "26_f",
-        # Viết Phần 1 (51-55): Dùng chung rổ bộ thủ A-F
-        "51_a", "51_b", "51_c", "51_d", "51_e", "51_f"
     ]
 }
 

@@ -6,6 +6,74 @@
 <!-- Kế thừa nguyên vẹn style css như HSK 1 của bạn -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+/* ================= KHUNG Ô CHỮ ĐIỀN (TIANZIGE) CHO CÂU 51-55 ================= */
+    .tianzige-wrapper {
+        display: inline-flex;
+        border: 2px solid #3B82F6;
+        border-radius: 4px;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .tianzige-col {
+        display: flex;
+        flex-direction: column;
+        width: 76px;
+        border-right: 1.5px solid #3B82F6;
+    }
+    .tianzige-col:last-child {
+        border-right: none;
+    }
+    /* Khung Pinyin 4 dòng kẻ (Tứ tuyến tam cách) */
+    .tianzige-pinyin {
+        height: 32px;
+        border-bottom: 1.5px solid #3B82F6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1E293B;
+        position: relative;
+        background-image: linear-gradient(
+            to bottom,
+            transparent 28%,
+            #93C5FD 28%,
+            #93C5FD 32%,
+            transparent 32%,
+            transparent 64%,
+            #93C5FD 64%,
+            #93C5FD 68%,
+            transparent 68%
+        );
+    }
+    /* Ô vuông viết chữ Hán có đường chéo/nét đứt */
+    .tianzige-hanzi {
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'KaiTi', 'STKaiti', 'BiauKai', 'Noto Sans SC', serif;
+        font-size: 2.6rem;
+        color: #0F172A;
+        position: relative;
+        z-index: 1;
+        line-height: 1;
+    }
+    /* Đường kẻ ngang dọc nét đứt bên trong ô chữ Hán */
+    .tianzige-hanzi::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+            linear-gradient(to right, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%),
+            linear-gradient(to bottom, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%);
+        background-size: 8px 8px;
+        z-index: -1;
+        pointer-events: none;
+    }
 <style>
     :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -235,11 +303,15 @@
                                     </div>
 
                                     <div class="q-options-area ms-5">
-                                        <!-- HIỂN THỊ ẢNH CHỮ HÁN KHUYẾT NÉT (CÂU 51-55) -->
-                                        {% if q.question_number >= 51 and q.question_number <= 55 and q.image %}
-                                            <div class="mb-3 text-center" style="max-width: 150px;">
-                                                <img src="{{ q.image.url }}" style="width: 100%; border: 1.5px solid #E4E4E7; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                                            </div>
+                                        <!-- HIỂN THỊ KHUNG Ô CHỮ ĐIỀN BẰNG CSS (CÂU 51-55) -->
+                                        {% if q.question_number >= 51 and q.question_number <= 55 %}
+                                            {% if q.content and q.content != 'nan' %}
+                                                <div class="tianzige-render" data-hanzi="{{ q.content }}" data-pinyin="{{ q.content_pinyin|default:'' }}"></div>
+                                            {% elif q.image %}
+                                                <div class="mb-3 text-center" style="max-width: 150px;">
+                                                    <img src="{{ q.image.url }}" style="width: 100%; border: 1.5px solid #E4E4E7; border-radius: 8px;">
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
 
                                         <!-- PHẦN VIẾT CHỮ HÁN TỰ LUẬN (CÂU 56-60) -->
@@ -406,6 +478,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. TÁCH DÒNG NỘI DUNG TIẾNG TRUNG / PINYIN & NHẬN DIỆN CHỖ TRỐNG ( ____ )
         document.querySelectorAll('.interleave-group').forEach(function(group) {
             let pinyinRaw = group.querySelector('.raw-pinyin');
             let chineseRaw = group.querySelector('.raw-chinese');
@@ -421,8 +494,10 @@
                 for(let i = 0; i < maxLines; i++) {
                     let pStr = i < pLines.length ? pLines[i] : "";
                     let cStr = i < cLines.length ? cLines[i] : "";
-                    if (cStr) cStr = cStr.replace(/[(（]\s*[)）]/g, '（<span class="auto-fill-target"></span>）');
-                    if (pStr) pStr = pStr.replace(/[(（]\s*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+                    
+                    // Nâng cấp: Nhận diện cả ngoặc trống () lẫn ngoặc có gạch dưới ( ____ )
+                    if (cStr) cStr = cStr.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
+                    if (pStr) pStr = pStr.replace(/[(（][\s_]*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
 
                     if (pStr || cStr) {
                         html += '<div style="margin-bottom: 4px;">';
@@ -435,6 +510,32 @@
             }
         });
 
+        // 2. TỰ ĐỘNG VẼ KHUNG Ô CHỮ ĐIỀN (CÂU 51-55)
+        document.querySelectorAll('.tianzige-render').forEach(function(el) {
+            let rawHanzi = (el.getAttribute('data-hanzi') || '').trim();
+            let rawPinyin = (el.getAttribute('data-pinyin') || '').trim();
+            
+            let hanziChars = rawHanzi.replace(/\s+/g, '').split('');
+            let pinyinWords = rawPinyin.split(/\s+/);
+            
+            if (hanziChars.length > 0) {
+                let html = '<div class="tianzige-wrapper">';
+                for (let i = 0; i < hanziChars.length; i++) {
+                    let h = hanziChars[i] || '';
+                    let p = pinyinWords[i] || '';
+                    html += `
+                        <div class="tianzige-col">
+                            <div class="tianzige-pinyin pinyin-text" style="margin:0;">${p}</div>
+                            <div class="tianzige-hanzi">${h}</div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                el.innerHTML = html;
+            }
+        });
+
+        // 3. XỬ LÝ RỔ ĐÁP ÁN CHỮ DÙNG CHUNG (A-F) & XÓA DẤU '/' THỪA
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -443,10 +544,7 @@
             for (let i = 1; i < parts.length; i += 2) {
                 let letter = parts[i].trim();
                 let content = parts[i+1] ? parts[i+1].trim() : "";
-                
-                // ĐOẠN CODE MỚI: Tự động xóa dấu gạch chéo / và khoảng trắng thừa ở cuối
-                content = content.replace(/\/+$/, '').trim();
-                
+                content = content.replace(/\/+$/, '').trim(); // Xóa dấu / ở cuối nếu có
                 if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
             }
             return dict;
@@ -482,6 +580,7 @@
             if (found) el.insertAdjacentHTML('afterend', html); 
         });
 
+        // 4. LÀM MỜ RỔ ĐÁP ÁN & TỰ ĐỘNG ĐIỀN CHỮ VÀO NGOẶC TRỐNG KHI CHỌN RADIO
         document.addEventListener('change', function(e) {
             if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
                 let wrapper = e.target.closest('.q-group-wrapper');
@@ -508,6 +607,19 @@
                     }
                 }
             }
+        });
+
+        // 5. TỰ ĐỘNG ĐIỀN CHỮ HÁN LÊN CÂU HỎI KHI HỌC VIÊN GÕ PHẦN VIẾT (CÂU 56-60)
+        document.querySelectorAll('.input-chinese').forEach(function(input) {
+            input.addEventListener('input', function() {
+                let questionRow = this.closest('.question-row');
+                if (questionRow) {
+                    let targetSpan = questionRow.querySelector('.auto-fill-target');
+                    if (targetSpan) {
+                        targetSpan.innerText = this.value.trim();
+                    }
+                }
+            });
         });
     });
 </script>

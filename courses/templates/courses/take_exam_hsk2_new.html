@@ -211,7 +211,7 @@
                 {% regroup questions by question_group as grouped_questions %}
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
-                        <!-- HEADER TỪNG PHẦN THI -->
+                        <!-- HEADER TỪNG PHẦN THI (ĐÃ CHUẨN HÓA THỨ TỰ ĐỀ MỤC HSK 2) -->
                         {% with first_q_obj=group.list.0 %}
                             {% if first_q_obj.question_number == 1 %}
                                 <div class="text-center mt-2 mb-3">
@@ -227,36 +227,38 @@
                                 </div>
                             {% endif %}
 
-                            <div class="text-center mb-2 mt-1">
-                                <div class="hsk-part-title">
-                                    {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 26 or first_q_obj.question_number == 51 %}第一部分{% endif %}
-                                    {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 31 or first_q_obj.question_number == 56 %}第二部分{% endif %}
-                                    {% if first_q_obj.question_number == 11 or first_q_obj.question_number == 36 %}第三部分{% endif %}
-                                    {% if first_q_obj.question_number == 16 or first_q_obj.question_number == 41 %}第四部分{% endif %}
-                                    {% if first_q_obj.question_number == 46 %}第五部分{% endif %}
+                            <!-- CHỈ HIỂN THỊ ĐỀ MỤC NHỎ & HƯỚNG DẪN Ở NHÓM ĐẦU TIÊN (Ẩn ở câu 11 và 41 vì dùng chung đề mục) -->
+                            {% if first_q_obj.question_number != 11 and first_q_obj.question_number != 41 %}
+                                <div class="text-center mb-2 mt-1">
+                                    <div class="hsk-part-title">
+                                        {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 26 or first_q_obj.question_number == 51 %}第一部分{% endif %}
+                                        {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 31 or first_q_obj.question_number == 56 %}第二部分{% endif %}
+                                        {% if first_q_obj.question_number == 16 or first_q_obj.question_number == 36 %}第三部分{% endif %}
+                                        {% if first_q_obj.question_number == 46 %}第四部分{% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- HƯỚNG DẪN TỪNG PHẦN THI (HSK2) -->
-                            <div class="part-instruction">
-                                {% if first_q_obj.question_number == 1 %}
-                                    <div class="zh">听录音，选出对应的图片。</div><div class="vi">Nghe và chọn bức tranh đúng với nội dung nghe được.</div>
-                                {% elif first_q_obj.question_number == 6 or first_q_obj.question_number == 11 %}
-                                    <div class="zh">听对话，选出对应的图片（每张图只使用一次）。</div><div class="vi">Nghe hội thoại, chọn tranh phù hợp (mỗi tranh chỉ dùng 1 lần).</div>
-                                {% elif first_q_obj.question_number == 16 %}
-                                    <div class="zh">听一段话和一个问题，选出正确答案。</div><div class="vi">Nghe một đoạn ngắn và câu hỏi, chọn đáp án đúng.</div>
-                                {% elif first_q_obj.question_number == 26 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 %}
-                                    <div class="zh">选择合适的答句/句子。</div><div class="vi">Nối câu hỏi/câu nói với câu trả lời tương ứng.</div>
-                                {% elif first_q_obj.question_number == 31 %}
-                                    <div class="zh">选词填空。</div><div class="vi">Chọn từ thích hợp trong khung để điền vào chỗ trống.</div>
-                                {% elif first_q_obj.question_number == 46 %}
-                                    <div class="zh">读一段话，选择正确答案。</div><div class="vi">Đọc đoạn văn ngắn rồi chọn đáp án đúng cho câu hỏi.</div>
-                                {% elif first_q_obj.question_number == 51 %}
-                                    <div class="zh">选择对应的偏旁部首。</div><div class="vi">Chọn bộ thủ thích hợp để hoàn thành chữ Hán.</div>
-                                {% elif first_q_obj.question_number == 56 %}
-                                    <div class="zh">根据拼音写汉字。</div><div class="vi">Điền chữ Hán dựa vào Pinyin và ngữ cảnh. (Vui lòng gõ chữ Hán vào ô trống)</div>
-                                {% endif %}
-                            </div>
+                                
+                                <!-- HƯỚNG DẪN TỪNG PHẦN THI (HSK2) -->
+                                <div class="part-instruction">
+                                    {% if first_q_obj.question_number == 1 %}
+                                        <div class="zh">听录音，选出对应的图片。</div><div class="vi">Nghe và chọn bức tranh đúng với nội dung nghe được.</div>
+                                    {% elif first_q_obj.question_number == 6 %}
+                                        <div class="zh">听对话，选出对应的图片（每张图只使用一次）。</div><div class="vi">Nghe hội thoại, chọn tranh phù hợp (mỗi tranh chỉ dùng 1 lần).</div>
+                                    {% elif first_q_obj.question_number == 16 %}
+                                        <div class="zh">听一段话和一个问题，选出正确答案。</div><div class="vi">Nghe một đoạn ngắn và câu hỏi, chọn đáp án đúng.</div>
+                                    {% elif first_q_obj.question_number == 26 or first_q_obj.question_number == 36 %}
+                                        <div class="zh">选择合适的答句/句子。</div><div class="vi">Nối câu hỏi/câu nói với câu trả lời/hình ảnh tương ứng.</div>
+                                    {% elif first_q_obj.question_number == 31 %}
+                                        <div class="zh">选词填空。</div><div class="vi">Chọn từ thích hợp trong khung để điền vào chỗ trống.</div>
+                                    {% elif first_q_obj.question_number == 46 %}
+                                        <div class="zh">读一段话，选择正确答案。</div><div class="vi">Đọc đoạn văn ngắn rồi chọn đáp án đúng cho câu hỏi.</div>
+                                    {% elif first_q_obj.question_number == 51 %}
+                                        <div class="zh">选择对应的偏旁部首。</div><div class="vi">Chọn bộ thủ thích hợp để hoàn thành chữ Hán.</div>
+                                    {% elif first_q_obj.question_number == 56 %}
+                                        <div class="zh">根据拼音写汉字。</div><div class="vi">Điền chữ Hán dựa vào Pinyin và ngữ cảnh. (Vui lòng gõ chữ Hán vào ô trống)</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                         {% endwith %}
 
                         <div class="q-card-group">
@@ -349,7 +351,7 @@
                                         {% if q.question_number >= 56 %}
                                             <div class="row mt-2">
                                                 <div class="col-12 col-md-6">
-                                                    <input type="text" name="q_{{ q.id }}" class="form-control input-chinese" placeholder="Gõ chữ Hán vào đây..." onkeyup="if(this.value.trim() !== '') { document.getElementById('grid-btn-{{ q.question_number }}').classList.add('done'); } else { document.getElementById('grid-btn-{{ q.question_number }}').classList.remove('done'); }">
+                                                    <input type="text" name="q_{{ q.id }}" class="form-control input-chinese" placeholder="Gõ chữ Hán vào đây..." oninput="syncChineseInput(this, {{ q.question_number }})" onchange="syncChineseInput(this, {{ q.question_number }})">
                                                 </div>
                                             </div>
                                             
@@ -474,6 +476,21 @@
     function scrollToQ(qNumber) { 
         const el = document.getElementById('q' + qNumber); 
         if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+    function syncChineseInput(inputEl, qNumber) {
+        let val = inputEl.value.trim();
+        let gridBtn = document.getElementById('grid-btn-' + qNumber);
+        if (gridBtn) {
+            if (val !== '') gridBtn.classList.add('done');
+            else gridBtn.classList.remove('done');
+        }
+        let questionRow = inputEl.closest('.question-row');
+        if (questionRow) {
+            let targetSpan = questionRow.querySelector('.auto-fill-target');
+            if (targetSpan) {
+                targetSpan.innerText = val;
+            }
+        }
     }
     
     if (document.getElementById('countdown')) {

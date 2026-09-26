@@ -420,62 +420,221 @@ def student_dashboard(request):
     return render(request, 'courses/dashboard.html', context)
 
 # ==========================================
-# 9. UPLOAD ĐỀ THI (IMPORT EXCEL)
+# HÀM HỖ TRỢ XỬ LÝ FILE ZIP ẢNH DÙNG CHUNG
+# ==========================================
+def process_exam_zip_helper(exam, zip_file):
+    image_groups = {}
+    single_images = {}
+    processed_groups = []
+    single_count = 0
+
+    with zipfile.ZipFile(zip_file, 'r') as z:
+        for filename in z.namelist():
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                if '__MACOSX' in filename or filename.startswith('.'):
+                    continue
+                clean_name = filename.split('/')[-1]
+
+                match_group = re.match(r'^q(\d+)_([A-F])\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
+                if match_group:
+                    q_num = match_group.group(1)
+                    letter = match_group.group(2).upper()
+                    if q_num not in image_groups:
+                        image_groups[q_num] = {}
+                    image_groups[q_num][letter] = z.read(filename)
+                    continue
+
+                match_single = re.match(r'^q(\d+)\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
+                if match_single:
+                    q_num = match_single.group(1)
+                    single_images[q_num] = z.read(filename)
+
+    # 1. Lưu ảnh đơn
+    for q_num, file_data in single_images.items():
+        question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+        if question:
+            question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
+            single_count += 1
+
+    # 2. Ghép ảnh rổ chung (3 ảnh A-C hoặc 5-6 ảnh A-F)
+    for q_num, letters_dict in image_groups.items():
+        question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
+        if not question:
+            if int(q_num) in range(6, 11): question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
+            elif int(q_num) in range(11, 16): question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
+            elif int(q_num) in range(26, 31): question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
+            elif int(q_num) in range(51, 56): question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
+
+        if not question:
+            continue
+
+        keys = list(letters_dict.keys())
+        if not keys:
+            continue
+
+        imgs = {}
+        for k in keys:
+            try:
+                imgs[k] = Image.open(BytesIO(letters_dict[k])).convert('RGB')
+            except Exception:
+                pass
+
+        if not imgs:
+            continue
+
+        base_k = list(imgs.keys())[0]
+        w, h = imgs[base_k].size
+        for k in imgs:
+            imgs[k] = imgs[k].resize((w, h))
+
+        if set(keys).issubset({'A', 'B', 'C'}) and len(keys) <= 3:
+            composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
+            if 'A' in imgs: composite.paste(imgs['A'], (0, 0))
+            if 'B' in imgs: composite.paste(imgs['B'], (w, 0))
+            if 'C' in imgs: composite.paste(imgs['C'], (w * 2, 0))
+        else:
+            composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
+            positions = {
+                'A': (0, 0),       'B': (w, 0),
+                'C': (0, h),       'D': (w, h),
+                'E': (0, h * 2),   'F': (w, h * 2)
+            }
+            for k, pos in positions.items():
+                if k in imgs:
+                    composite.paste(imgs[k], pos)
+
+        img_io = BytesIO()
+        composite.save(img_io, format='JPEG', quality=90)
+        question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
+        processed_groups.append(str(q_num))
+
+    return processed_groups, single_count
+
+
+# ==========================================
+# 9. UPLOAD / CẬP NHẬT ĐỀ THI ALL-IN-ONE (EXCEL + AUDIO + ZIP)
 # ==========================================
 @login_required
 def import_excel(request):
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        excel_file = request.FILES['excel_file']
-        exam_type_form = request.POST.get('exam_type', 'new')
-        exam_title_form = request.POST.get('exam_title', 'Đề thi HSK')
-        hsk_level_form = request.POST.get('hsk_level', 1)
-        duration_form = request.POST.get('duration', 40)
-        
-        exam = Exam.objects.create(
-            title=exam_title_form, 
-            hsk_level=hsk_level_form,
-            duration_minutes=duration_form,
-            exam_type=exam_type_form 
-        )
-        
-        df = pd.read_excel(excel_file).fillna('')
-        
-        if len(df.columns) < 14:
-            messages.error(request, "❌ File Excel của bạn không đủ 14 cột chuẩn! Vui lòng kiểm tra lại.")
-            exam.delete()
-            return redirect('import_excel')
-        
-        for index, row in df.iterrows():
-            if str(row.iloc[0]).strip() == '':
-                continue
-                
+    if request.method == 'POST':
+        existing_exam_id = request.POST.get('existing_exam_id', '').strip()
+        exam_type_form = request.POST.get('exam_type', 'new').strip()
+        exam_title_form = request.POST.get('exam_title', '').strip()
+        hsk_level_form = int(request.POST.get('hsk_level', 1))
+        duration_form = int(request.POST.get('duration', 40))
+
+        excel_file = request.FILES.get('excel_file')
+        audio_file = request.FILES.get('listening_audio')
+        zip_file = request.FILES.get('zip_file')
+
+        if not excel_file and not audio_file and not zip_file and not existing_exam_id:
+            messages.error(request, "⚠️ Vui lòng tải lên ít nhất 1 file (Excel, Audio hoặc ZIP)!")
+            return redirect(request.path)
+
+        # 1. TÌM ĐỀ THI CŨ ĐỂ GHI ĐÈ HOẶC TẠO MỚI
+        exam = None
+        is_updated = False
+
+        if existing_exam_id.isdigit():
+            exam = Exam.objects.filter(id=int(existing_exam_id)).first()
+            if exam:
+                is_updated = True
+
+        if not exam and exam_title_form:
+            exam = Exam.objects.filter(title__iexact=exam_title_form, hsk_level=hsk_level_form).first()
+            if exam:
+                is_updated = True
+
+        if exam:
+            if exam_title_form:
+                exam.title = exam_title_form
+            exam.hsk_level = hsk_level_form
+            exam.duration_minutes = duration_form
+            if hasattr(exam, 'exam_type'):
+                exam.exam_type = exam_type_form
+            exam.save()
+        else:
+            create_kwargs = {
+                'title': exam_title_form or 'Đề thi HSK',
+                'hsk_level': hsk_level_form,
+                'duration_minutes': duration_form,
+            }
+            if hasattr(Exam, 'exam_type'):
+                create_kwargs['exam_type'] = exam_type_form
+            exam = Exam.objects.create(**create_kwargs)
+
+        status_notes = []
+
+        # 2. XỬ LÝ FILE EXCEL (CẬP NHẬT ĐÈ TỪNG CÂU, GIỮ NGUYÊN ẢNH CŨ)
+        if excel_file:
             try:
-                ExamQuestion.objects.create(
-                    exam=exam,
-                    question_number=row.iloc[0],              
-                    section_type=str(row.iloc[1]).strip(),    
-                    question_group=str(row.iloc[2]).strip(),  
-                    passage_text=str(row.iloc[3]).strip(),    
-                    passage_pinyin=str(row.iloc[4]).strip(),  
-                    content=str(row.iloc[5]).strip(),         
-                    content_pinyin=str(row.iloc[6]).strip(),  
-                    option_a=str(row.iloc[7]).strip(),        
-                    option_a_pinyin=str(row.iloc[8]).strip(), 
-                    option_b=str(row.iloc[9]).strip(),        
-                    option_b_pinyin=str(row.iloc[10]).strip(),
-                    option_c=str(row.iloc[11]).strip(),       
-                    option_c_pinyin=str(row.iloc[12]).strip(),
-                    correct_answer=str(row.iloc[13]).strip().upper() 
-                )
+                df = pd.read_excel(excel_file).fillna('')
+                if len(df.columns) < 14:
+                    messages.error(request, "❌ File Excel không đủ 14 cột chuẩn! Vui lòng kiểm tra lại.")
+                    if not is_updated:
+                        exam.delete()
+                    return redirect(request.path)
+
+                q_count = 0
+                for index, row in df.iterrows():
+                    raw_q_num = str(row.iloc[0]).strip()
+                    if not raw_q_num:
+                        continue
+                    q_num_int = int(float(raw_q_num))
+
+                    ExamQuestion.objects.update_or_create(
+                        exam=exam,
+                        question_number=q_num_int,
+                        defaults={
+                            'section_type': str(row.iloc[1]).strip(),
+                            'question_group': str(row.iloc[2]).strip(),
+                            'passage_text': str(row.iloc[3]).strip(),
+                            'passage_pinyin': str(row.iloc[4]).strip(),
+                            'content': str(row.iloc[5]).strip(),
+                            'content_pinyin': str(row.iloc[6]).strip(),
+                            'option_a': str(row.iloc[7]).strip(),
+                            'option_a_pinyin': str(row.iloc[8]).strip(),
+                            'option_b': str(row.iloc[9]).strip(),
+                            'option_b_pinyin': str(row.iloc[10]).strip(),
+                            'option_c': str(row.iloc[11]).strip(),
+                            'option_c_pinyin': str(row.iloc[12]).strip(),
+                            'correct_answer': str(row.iloc[13]).strip().upper(),
+                        }
+                    )
+                    q_count += 1
+                status_notes.append(f"{'Cập nhật đè' if is_updated else 'Tạo mới'} {q_count} câu hỏi Excel")
             except Exception as e:
-                messages.error(request, f"❌ Lỗi ở dòng {index + 2} trong Excel: {str(e)}")
-                exam.delete() 
-                return redirect('import_excel')
-            
-        messages.success(request, f"🎉 Đã Import thành công: {exam_title_form}!")
+                messages.error(request, f"❌ Lỗi khi đọc file Excel: {str(e)}")
+                return redirect(request.path)
+
+        # 3. XỬ LÝ FILE AUDIO (NẾU CÓ)
+        if audio_file:
+            exam.listening_audio = audio_file
+            exam.save()
+            status_notes.append("Đã gắn file nghe Audio")
+
+        # 4. XỬ LÝ FILE ZIP ẢNH (NẾU CÓ)
+        if zip_file:
+            try:
+                groups, singles = process_exam_zip_helper(exam, zip_file)
+                zip_msg = []
+                if groups:
+                    zip_msg.append(f"ghép rổ ảnh câu {', '.join(groups)}")
+                if singles:
+                    zip_msg.append(f"gắn {singles} ảnh đơn")
+                status_notes.append("ZIP: " + (", ".join(zip_msg) if zip_msg else "không tìm thấy ảnh hợp lệ"))
+            except Exception as e:
+                messages.error(request, f"⚠️ Lỗi khi xử lý file ZIP ảnh: {str(e)}")
+
+        summary = " | ".join(status_notes) if status_notes else "Đã cập nhật thông tin đề thi"
+        messages.success(request, f"🎉 Hoàn tất [{exam.title}]: {summary}!")
+
+        if request.path.startswith('/admin'):
+            return redirect('/admin/courses/exam/')
         return redirect('exam_list')
-    
-    return render(request, 'admin/import_excel.html')
+
+    exams = Exam.objects.all().order_by('-id')
+    return render(request, 'admin/import_excel.html', {'exams': exams})
 
 # ==========================================
 # 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT (BẢN BAO LỖI)

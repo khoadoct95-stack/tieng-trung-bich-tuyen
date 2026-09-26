@@ -212,59 +212,8 @@ class ExamAdmin(admin.ModelAdmin):
         return render(request, 'admin/extract_images.html')
 
     def import_excel_view(self, request):
-        if request.method == 'POST':
-            excel_file = request.FILES.get('excel_file')
-            exam_title = request.POST.get('exam_title')
-            hsk_level = request.POST.get('hsk_level')
-            duration = request.POST.get('duration', 60)
-
-            if not excel_file:
-                messages.error(request, "Vui lòng chọn file Excel!")
-                return redirect('.')
-
-            try:
-                wb = openpyxl.load_workbook(excel_file)
-                sheet = wb.active
-
-                exam = Exam.objects.create(
-                    title=exam_title,
-                    hsk_level=int(hsk_level),
-                    duration_minutes=int(duration)
-                )
-
-                for row in sheet.iter_rows(min_row=2, values_only=True):
-                    if not row[0]: continue
-                    
-                    q_num, section, group, p_text, p_pinyin, content, c_pinyin, opt_a, a_pin, opt_b, b_pin, opt_c, c_pin, correct = row[:14]
-                    
-                    correct_ans = str(correct).strip().upper() if correct else ""
-
-                    ExamQuestion.objects.create(
-                        exam=exam,
-                        question_number=int(q_num),
-                        section_type=section,
-                        question_group=group,
-                        passage_text=p_text,
-                        passage_pinyin=p_pinyin,
-                        content=content,
-                        content_pinyin=c_pinyin,
-                        option_a=opt_a,
-                        option_a_pinyin=a_pin,
-                        option_b=opt_b,
-                        option_b_pinyin=b_pin,
-                        option_c=opt_c,
-                        option_c_pinyin=c_pin,
-                        correct_answer=correct_ans
-                    )
-
-                messages.success(request, f"Đã nhập thành công đề thi: {exam_title}!")
-                return redirect('/admin/courses/exam/')
-            
-            except Exception as e:
-                messages.error(request, f"Lỗi xử lý file Excel: {e}")
-                return redirect('.')
-
-        return render(request, 'admin/import_excel.html')
+        from .views import import_excel
+        return import_excel(request)
 
 
 # ==========================================

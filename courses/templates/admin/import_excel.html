@@ -1,50 +1,113 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-    <h2>📥 Nhập Đề thi HSK tự động bằng Excel</h2>
-    <p class="text-muted">Tải lên file Excel chứa danh sách câu hỏi. Vui lòng chọn đúng cấu trúc đề để hệ thống hiển thị chính xác.</p>
-    
-    <form method="POST" enctype="multipart/form-data" class="mt-4">
+<div style="max-width: 780px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; font-family: 'Inter', sans-serif;">
+    <h2 style="margin-top: 0; color: #9F1239; font-weight: 800; font-size: 1.4rem; border-bottom: 2px solid #FFE4E6; padding-bottom: 12px; margin-bottom: 20px;">
+        🚀 IMPORT / CẬP NHẬT ĐỀ THI HSK (ALL-IN-ONE)
+    </h2>
+
+    <div style="background: #F0F9FF; border-left: 4px solid #0284C7; padding: 12px 16px; border-radius: 4px; margin-bottom: 22px; font-size: 0.9rem; color: #0369A1; line-height: 1.6;">
+        <strong>💡 Cơ chế thông minh:</strong><br>
+        • Nếu <strong>chọn đề thi có sẵn</strong> (hoặc nhập trùng Tên đề + Cấp độ HSK), hệ thống sẽ <strong>cập nhật đè</strong> lên đề cũ (giữ nguyên ảnh & kết quả làm bài cũ).<br>
+        • Bạn có thể tải lên cùng lúc cả <strong>Excel + Audio + ZIP Ảnh</strong>, hoặc tải trước Excel rồi bổ sung Audio/ZIP sau đều được!
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        
-        <div class="mb-3">
-            <label class="fw-bold">Tên đề thi:</label>
-            <input type="text" name="exam_title" class="form-control" required placeholder="VD: Đề thi thử HSK 1 - Số 1">
-        </div>
-        
-        <div class="mb-3">
-            <label class="fw-bold text-danger">Loại cấu trúc đề thi (Bắt buộc chọn đúng):</label>
-            <select name="exam_type" class="form-control" required style="border-color: #dc3545; box-shadow: 0 0 5px rgba(220,53,69,0.2);">
-                <option value="old">Đề HSK 1 (Bản cũ 40 câu - True/False)</option>
-                <option value="new">Đề HSK 1 (Phiên bản Mới 3.0)</option>
-                <option value="new">Đề HSK 2 (Phiên bản Mới 3.0)</option>
-            </select>
-            <small class="text-muted">Giao diện làm bài sẽ thay đổi dựa trên tùy chọn này.</small>
-        </div>
 
-        <div class="mb-3">
-            <label class="fw-bold">Cấp độ HSK:</label>
-            <select name="hsk_level" class="form-control">
-                <option value="1">HSK 1</option>
-                <option value="2">HSK 2</option>
-                <option value="3">HSK 3</option>
+        <!-- 1. CHỌN ĐỀ THI CŨ ĐỂ CẬP NHẬT (TÙY CHỌN) -->
+        <div style="margin-bottom: 18px; background: #FFFBEB; padding: 15px; border-radius: 8px; border: 1px solid #FDE68A;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #92400E;">
+                🔄 Chọn đề thi đã có (Nếu muốn sửa đề cũ hoặc chỉ up thêm Audio / Ảnh ZIP):
+            </label>
+            <select name="existing_exam_id" id="existing_exam_select" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #D97706; background: #fff; font-weight: 600;" onchange="fillExamInfo(this)">
+                <option value="">-- ➕ Tạo đề mới (Hoặc tự động ghi đè nếu gõ trùng tên bên dưới) --</option>
+                {% for ex in exams %}
+                    <option value="{{ ex.id }}" data-title="{{ ex.title }}" data-level="{{ ex.hsk_level }}" data-duration="{{ ex.duration_minutes }}" data-type="{{ ex.exam_type|default:'new' }}">
+                        [HSK {{ ex.hsk_level }}] {{ ex.title }} ({{ ex.duration_minutes }} phút)
+                    </option>
+                {% endfor %}
             </select>
         </div>
 
-        <div class="mb-3">
-            <label class="fw-bold">Thời gian làm bài (phút):</label>
-            <input type="number" name="duration" class="form-control" value="60">
+        <!-- 2. THÔNG TIN ĐỀ THI -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #1E293B;">Tên đề thi (*):</label>
+                <input type="text" name="exam_title" id="exam_title" placeholder="VD: Đề thi HSK 2 - Đề số 1" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #1E293B;">Cấp độ HSK (*):</label>
+                <select name="hsk_level" id="hsk_level" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; box-sizing: border-box;">
+                    <option value="1">HSK 1</option>
+                    <option value="2" selected>HSK 2</option>
+                    <option value="3">HSK 3</option>
+                    <option value="4">HSK 4</option>
+                    <option value="5">HSK 5</option>
+                    <option value="6">HSK 6</option>
+                </select>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label class="fw-bold">Chọn file Excel (.xlsx):</label>
-            <input type="file" name="excel_file" class="form-control" accept=".xlsx" required>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 22px;">
+            <div>
+                <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #1E293B;">Thời gian làm bài (Phút):</label>
+                <input type="number" name="duration" id="duration" value="55" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #1E293B;">Phiên bản giao diện:</label>
+                <select name="exam_type" id="exam_type" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; box-sizing: border-box;">
+                    <option value="new" selected>HSK 3.0 (Mới - Mặc định)</option>
+                    <option value="old">HSK 2.0 (Cũ)</option>
+                </select>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-success fw-bold px-4 py-2" style="width: 100%; margin-top: 10px;">
-            🚀 Tải lên & Tạo đề thi
-        </button>
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 20px 0;">
+
+        <!-- 3. KHU VỰC UPLOAD 3 FILE TRONG 1 -->
+        <div style="margin-bottom: 16px; padding: 14px; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 8px;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #0F172A;">
+                📊 1. File câu hỏi Excel (.xlsx) <span style="font-weight: normal; color: #64748B;">(Bỏ trống nếu chỉ muốn up thêm Audio/Ảnh cho đề cũ)</span>:
+            </label>
+            <input type="file" name="excel_file" accept=".xlsx,.xls" style="width: 100%;">
+        </div>
+
+        <div style="margin-bottom: 16px; padding: 14px; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 8px;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #0F172A;">
+                🎧 2. File nghe Audio (.mp3 / .wav) <span style="font-weight: normal; color: #64748B;">(Tùy chọn - Có thể bỏ qua up sau)</span>:
+            </label>
+            <input type="file" name="listening_audio" accept="audio/*" style="width: 100%;">
+        </div>
+
+        <div style="margin-bottom: 24px; padding: 14px; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 8px;">
+            <label style="font-weight: 700; display: block; margin-bottom: 6px; color: #0F172A;">
+                🖼️ 3. File nén Ảnh câu hỏi (.zip) <span style="font-weight: normal; color: #64748B;">(Tùy chọn - Tự động cắt ghép rổ ảnh q1_a, q6_a, q11_a...)</span>:
+            </label>
+            <input type="file" name="zip_file" accept=".zip" style="width: 100%;">
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" style="flex: 1; background: #059669; color: #fff; font-weight: 700; font-size: 1rem; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                ⚡ LƯU & XỬ LÝ TẤT CẢ
+            </button>
+            <a href="/admin/courses/exam/" style="padding: 12px 20px; background: #E2E8F0; color: #334155; font-weight: 600; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center;">
+                Quay lại Admin
+            </a>
+        </div>
     </form>
 </div>
+
+<script>
+function fillExamInfo(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    if (opt && opt.value) {
+        document.getElementById('exam_title').value = opt.getAttribute('data-title') || '';
+        document.getElementById('hsk_level').value = opt.getAttribute('data-level') || '2';
+        document.getElementById('duration').value = opt.getAttribute('data-duration') || '55';
+        document.getElementById('exam_type').value = opt.getAttribute('data-type') || 'new';
+    }
+}
+</script>
 {% endblock %}

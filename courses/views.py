@@ -218,16 +218,31 @@ def profile_view(request):
     return render(request, 'courses/profile.html', context)
 
 # ==========================================
-# 5. WEBHOOK GITHUB 
+# 5. WEBHOOK GITHUB (TỰ ĐỘNG PULL + COLLECTSTATIC + RELOAD)
 # ==========================================
 @csrf_exempt
 def github_webhook(request):
     if request.method == 'POST':
-        subprocess.call(['git', 'pull'], cwd='/home/khoadoct95/tieng-trung-bich-tuyen')
+        repo_dir = '/home/khoadoct95/tieng-trung-bich-tuyen'
         wsgi_file = '/var/www/khoadoct95_pythonanywhere_com_wsgi.py'
-        os.utime(wsgi_file, None)
-        return HttpResponse('Cập nhật thành công!', status=200)
-    return HttpResponse('Chỉ nhận lệnh POST', status=405)
+        
+        try:
+            # 1. Ép lấy code mới nhất từ nhánh main trên GitHub (không bao giờ bị kẹt)
+            subprocess.run(['git', 'fetch', '--all'], cwd=repo_dir, check=True)
+            subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=repo_dir, check=True)
+            
+            # 2. Tự động gom file tĩnh (ảnh, CSS) không cần hỏi yes/no
+            subprocess.run(['python', 'manage.py', 'collectstatic', '--noinput'], cwd=repo_dir)
+            
+            # 3. Chạm vào file WSGI để PythonAnywhere tự động Reload web
+            if os.path.exists(wsgi_file):
+                os.utime(wsgi_file, None)
+                
+            return HttpResponse('✅ Đã tự động Pull, Collectstatic và Reload thành công!', status=200)
+        except Exception as e:
+            return HttpResponse(f'❌ Lỗi Webhook: {str(e)}', status=500)
+            
+    return HttpResponse('Webhook đang hoạt động (Chỉ nhận lệnh POST từ GitHub)', status=200)
 
 # ==========================================
 # 6. LÀM BÀI THI CẬP NHẬT CHẤM ĐIỂM CHUẨN

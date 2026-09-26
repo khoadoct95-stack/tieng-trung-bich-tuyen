@@ -224,7 +224,7 @@ def profile_view(request):
 def github_webhook(request):
     if request.method == 'POST':
         repo_dir = '/home/khoadoct95/tieng-trung-bich-tuyen'
-        wsgi_file = '/var/www/khoadoct95_pythonanywhere_com_wsgi.py'
+        wsgi_file = '/var/www/www_hanyuhuoban_io_vn_wsgi.py'
         
         try:
             # 1. Ép lấy code mới nhất từ nhánh main trên GitHub (không bao giờ bị kẹt)

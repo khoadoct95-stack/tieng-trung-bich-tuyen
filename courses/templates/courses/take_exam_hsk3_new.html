@@ -146,6 +146,54 @@
         .shared-options-grid { grid-template-columns: 1fr; }
         .q-options-area.ms-5 { margin-left: 0 !important; }
     }
+
+    /* ================= KHUNG GỘP ĐOẠN VĂN ĐỌC HIỂU (CÂU 51-60) ================= */
+    .single-passage-box {
+        background: #F8FAFC;
+        border-left: 3.5px solid #0284C7;
+        padding: 12px 16px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 12px;
+        text-indent: 2em;
+    }
+    .shared-passage-header {
+        background: linear-gradient(to bottom, #F0F9FF, #F8FAFC);
+        border-top: 2px solid #BAE6FD;
+        border-bottom: 1px solid #E2E8F0;
+        padding: 20px 24px 16px 24px;
+    }
+    .shared-passage-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #0284C7;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        padding: 4px 12px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+    }
+    .shared-passage-content {
+        background: #fff;
+        border: 1px solid #BAE6FD;
+        border-left: 4px solid #0284C7;
+        padding: 14px 18px;
+        border-radius: 8px;
+        text-indent: 2em;
+        box-shadow: 0 1px 3px rgba(2, 132, 199, 0.06);
+    }
+    .question-row.grouped-first {
+        border-top: none !important;
+        padding-top: 16px;
+        background: #FCFDFE;
+    }
+    .question-row.grouped-next {
+        border-top: 1.5px dashed #CBD5E1 !important;
+        padding-top: 16px;
+        background: #FCFDFE;
+    }
 </style>
 {% endblock %}
 
@@ -453,7 +501,7 @@
                                         <div class="q-content-area w-100">
                                             <!-- ĐOẠN VĂN RIÊNG (CHO PHẦN ĐỌC 51-60) -->
                                             {% if q.passage_text and q.passage_text != 'nan' and q.question_number >= 51 and q.question_number <= 60 %}
-                                                <div class="chinese-text border-bottom mb-2 pb-2">{{ q.passage_text|safe }}</div>
+                                                <div class="chinese-text q-passage-box single-passage-box">{{ q.passage_text|safe }}</div>
                                             {% endif %}
 
                                             <!-- NỘI DUNG CÂU HỎI (1-60) -->
@@ -656,6 +704,61 @@
             html = html.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
             el.innerHTML = html;
         });
+        // 1B. TỰ ĐỘNG GOM NHÓM CÁC CÂU DÙNG CHUNG ĐOẠN VĂN (VD: 57~58, 59~60)
+        const rows51_60 = Array.from(document.querySelectorAll('.question-row')).filter(row => {
+            const idNum = parseInt((row.id || '').replace('q', ''), 10);
+            return idNum >= 51 && idNum <= 60;
+        });
+
+        let i = 0;
+        while (i < rows51_60.length) {
+            let currRow = rows51_60[i];
+            let currNum = parseInt(currRow.id.replace('q', ''), 10);
+            let currPassageEl = currRow.querySelector('.q-passage-box');
+            let currText = currPassageEl ? currPassageEl.innerText.trim() : '';
+
+            if (currText) {
+                let groupRows = [currRow];
+                let j = i + 1;
+                while (j < rows51_60.length) {
+                    let nextRow = rows51_60[j];
+                    let nextPassageEl = nextRow.querySelector('.q-passage-box');
+                    let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
+
+                    // Gộp nếu câu tiếp theo có đoạn văn giống hệt câu hiện tại
+                    if (nextText === currText) {
+                        groupRows.push(nextRow);
+                        j++;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Nếu có từ 2 câu trở lên dùng chung 1 đoạn văn -> Tạo Header đoạn văn chung
+                if (groupRows.length > 1) {
+                    let firstNum = currNum;
+                    let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+
+                    let sharedHeader = document.createElement('div');
+                    sharedHeader.className = 'shared-passage-header';
+                    sharedHeader.innerHTML = `
+                        <div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题 (Dùng chung đoạn văn)</div>
+                        <div class="chinese-text shared-passage-content">${currPassageEl.innerHTML}</div>
+                    `;
+                    currRow.parentNode.insertBefore(sharedHeader, currRow);
+
+                    groupRows.forEach((r, idx) => {
+                        let pBox = r.querySelector('.q-passage-box');
+                        if (pBox) pBox.remove();
+                        r.classList.add(idx === 0 ? 'grouped-first' : 'grouped-next');
+                    });
+
+                    i = j;
+                    continue;
+                }
+            }
+            i++;
+        }
 
         // 2. HIỂN THỊ PINYIN TREO TRÊN NGOẶC TRỐNG Ở CÂU 61-65
         document.querySelectorAll('.q61-text').forEach(function(el) {

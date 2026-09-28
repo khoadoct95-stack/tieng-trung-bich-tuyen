@@ -245,7 +245,7 @@ def github_webhook(request):
     return HttpResponse('Webhook đang hoạt động (Chỉ nhận lệnh POST từ GitHub)', status=200)
 
 # ==========================================
-# 6. LÀM BÀI THI CẬP NHẬT CHẤM ĐIỂM CHUẨN
+# 6. LÀM BÀI THI CẬP NHẬT CHẤM ĐIỂM CHUẨN (HSK 1, 2, 3)
 # ==========================================
 @login_required(login_url='login')
 def take_exam(request, exam_id):
@@ -263,11 +263,17 @@ def take_exam(request, exam_id):
             user_answers_dict[str(q.id)] = submitted_answer 
             
             correct_ans = str(q.correct_answer).strip().upper()
-            if submitted_answer and submitted_answer == correct_ans:
-                total_correct += 1
+            keyword = str(q.content).strip().upper()
 
-        # CÔNG THỨC CHẤM ĐIỂM TƯƠNG ĐỐI
-        # HSK 1,2 quy chuẩn 200 điểm tối đa. Nếu số câu khác, chia tỷ lệ.
+            if submitted_answer:
+                # Đặc thù HSK 3 câu 66-70 (Đặt câu với từ gợi ý): Chỉ cần có chứa từ gợi ý và dài hơn từ gợi ý >= 2 ký tự
+                if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
+                    if keyword in submitted_answer and len(submitted_answer) >= len(keyword) + 2:
+                        total_correct += 1
+                elif submitted_answer == correct_ans:
+                    total_correct += 1
+
+        # CÔNG THỨC CHẤM ĐIỂM TƯƠNG ĐỐI (Quy chuẩn 200 điểm tối đa)
         score_per_question = 200 / total_questions if total_questions > 0 else 0
         score = int(total_correct * score_per_question)
 
@@ -278,7 +284,7 @@ def take_exam(request, exam_id):
             total_correct=total_correct,
             total_questions=total_questions,
             user_answers=user_answers_dict,
-            time_spent=0 # Có thể dùng JS lưu thời gian thực tế sau
+            time_spent=0
         )
 
         messages.success(request, "🎉 Chúc mừng bạn đã hoàn thành bài thi!")
@@ -296,13 +302,14 @@ def take_exam(request, exam_id):
 
     # Phân luồng Template dựa trên HSK Level
     if exam.hsk_level == 1:
-        if exam.exam_type == 'old':
+        if getattr(exam, 'exam_type', 'new') == 'old':
             return render(request, 'courses/take_exam_hsk1_old.html', context)
         else:
             return render(request, 'courses/take_exam_hsk1_new.html', context)
     elif exam.hsk_level == 2:
-        # Template mới dành riêng cho HSK 2
         return render(request, 'courses/take_exam_hsk2_new.html', context)
+    elif exam.hsk_level == 3:
+        return render(request, 'courses/take_exam_hsk3_new.html', context)
             
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 
@@ -311,7 +318,6 @@ def take_exam(request, exam_id):
 # ==========================================
 @login_required(login_url='login')
 def review_exam(request, result_id):
-    # NÂNG CẤP BẢO MẬT: Nếu là Admin/Giáo viên thì được xem tất cả. Nếu là Học viên thì chỉ xem được bài của mình.
     if request.user.is_staff or request.user.is_superuser:
         result = get_object_or_404(ExamResult, id=result_id)
     else:
@@ -327,8 +333,12 @@ def review_exam(request, result_id):
         
         raw_correct = q.correct_answer
         q.correct_ans = str(raw_correct).strip().upper() if raw_correct else ''
+        keyword = str(q.content).strip().upper() if q.content else ''
         
-        q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
+        if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
+            q.is_correct = (q.user_ans != '' and keyword in q.user_ans and len(q.user_ans) >= len(keyword) + 2)
+        else:
+            q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 
     return render(request, 'courses/review_exam.html', {
         'exam': exam,
@@ -343,7 +353,6 @@ def review_exam(request, result_id):
 def exam_result(request, result_id):
     result = get_object_or_404(ExamResult, id=result_id, user=request.user)
     
-    # Tính tỷ lệ phần trăm
     total = result.total_questions
     percentage = int((result.total_correct / total) * 100) if total > 0 else 0
     is_passed = result.score >= 120
@@ -435,7 +444,7 @@ def student_dashboard(request):
     return render(request, 'courses/dashboard.html', context)
 
 # ==========================================
-# HÀM HỖ TRỢ XỬ LÝ FILE ZIP ẢNH DÙNG CHUNG
+# HÀM HỖ TRỢ XỬ LÝ FILE ZIP ẢNH DÙNG CHUNG (HSK 1, 2, 3)
 # ==========================================
 def process_exam_zip_helper(exam, zip_file):
     image_groups = {}
@@ -464,7 +473,7 @@ def process_exam_zip_helper(exam, zip_file):
                     q_num = match_single.group(1)
                     single_images[q_num] = z.read(filename)
 
-    # 1. Lưu ảnh đơn
+    # 1. Lưu ảnh đơn (Ví dụ q66.jpg -> q70.jpg của HSK 3)
     for q_num, file_data in single_images.items():
         question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
         if question:
@@ -475,8 +484,10 @@ def process_exam_zip_helper(exam, zip_file):
     for q_num, letters_dict in image_groups.items():
         question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
         if not question:
-            if int(q_num) in range(6, 11): question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
+            if int(q_num) in range(1, 6): question = ExamQuestion.objects.filter(exam=exam, question_number=1).first()
+            elif int(q_num) in range(6, 11): question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
             elif int(q_num) in range(11, 16): question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
+            elif int(q_num) in range(21, 26): question = ExamQuestion.objects.filter(exam=exam, question_number=21).first()
             elif int(q_num) in range(26, 31): question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
             elif int(q_num) in range(51, 56): question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
 
@@ -652,7 +663,7 @@ def import_excel(request):
     return render(request, 'admin/import_excel.html', {'exams': exams})
 
 # ==========================================
-# 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT (BẢN BAO LỖI)
+# 10. UPLOAD ZIP GHÉP ẢNH HÀNG LOẠT (GỌI CHUNG HELPER)
 # ==========================================
 @login_required
 def upload_exam_images_zip(request):
@@ -665,105 +676,13 @@ def upload_exam_images_zip(request):
             return redirect('upload_exam_images_zip')
             
         exam = get_object_or_404(Exam, id=exam_id)
-        image_groups = {}
-        single_images = {}
-        processed_groups = [] # Lưu danh sách các nhóm đã ghép thành công
-
         try:
-            with zipfile.ZipFile(zip_file, 'r') as z:
-                for filename in z.namelist():
-                    if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-                        if '__MACOSX' in filename or filename.startswith('.'):
-                            continue
-                            
-                        clean_name = filename.split('/')[-1]
-                        
-                        match_group = re.match(r'^q(\d+)_([A-F])\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
-                        if match_group:
-                            q_num = match_group.group(1)
-                            letter = match_group.group(2).upper()
-                            if q_num not in image_groups:
-                                image_groups[q_num] = {}
-                            image_groups[q_num][letter] = z.read(filename)
-                            continue
-                            
-                        match_single = re.match(r'^q(\d+)\.(png|jpg|jpeg)$', clean_name, re.IGNORECASE)
-                        if match_single:
-                            q_num = match_single.group(1)
-                            single_images[q_num] = z.read(filename)
-
-            # 1. Xử lý ảnh lẻ
-            for q_num, file_data in single_images.items():
-                question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
-                if question:
-                    question.image.save(f'q{q_num}_{exam.id}.jpg', ContentFile(file_data), save=True)
-
-            # 2. Xử lý ghép ảnh rổ chung (BAO LỖI, THIẾU ẢNH VẪN GHÉP)
-            for q_num, letters_dict in image_groups.items():
-                question = ExamQuestion.objects.filter(exam=exam, question_number=int(q_num)).first()
-                
-                # Fallback: Nếu không tìm thấy, đưa về câu đầu tiên của nhóm
-                if not question:
-                    if int(q_num) in range(6, 11): question = ExamQuestion.objects.filter(exam=exam, question_number=6).first()
-                    elif int(q_num) in range(11, 16): question = ExamQuestion.objects.filter(exam=exam, question_number=11).first()
-                    elif int(q_num) in range(26, 31): question = ExamQuestion.objects.filter(exam=exam, question_number=26).first()
-                    elif int(q_num) in range(51, 56): question = ExamQuestion.objects.filter(exam=exam, question_number=51).first()
-
-                if not question:
-                    continue
-
-                # Lấy danh sách các chữ cái có trong zip
-                keys = list(letters_dict.keys())
-                if not keys: continue
-
-                # Đọc các ảnh vào bộ nhớ
-                imgs = {}
-                for k in keys:
-                    try:
-                        imgs[k] = Image.open(BytesIO(letters_dict[k])).convert('RGB')
-                    except:
-                        pass
-                
-                if not imgs: continue
-                
-                # Lấy kích thước chuẩn từ ảnh đầu tiên tìm thấy
-                base_k = list(imgs.keys())[0]
-                w, h = imgs[base_k].size
-                for k in imgs:
-                    imgs[k] = imgs[k].resize((w, h))
-
-                # Phân loại ghép 3 ảnh hay 6 ảnh
-                if set(keys).issubset({'A', 'B', 'C'}) and len(keys) <= 3:
-                    # Rổ 3 ảnh (A, B, C nằm ngang)
-                    composite = Image.new('RGB', (w * 3, h), (255, 255, 255))
-                    if 'A' in imgs: composite.paste(imgs['A'], (0, 0))
-                    if 'B' in imgs: composite.paste(imgs['B'], (w, 0))
-                    if 'C' in imgs: composite.paste(imgs['C'], (w * 2, 0))
-                else:
-                    # Rổ 6 ảnh (A,B / C,D / E,F)
-                    composite = Image.new('RGB', (w * 2, h * 3), (255, 255, 255))
-                    positions = {
-                        'A': (0, 0),       'B': (w, 0),
-                        'C': (0, h),       'D': (w, h),
-                        'E': (0, h * 2),   'F': (w, h * 2)
-                    }
-                    for k, pos in positions.items():
-                        if k in imgs:
-                            composite.paste(imgs[k], pos)
-
-                # Lưu vào Database
-                img_io = BytesIO()
-                composite.save(img_io, format='JPEG', quality=90)
-                question.image.save(f'q{q_num}_composite_{exam.id}.jpg', ContentFile(img_io.getvalue()), save=True)
-                processed_groups.append(str(q_num)) # Ghi nhận thành công
-
-            if processed_groups:
-                messages.success(request, f"🎉 Đã ghép ảnh thành công cho các nhóm câu: {', '.join(processed_groups)}")
+            groups, singles = process_exam_zip_helper(exam, zip_file)
+            if groups or singles:
+                messages.success(request, f"🎉 Đã xử lý thành công: Ghép nhóm [{', '.join(groups)}] | Ảnh đơn: {singles}")
             else:
-                messages.warning(request, "⚠️ File ZIP hợp lệ nhưng không tìm thấy ảnh nào đúng chuẩn tên (vd: q11_a.jpg)")
-            
+                messages.warning(request, "⚠️ File ZIP hợp lệ nhưng không tìm thấy ảnh nào đúng chuẩn tên (vd: q1_a.jpg, q66.jpg)")
             return redirect('exam_list')
-            
         except Exception as e:
             messages.error(request, f"Lỗi xử lý file ZIP: {str(e)}")
             return redirect('upload_exam_images_zip')

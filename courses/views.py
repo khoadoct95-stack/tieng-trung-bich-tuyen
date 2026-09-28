@@ -4,7 +4,8 @@ import subprocess
 import pandas as pd
 import zipfile
 import re
-import random 
+import random
+import urllib.request 
 from io import BytesIO
 from PIL import Image
 from django.core.files.base import ContentFile
@@ -247,6 +248,93 @@ def github_webhook(request):
 # ==========================================
 # 6. LÀM BÀI THI CẬP NHẬT CHẤM ĐIỂM CHUẨN (HSK 1, 2, 3)
 # ==========================================
+import urllib.request
+
+# Điền API Key lấy miễn phí tại https://aistudio.google.com/apikey (Nếu để trống sẽ dùng Bộ lọc Quy tắc nội bộ)
+GEMINI_API_KEY = "" 
+
+def check_chinese_sentence_rules(sentence, keyword):
+    """Bộ lọc ngữ pháp nội bộ: Chặn gõ rác, lặp từ và kiểm tra cấu trúc câu tiếng Trung"""
+    if not sentence or not keyword:
+        return False
+    
+    # Xóa dấu câu và khoảng trắng để kiểm tra phần chữ thực tế
+    clean_sent = re.sub(r'[^\w\u4e00-\u9fff]', '', sentence)
+    if keyword not in clean_sent:
+        return False
+        
+    # 1. Phải có ít nhất 2 chữ Hán khác ngoài từ khóa gợi ý
+    rem_text = clean_sent.replace(keyword, '', 1)
+    chinese_chars = re.findall(r'[\u4e00-\u9fff]', rem_text)
+    if len(chinese_chars) < 2:
+        return False
+        
+    # 2. Chặn hành vi lặp lại chính từ khóa hoặc gõ toàn ký tự giống nhau (VD: 羽毛球羽毛球, 饱啊啊啊)
+    if len(set(chinese_chars)) < 2:
+        return False
+        
+    return True
+
+def grade_hsk3_writing_ai(questions_66_70, user_answers_dict):
+    """Chấm điểm tự luận câu 66-70 bằng Gemini AI (kèm Fallback tự động sang Rule-based)"""
+    results = {}
+    items_to_grade = []
+
+    for q in questions_66_70:
+        ans = user_answers_dict.get(str(q.id), '').strip()
+        kw = str(q.content).strip()
+        sample = str(q.correct_answer).strip()
+        
+        # Kiểm tra sơ bộ bằng quy tắc trước
+        rule_passed = check_chinese_sentence_rules(ans, kw)
+        results[str(q.id)] = rule_passed
+        
+        if rule_passed:
+            items_to_grade.append({
+                "q_id": str(q.id),
+                "keyword": kw,
+                "reference_context": sample,
+                "student_sentence": ans
+            })
+
+    # Nếu chưa gắn API Key hoặc không có câu nào qua vòng lọc cơ bản -> Trả kết quả ngay
+    if not GEMINI_API_KEY or not items_to_grade:
+        return results
+
+    # Gọi Gemini API chấm ngữ pháp & ngữ nghĩa cả 5 câu trong 1 lần
+    prompt = (
+        "Bạn là giám khảo chấm thi HSK 3 phần Viết (Đặt câu với từ cho sẵn và tranh). "
+        "Hãy đánh giá từng câu của học viên dưới đây. Câu được tính là ĐÚNG (true) nếu: "
+        "1. Có chứa từ khóa (keyword). 2. Đúng ngữ pháp tiếng Trung. 3. Có ý nghĩa hợp lý. "
+        "Chỉ trả về định dạng JSON thuần túy có dạng: {\"q_id\": true/false, ...}\n"
+        f"Dữ liệu: {json.dumps(items_to_grade, ensure_ascii=False)}"
+    )
+
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+        }
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            ai_text = res_data['candidates'][0]['content']['parts'][0]['text']
+            ai_verdicts = json.loads(ai_text)
+            for q_id, is_valid in ai_verdicts.items():
+                if q_id in results:
+                    results[q_id] = bool(is_valid)
+    except Exception:
+        # Nếu mất mạng hoặc PythonAnywhere chặn kết nối ngoài -> Giữ nguyên kết quả chấm của Bộ lọc Quy tắc
+        pass
+
+    return results
+
+
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -257,18 +345,25 @@ def take_exam(request, exam_id):
         total_correct = 0
         user_answers_dict = {}
 
-        # Chấm điểm chi tiết từng câu
+        # Lưu toàn bộ câu trả lời của học viên
         for q in questions:
             submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
-            user_answers_dict[str(q.id)] = submitted_answer 
-            
+            user_answers_dict[str(q.id)] = submitted_answer
+
+        # Chấm riêng nhóm câu 66-70 của HSK 3 bằng AI + Bộ lọc ngữ pháp
+        hsk3_writing_results = {}
+        if exam.hsk_level == 3:
+            q_66_70 = [q for q in questions if q.question_number >= 66]
+            hsk3_writing_results = grade_hsk3_writing_ai(q_66_70, user_answers_dict)
+
+        # Chấm điểm chi tiết từng câu
+        for q in questions:
+            submitted_answer = user_answers_dict.get(str(q.id), '')
             correct_ans = str(q.correct_answer).strip().upper()
-            keyword = str(q.content).strip().upper()
 
             if submitted_answer:
-                # Đặc thù HSK 3 câu 66-70 (Đặt câu với từ gợi ý): Chỉ cần có chứa từ gợi ý và dài hơn từ gợi ý >= 2 ký tự
-                if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
-                    if keyword in submitted_answer and len(submitted_answer) >= len(keyword) + 2:
+                if exam.hsk_level == 3 and q.question_number >= 66:
+                    if hsk3_writing_results.get(str(q.id), False):
                         total_correct += 1
                 elif submitted_answer == correct_ans:
                     total_correct += 1
@@ -336,7 +431,7 @@ def review_exam(request, result_id):
         keyword = str(q.content).strip().upper() if q.content else ''
         
         if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
-            q.is_correct = (q.user_ans != '' and keyword in q.user_ans and len(q.user_ans) >= len(keyword) + 2)
+            q.is_correct = check_chinese_sentence_rules(q.user_ans, keyword)
         else:
             q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 

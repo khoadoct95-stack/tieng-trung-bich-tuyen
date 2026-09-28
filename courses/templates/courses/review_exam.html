@@ -1,240 +1,499 @@
 {% extends 'courses/base.html' %}
-
-{% block title %}Xem lại - {{ exam.title }}{% endblock %}
+{% load static %}
+{% block title %}Xem lại bài thi - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <style>
-    :root { --primary-color: #9B1C1C; --bg-color: #F1F5F9; --card-bg: #FFFFFF; --border-color: #E2E8F0; --text-main: #334155; --text-muted: #64748B; --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04); }
-    body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
-    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; color: #0f172a; line-height: 1.7; white-space: pre-wrap; }
-    .pinyin-text { font-size: 1.15rem; color: #3b82f6; margin-bottom: 5px; white-space: pre-wrap; font-weight: 500;}
-    .exam-container { max-width: 1500px; margin: 0 auto; padding: 40px 20px; }
-    .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 2.2rem; font-weight: 900; color: var(--primary-color); letter-spacing: 4px; padding-bottom: 10px; border-bottom: 4px solid var(--primary-color); margin-bottom: 30px; }
-    .hsk-part-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; font-weight: 700; color: white; background: #1e293b; padding: 8px 25px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    .hsk-group-range { font-family: 'Noto Sans SC', sans-serif; font-size: 1.25rem; font-weight: 700; color: #475569; border-left: 5px solid #cbd5e1; padding-left: 15px; margin-bottom: 20px; }
-    .q-group-wrapper { position: relative; margin-bottom: 35px; }
-    .q-card { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 35px; margin-bottom: 25px; box-shadow: var(--shadow-soft); transition: all 0.3s ease; scroll-margin-top: 320px; }
-    .q-header-inline { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 25px; }
-    .q-number-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); min-width: 40px; margin-top: 2px; font-family: 'Nunito', sans-serif;}
+    :root { 
+        --primary-color: #9F1239; 
+        --primary-light: #FFE4E6; 
+        --success-color: #059669; 
+        --success-light: #D1FAE5; 
+        --danger-color: #DC2626;
+        --danger-light: #FEE2E2;
+        --warning-color: #D97706;
+        --warning-light: #FEF3C7;
+        --bg-color: #F4F4F5; 
+        --card-bg: #FFFFFF; 
+        --border-color: #E4E4E7; 
+        --text-main: #27272A; 
+        --text-muted: #52525B; 
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); 
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.05); 
+    }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.65; font-weight: 500; word-wrap: break-word; } 
+    .pinyin-text { font-size: 0.95rem; color: #2563eb; margin-bottom: 2px; font-weight: 600; } 
+    body.hide-pinyin .question-row .pinyin-text, body.hide-pinyin .shared-pool .pinyin-text, body.hide-pinyin .auto-fill-pinyin { display: none !important; }
+    .custom-switch:checked { background-color: var(--success-color) !important; border-color: var(--success-color) !important; }
+
+    .exam-container { max-width: 1350px; margin: 0 auto; padding: 30px 15px; } 
+    .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 5px;}
+    .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+
+    /* BANNER TỔNG KẾT KẾT QUẢ */
+    .review-summary-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px 25px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .score-pill {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 1.4rem;
+        border: 1.5px solid #FECDD3;
+    }
+    .score-pill.passed {
+        background: var(--success-light);
+        color: var(--success-color);
+        border-color: #A7F3D0;
+    }
+
+    .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; position: relative; margin-bottom: 15px; }
+    .hsk-major-title::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: var(--primary-color); border-radius: 2px; }
+    .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; }
     
-    /* Chống khung trắng cho Rổ đáp án */
-    .shared-pool { position: sticky; top: 15px; z-index: 99; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(191, 219, 254, 0.5); padding: 20px 25px; border-radius: 16px; margin-bottom: 30px; }
-    .shared-img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .shared-crop-window { width: 100%; padding-top: 75%; position: relative; overflow: hidden; border-radius: 12px; background-color: #fff; border: 2px solid #e2e8f0; }
-    .crop-badge { position: absolute; top: 10px; left: 10px; background: var(--primary-color); color: white; font-weight: 900; font-size: 1.1rem; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; z-index: 10;}
-    .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
-    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
-    .img-frame { width: 100%; max-height: 280px; object-fit: contain; display: block; margin: 0 auto; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.06); image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    .sticky-audio { position: sticky; top: 15px; z-index: 105; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important; border: 1px solid var(--border-color); }
+    .q-group-wrapper { margin-bottom: 35px; }
+    .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
     
-    .shared-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-    .shared-opt-item { background: #ffffff; border: 2px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; }
-    .shared-opt-letter { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); background: #fef2f2; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; }
-    
-    .af-options-wrapper { display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px dashed #cbd5e1; }
-    .crop-window { width: 100%; padding-top: 80%; position: relative; overflow: hidden; border-radius: 10px; background-color: #f8fafc; }
+    .question-row { padding: 20px 24px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 85px; position: relative; }
+    .question-row:first-child { border-top: none; }
+    .question-row.row-correct { border-left: 4px solid var(--success-color); }
+    .question-row.row-wrong { border-left: 4px solid var(--danger-color); background: #FFFBFB; }
+
+    .q-header-inline { display: flex; align-items: flex-start; gap: 12px; }
+    .q-number-text { font-size: 1.15rem; font-weight: 800; color: var(--success-color); min-width: 28px; margin-top: 2px; }
+    .row-wrong .q-number-text { color: var(--danger-color); }
+    .q-options-area { margin-top: 10px; } .q-options-area.ms-5 { margin-left: 40px !important; }
+
+    /* NHÃN ĐÚNG / SAI TRÊN TỪNG CÂU */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .status-badge.correct { background: var(--success-light); color: var(--success-color); }
+    .status-badge.wrong { background: var(--danger-light); color: var(--danger-color); }
+    .status-badge.empty { background: #F4F4F5; color: #71717A; }
+
+    /* ================= CÁC LOẠI NÚT ĐÁP ÁN & TRẠNG THÁI CHẤM ĐIỂM ================= */
+    .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; flex-shrink: 0; }
+    .opt-label, .auto-crop-btn { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; background: #fff; height: 100%; cursor: default; }
+    .auto-crop-btn { flex-direction: column; padding: 8px; }
+
+    /* Đáp án đúng */
+    .opt-label.ans-correct, .auto-crop-btn.ans-correct { border: 2px solid var(--success-color) !important; background: var(--success-light) !important; }
+    .opt-label.ans-correct .opt-circle, .auto-crop-btn.ans-correct .opt-circle { background: var(--success-color) !important; border-color: var(--success-color) !important; color: #fff !important; }
+
+    /* Đáp án học viên chọn sai */
+    .opt-label.ans-wrong, .auto-crop-btn.ans-wrong { border: 2px solid var(--danger-color) !important; background: var(--danger-light) !important; }
+    .opt-label.ans-wrong .opt-circle, .auto-crop-btn.ans-wrong .opt-circle { background: var(--danger-color) !important; border-color: var(--danger-color) !important; color: #fff !important; }
+
+    /* KHUNG CẮT 3 ẢNH NGANG A-B-C (CÂU 1-5 HSK 1 & 2) */
+    .crop-window { width: 85%; margin: 0 auto; padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; }
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
 
-    /* STYLE CHỮA BÀI */
-    .opt-box { display: flex; align-items: center; padding: 15px 20px; border: 2px solid transparent; border-radius: 16px; background: #f8fafc; height: 100%; position: relative; }
-    .circle-box { display: inline-flex; justify-content: center; align-items: center; width: 50px; height: 50px; border: 2px solid var(--border-color); border-radius: 50%; font-weight: 800; font-size: 1.25rem; color: var(--text-muted); background: #fff; margin: 0; position: relative;}
-    .auto-crop-box { display: flex; flex-direction: column; height: 100%; border: 2px solid transparent; border-radius: 16px; padding: 10px; background: #fff; box-shadow: var(--shadow-soft); position: relative;}
+    /* RỔ DÙNG CHUNG (ẢNH & CHỮ) */
+    .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+    .shared-img-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; } 
+    .shared-crop-window { width: 100%; padding-top: 85%; position: relative; overflow: hidden; border-radius: 8px; background-color: #fff; border: 1px solid #D4D4D8; }
+    .shared-crop-window img { position: absolute; width: 200%; height: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
+    .pos-A img { top: 0; left: 0; } .pos-B img { top: 0; left: -100%; } .pos-C img { top: -100%; left: 0; } .pos-D img { top: -100%; left: -100%; } .pos-E img { top: -200%; left: 0; } .pos-F img { top: -200%; left: -100%; }
+    .shared-img-label, .shared-opt-letter { font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .shared-img-label { margin: 10px auto 0 auto; }
+    .shared-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+    .shared-opt-item { background: #F0F9FF; border: 1.5px solid #BAE6FD; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; }
+    .shared-opt-letter { margin-right: 15px; flex-shrink: 0; }
 
-    .correct-ans { border-color: #10B981 !important; background: #ECFDF5 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3) !important; color: #059669 !important; }
-    .wrong-ans { border-color: #EF4444 !important; background: #FEF2F2 !important; color: #DC2626 !important; opacity: 0.8; }
+    /* NÚT TRÒN A-F */
+    .af-options-wrapper { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 36px; height: 36px; border: 1.5px solid #D4D4D8; border-radius: 50%; font-weight: 700; font-size: 0.9rem; color: var(--text-muted); background: #fff; margin: 0; }
+    .circle-label.ans-correct { background: var(--success-color) !important; border-color: var(--success-color) !important; color: #fff !important; transform: scale(1.06); box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25); }
+    .circle-label.ans-wrong { background: var(--danger-color) !important; border-color: var(--danger-color) !important; color: #fff !important; }
 
-    .status-badge { font-family: 'Nunito', sans-serif; font-size: 0.95rem; padding: 6px 14px; border-radius: 20px; font-weight: 800; margin-left: 15px; }
-    .status-correct { background: #10B981; color: white; }
-    .status-wrong { background: #EF4444; color: white; }
-    .status-empty { background: #F59E0B; color: white; }
+    /* ĐIỀN TỪ VÀO NGOẶC TRỐNG */
+    .auto-fill-target { color: var(--success-color); font-weight: 900; margin: 0 4px; display: inline-block; min-width: 32px; text-align: center; border-bottom: 1.5px dashed var(--success-color); padding: 0 4px; }
+    .auto-fill-target.wrong-fill { color: var(--danger-color); border-bottom-color: var(--danger-color); text-decoration: line-through; }
+    .auto-fill-pinyin { color: #2563eb; font-weight: 700; margin: 0 4px; display: inline-block; min-width: 32px; text-align: center; }
 
-    .sticky-sidebar { position: sticky; top: 25px; }
-    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; box-shadow: var(--shadow-soft); margin-bottom: 25px; }
-    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 700; font-size: 1rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; }
-    .grid-item.correct { background: #10B981; color: white; border-color: #10B981; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2); }
-    .grid-item.wrong { background: #EF4444; color: white; border-color: #EF4444; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2); }
-    .grid-item.empty { background: #FEF3C7; color: #D97706; border-color: #FCD34D; }
+    /* KHUNG Ô CHỮ ĐIỀN (TIANZIGE) HSK 2 CÂU 51-55 */
+    .tianzige-wrapper { display: inline-flex; border: 2px solid #3B82F6; border-radius: 4px; background: #fff; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12); margin-bottom: 12px; overflow: hidden; }
+    .tianzige-col { display: flex; flex-direction: column; width: 76px; border-right: 1.5px solid #3B82F6; }
+    .tianzige-col:last-child { border-right: none; }
+    .tianzige-pinyin { height: 32px; border-bottom: 1.5px solid #3B82F6; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; color: #1E293B; background-image: linear-gradient(to bottom, transparent 28%, #93C5FD 28%, #93C5FD 32%, transparent 32%, transparent 64%, #93C5FD 64%, #93C5FD 68%, transparent 68%); }
+    .tianzige-hanzi { height: 76px; display: flex; align-items: center; justify-content: center; font-family: 'KaiTi', 'STKaiti', 'BiauKai', 'Noto Sans SC', serif; font-size: 2.6rem; color: #0F172A; position: relative; z-index: 1; line-height: 1; }
+    .tianzige-hanzi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(to right, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%), linear-gradient(to bottom, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%); background-size: 8px 8px; z-index: -1; }
+    .tianzige-hanzi .hanzi-char { display: inline-block; }
+    .tianzige-hanzi .missing-L { transform: translateX(12px) scale(0.70, 0.92); }
+    .tianzige-hanzi .missing-R { transform: translateX(-12px) scale(0.70, 0.92); }
+    .tianzige-hanzi .missing-B { transform: translateY(-11px) scale(0.88, 0.66); }
+    .tianzige-hanzi .missing-T { transform: translateY(11px) scale(0.88, 0.66); }
+    .tianzige-hanzi .missing-BL { transform: translate(9px, -7px) scale(0.74, 0.74); }
+    .tianzige-hanzi .missing-TL { transform: translate(8px, 8px) scale(0.74, 0.74); }
+
+    /* ĐẶC THÙ HSK 3: PINYIN RUBY (61-65), ĐẶT CÂU VỚI TRANH (66-70) & ĐOẠN VĂN GỘP (51-60) */
+    .pinyin-blank-ruby { display: inline-flex; flex-direction: column; align-items: center; vertical-align: bottom; margin: 0 2px; line-height: 1.2; }
+    .pinyin-blank-top { font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; color: #2563EB; margin-bottom: 2px; }
+    .writing-prompt-card { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
+    .writing-img-box { width: 160px; height: 120px; border-radius: 8px; overflow: hidden; border: 1.5px solid #CBD5E1; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .writing-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    .writing-keyword-badge { background: #EFF6FF; border: 2px solid #93C5FD; color: #1D4ED8; font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; font-weight: 800; padding: 8px 22px; border-radius: 10px; letter-spacing: 2px; }
+    
+    .single-passage-box { background: #F8FAFC; border-left: 3.5px solid #0284C7; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; text-indent: 2em; }
+    .shared-passage-header { background: linear-gradient(to bottom, #F0F9FF, #F8FAFC); border-top: 2px solid #BAE6FD; border-bottom: 1px solid #E2E8F0; padding: 20px 24px 16px 24px; }
+    .shared-passage-badge { display: inline-flex; align-items: center; gap: 6px; background: #0284C7; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 4px 12px; border-radius: 6px; margin-bottom: 10px; }
+    .shared-passage-content { background: #fff; border: 1px solid #BAE6FD; border-left: 4px solid #0284C7; padding: 14px 18px; border-radius: 8px; text-indent: 2em; }
+
+    /* HỘP ĐỐI CHIẾU ĐÁP ÁN PHẦN VIẾT */
+    .writing-review-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 10px;
+    }
+    .writing-ans-item {
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-family: 'Noto Sans SC', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        border: 1.5px solid var(--border-color);
+        background: #fff;
+    }
+    .writing-ans-item.user-correct { background: var(--success-light); border-color: var(--success-color); color: var(--success-color); }
+    .writing-ans-item.user-wrong { background: var(--danger-light); border-color: var(--danger-color); color: var(--danger-color); }
+    .writing-ans-item.model-ans { background: #F0F9FF; border-color: #7DD3FC; color: #0369A1; }
+
+    /* SIDEBAR BẢNG TIẾN ĐỘ ĐÚNG / SAI */
+    .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
+    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
+    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: #FAFAFA; color: var(--text-muted); }
+    .grid-item.grid-correct { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .grid-item.grid-wrong { background: var(--danger-color); border-color: var(--danger-color); color: white; }
+    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+
+    @media (max-width: 991px) {
+        .shared-img-grid { grid-template-columns: repeat(3, 1fr); }
+        .shared-options-grid { grid-template-columns: 1fr; }
+        .q-options-area.ms-5 { margin-left: 0 !important; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="exam-container">
+<div class="exam-container" data-hsk-level="{{ exam.hsk_level }}">
     <div class="row">
-        <div class="col-xl-9 col-lg-8">
-            <div class="mb-4 d-flex justify-content-between align-items-center">
+        <!-- ================= CỘT TRÁI: CHI TIẾT BÀI LÀM ================= -->
+        <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
+            <div class="text-center mb-3 mt-1">
+                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> XEM LẠI BÀI THI • HSK {{ exam.hsk_level }}</div>
+                <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
+            <!-- THẺ TỔNG KẾT ĐIỂM SỐ -->
+            <div class="review-summary-card">
                 <div>
-                    <h2 class="fw-bold mb-2" style="color: #1E3A8A;">Chi tiết bài làm</h2>
-                    <p class="text-muted"><i class="fas fa-info-circle"></i> Câu trả lời đúng được bọc <b>viền Xanh</b>. Câu bạn chọn sai bị bọc viền Đỏ.</p>
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Thí sinh thực hiện</div>
+                    <div class="fw-bold fs-5 text-dark">
+                        <i class="fas fa-user-check text-primary me-2"></i>{{ result.user.first_name|default:result.user.username }}
+                    </div>
+                    <div class="text-muted small mt-1">
+                        <i class="far fa-clock me-1"></i>Nộp lúc: {{ result.completed_at|date:"H:i - d/m/Y" }}
+                    </div>
                 </div>
-                <div>
-                    <a href="{% url 'exam_result' result.id %}" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow"><i class="fas fa-arrow-left me-2"></i> Quay lại điểm số</a>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end">
+                        <div class="text-muted small fw-bold text-uppercase">Số câu đúng</div>
+                        <div class="fw-bold fs-5">{{ result.total_correct }} / {{ result.total_questions }} câu</div>
+                    </div>
+                    <div class="score-pill {% if result.score >= 120 %}passed{% endif %}">
+                        {{ result.score }} / 200 điểm
+                    </div>
                 </div>
             </div>
+
+            {% if exam.listening_audio %}
+            <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Nghe lại băng ghi âm toàn bài</p>
+                <audio controls class="w-100" style="height: 35px; outline: none;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
+            </div>
+            {% endif %}
 
             {% regroup questions by question_group as grouped_questions %}
             {% for group in grouped_questions %}
                 <div class="q-group-wrapper">
-                    {% with first_q=group.list.0.question_number %}
-                        {% if first_q == 1 %}<div class="text-center mt-3 mb-5"><div class="hsk-major-title">一、听 力</div></div>
-                        {% elif first_q == 21 %}<div class="text-center mt-5 mb-5 pt-5"><div class="hsk-major-title">二、阅 读</div></div>{% endif %}
-                        <div class="text-center mb-4 mt-2"><div class="hsk-part-title">
-                            {% if first_q == 1 or first_q == 21 %}第一部分{% endif %}
-                            {% if first_q == 6 or first_q == 26 %}第二部分{% endif %}
-                            {% if first_q == 11 or first_q == 31 %}第三部分{% endif %}
-                            {% if first_q == 16 or first_q == 36 %}第四部分{% endif %}
-                        </div></div>
-                        <div class="mb-4"><div class="hsk-group-range">第 {{ first_q }}—{% if first_q == 1 %}5{% elif first_q == 6 %}10{% elif first_q == 11 %}15{% elif first_q == 16 %}20{% elif first_q == 21 %}25{% elif first_q == 26 %}30{% elif first_q == 31 %}35{% elif first_q == 36 %}40{% endif %} 题</div></div>
-                    {% endwith %}
-
-                    {% for q in group.list %}
-                        {% if forloop.first %}
-                            {% if q.question_number == 11 or q.question_number == 21 or q.question_number == 26 or q.question_number == 31 %}
-                                <!-- Chốt chặn an toàn: Chỉ hiện Rổ đáp án khi có Dữ liệu -->
-                                {% if q.passage_text or q.image %}
-                                <div class="shared-pool">
-                                    {% if q.passage_text %}<div class="format-shared-options" style="display: none;">{{ q.passage_text }}</div>{% endif %}
-                                    {% if q.image %}
-                                        <div class="shared-img-grid">
-                                            <div class="shared-crop-window pos-A"><span class="crop-badge">A</span><img src="{{ q.image.url }}"></div>
-                                            <div class="shared-crop-window pos-B"><span class="crop-badge">B</span><img src="{{ q.image.url }}"></div>
-                                            <div class="shared-crop-window pos-C"><span class="crop-badge">C</span><img src="{{ q.image.url }}"></div>
-                                            <div class="shared-crop-window pos-D"><span class="crop-badge">D</span><img src="{{ q.image.url }}"></div>
-                                            <div class="shared-crop-window pos-E"><span class="crop-badge">E</span><img src="{{ q.image.url }}"></div>
-                                            <div class="shared-crop-window pos-F"><span class="crop-badge">F</span><img src="{{ q.image.url }}"></div>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endif %}
+                    {% with first_q_obj=group.list.0 %}
+                        <!-- HEADER PHẦN LỚN (NGHE / ĐỌC / VIẾT) CHO HSK 1, 2, 3 -->
+                        {% if first_q_obj.question_number == 1 %}
+                            <div class="text-center mt-2 mb-3">
+                                <div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div>
+                            </div>
+                        {% elif exam.hsk_level == 1 and first_q_obj.question_number == 21 or exam.hsk_level == 2 and first_q_obj.question_number == 26 or exam.hsk_level == 3 and first_q_obj.question_number == 31 %}
+                            <div class="text-center mt-5 mb-3">
+                                <div class="hsk-major-title">二、阅 读 <span style="font-size: 1.15rem; font-weight: 800;">(ĐỌC HIỂU)</span></div>
+                            </div>
+                        {% elif exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number == 61 %}
+                            <div class="text-center mt-5 mb-3">
+                                <div class="hsk-major-title">三、书 写 <span style="font-size: 1.15rem; font-weight: 800;">(VIẾT)</span></div>
+                            </div>
                         {% endif %}
 
-                        <div class="q-card" id="q{{ q.question_number }}">
-                            <div class="q-header-inline">
-                                <div class="q-number-text">{{ q.question_number }}.</div>
-                                <div class="q-content-area w-100">
-                                    
-                                    <div class="mb-2">
-                                        {% if q.is_correct %}
-                                            <span class="status-badge status-correct"><i class="fas fa-check"></i> ĐÚNG</span>
-                                            <span class="text-muted ms-2 small fw-bold">(Bạn chọn: {{ q.user_ans }} | Đáp án: {{ q.correct_ans }})</span>
-                                        {% elif not q.user_ans %}
-                                            <span class="status-badge status-empty"><i class="fas fa-exclamation-triangle"></i> BỎ QUA</span>
-                                        {% else %}
-                                            <span class="status-badge status-wrong"><i class="fas fa-times"></i> SAI</span>
-                                            <span class="text-muted ms-2 small fw-bold">(Bạn chọn: {{ q.user_ans }} | Đáp án: {{ q.correct_ans }})</span>
-                                        {% endif %}
+                        <div class="mb-2">
+                            <span class="hsk-part-title">{{ group.grouper }}</span>
+                        </div>
+                    {% endwith %}
+
+                    <div class="q-card-group">
+                        <!-- ================= RỔ DÙNG CHUNG (TỰ ĐỘNG THEO CẤP ĐỘ HSK 1, 2, 3) ================= -->
+                        {% with first_q_obj=group.list.0 %}
+                            {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                {% if exam.hsk_level == 1 and first_q_obj.question_number in "26,31" or exam.hsk_level == 2 and first_q_obj.question_number < 46 or exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number < 51 %}
+                                    <div class="shared-pool">
+                                        <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                        <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- RỔ ẢNH DÙNG CHUNG (A-F HOẶC A-E) -->
+                            {% if first_q_obj.image %}
+                                {% if exam.hsk_level == 1 and first_q_obj.question_number == 11 or exam.hsk_level == 1 and first_q_obj.question_number == 21 or exam.hsk_level == 2 and first_q_obj.question_number == 6 or exam.hsk_level == 2 and first_q_obj.question_number == 11 or exam.hsk_level == 2 and first_q_obj.question_number == 26 or exam.hsk_level == 3 and first_q_obj.question_number == 1 or exam.hsk_level == 3 and first_q_obj.question_number == 6 %}
+                                    <div class="shared-pool">
+                                        <div class="shared-img-grid">
+                                            {% if exam.hsk_level == 2 and first_q_obj.question_number == 11 or exam.hsk_level == 3 and first_q_obj.question_number == 6 %}
+                                                {% for opt in "ABCDE"|make_list %}
+                                                <div class="pool-item" data-letter="{{ opt }}">
+                                                    <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                    <div class="shared-img-label">{{ opt }}</div>
+                                                </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for opt in "ABCDEF"|make_list %}
+                                                <div class="pool-item" data-letter="{{ opt }}">
+                                                    <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
+                                                    <div class="shared-img-label">{{ opt }}</div>
+                                                </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- ================= DANH SÁCH CÂU HỎI & ĐÁP ÁN ĐỐI CHIẾU ================= -->
+                        {% for q in group.list %}
+                            <div class="question-row {% if q.is_correct %}row-correct{% else %}row-wrong{% endif %}" id="q{{ q.question_number }}" data-user-ans="{{ q.user_ans }}" data-correct-ans="{{ q.correct_ans }}" data-is-correct="{{ q.is_correct|yesno:'true,false' }}">
+                                <div class="q-header-inline justify-content-between">
+                                    <div class="d-flex align-items-start gap-2 w-100">
+                                        <div class="q-number-text">{{ q.question_number }}.</div>
+                                        <div class="q-content-area w-100">
+                                            <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (HSK 1: 16-20, 36-40 | HSK 2: 46-50 | HSK 3: 51-60) -->
+                                            {% if q.passage_text and q.passage_text != 'nan' %}
+                                                {% if exam.hsk_level == 1 and q.question_number >= 16 and q.question_number <= 20 or exam.hsk_level == 1 and q.question_number >= 36 or exam.hsk_level == 2 and q.question_number >= 46 and q.question_number <= 50 %}
+                                                    <div class="interleave-group passage-group border-bottom mb-2 pb-2">
+                                                        <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
+                                                        <div class="raw-chinese" style="display: none;">{{ q.passage_text|linebreaksbr }}</div>
+                                                        <div class="interleaved-output"></div>
+                                                    </div>
+                                                {% elif exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 %}
+                                                    <div class="chinese-text q-passage-box single-passage-box">{{ q.passage_text|safe }}</div>
+                                                {% endif %}
+                                            {% endif %}
+
+                                            <!-- NỘI DUNG CÂU HỎI -->
+                                            {% if exam.hsk_level == 3 and q.question_number >= 61 and q.question_number <= 65 %}
+                                                <div class="chinese-text q61-text" data-pinyin="{{ q.content_pinyin|default:'' }}">{{ q.content|safe }}</div>
+                                            {% elif exam.hsk_level == 3 and q.question_number >= 66 %}
+                                                <div class="writing-prompt-card">
+                                                    {% if q.image %}
+                                                        <div class="writing-img-box"><img src="{{ q.image.url }}" alt="Câu {{ q.question_number }}"></div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="text-muted small fw-bold mb-1">Từ vựng bắt buộc sử dụng:</div>
+                                                        <div class="writing-keyword-badge">{{ q.content }}</div>
+                                                    </div>
+                                                </div>
+                                            {% elif exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 %}
+                                                <!-- Câu 51-55 HSK 2 hiển thị bằng khung Tianzige bên dưới -->
+                                            {% else %}
+                                                {% if q.content and 'Nghe Audio' not in q.content and q.content != 'nan' or q.content_pinyin and q.content_pinyin != 'nan' %}
+                                                    <div class="interleave-group content-group">
+                                                        <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
+                                                        <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{% if exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 %}★ {% endif %}{{ q.content|linebreaksbr }}{% endif %}</div>
+                                                        <div class="interleaved-output"></div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
                                     </div>
 
-                                    {% if q.passage_text and q.question_number != 11 and q.question_number != 21 and q.question_number != 26 and q.question_number != 31 %}
-                                        {% if q.passage_pinyin %}<div class="pinyin-text mb-1" style="color: #64748B;">{{ q.passage_pinyin|linebreaksbr }}</div>{% endif %}
-                                        <div class="chinese-text mb-3 pb-3 border-bottom">{{ q.passage_text|linebreaksbr }}</div>
+                                    <!-- NHÃN KẾT QUẢ ĐÚNG / SAI BÊN PHẢI CÂU -->
+                                    {% if q.is_correct %}
+                                        <span class="status-badge correct"><i class="fas fa-check-circle"></i> Đúng</span>
+                                    {% elif not q.user_ans %}
+                                        <span class="status-badge empty"><i class="fas fa-minus-circle"></i> Bỏ trống (Đáp án: {{ q.correct_ans }})</span>
+                                    {% else %}
+                                        <span class="status-badge wrong"><i class="fas fa-times-circle"></i> Sai (Đáp án: {{ q.correct_ans }})</span>
                                     {% endif %}
-                                    {% if q.content_pinyin %}<div class="pinyin-text">{{ q.content_pinyin|linebreaksbr }}</div>{% endif %}
-                                    {% if q.content and q.content != '(Nghe Audio chọn ảnh)' and q.content != '（Nghe Audio chọn ảnh）' %}<div class="chinese-text fw-bold">{{ q.content|linebreaksbr }}</div>{% endif %}
+                                </div>
+
+                                <div class="q-options-area ms-5">
+                                    <!-- 1. KHUNG Ô CHỮ ĐIỀN (TIANZIGE) HSK 2 CÂU 51-55 -->
+                                    {% if exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 %}
+                                        {% if q.content and q.content != 'nan' %}
+                                            <div class="tianzige-render" data-hanzi="{{ q.content }}" data-pinyin="{{ q.content_pinyin|default:'' }}"></div>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    <!-- 2. PHẦN TỰ LUẬN GÕ CHỮ HÁN / ĐẶT CÂU (HSK 2: 56-60 | HSK 3: 61-70) -->
+                                    {% if exam.hsk_level == 2 and q.question_number >= 56 or exam.hsk_level == 3 and q.question_number >= 61 %}
+                                        <div class="writing-review-box">
+                                            <div class="writing-ans-item {% if q.is_correct %}user-correct{% else %}user-wrong{% endif %}">
+                                                <span class="small fw-normal me-1">Bài làm của bạn:</span>
+                                                <strong>{{ q.user_ans|default:"(Chưa trả lời)" }}</strong>
+                                                {% if q.is_correct %}<i class="fas fa-check ms-1"></i>{% else %}<i class="fas fa-times ms-1"></i>{% endif %}
+                                            </div>
+                                            {% if not q.is_correct %}
+                                            <div class="writing-ans-item model-ans">
+                                                <span class="small fw-normal me-1">Đáp án chuẩn / Câu mẫu:</span>
+                                                <strong>{{ q.correct_answer }}</strong>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                    <!-- 3. PHẦN CHỌN ĐÁP ÁN NỐI A-F / A-E -->
+                                    {% elif exam.hsk_level == 1 and q.question_number >= 11 and q.question_number <= 15 or exam.hsk_level == 1 and q.question_number >= 21 and q.question_number <= 35 or exam.hsk_level == 2 and q.question_number >= 6 and q.question_number <= 15 or exam.hsk_level == 2 and q.question_number >= 26 and q.question_number <= 45 or exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 or exam.hsk_level == 3 and q.question_number <= 10 or exam.hsk_level == 3 and q.question_number >= 31 and q.question_number <= 50 %}
+                                        <div class="af-options-wrapper">
+                                            {% if exam.hsk_level == 2 and q.question_number >= 11 and q.question_number <= 15 or exam.hsk_level == 3 and q.question_number >= 6 and q.question_number <= 10 or exam.hsk_level == 3 and q.question_number >= 36 and q.question_number <= 40 %}
+                                                {% for opt in "ABCDE"|make_list %}
+                                                    <span class="circle-label {% if opt == q.correct_ans %}ans-correct{% elif opt == q.user_ans and not q.is_correct %}ans-wrong{% endif %}">{{ opt }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for opt in "ABCDEF"|make_list %}
+                                                    <span class="circle-label {% if opt == q.correct_ans %}ans-correct{% elif opt == q.user_ans and not q.is_correct %}ans-wrong{% endif %}">{{ opt }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                    <!-- 4. PHẦN TRẮC NGHIỆM 3 ẢNH CẮT TỰ ĐỘNG A-B-C (CÂU 1-5 HSK 1 & 2) -->
+                                    {% elif q.image and q.question_number <= 5 and exam.hsk_level <= 2 %}
+                                        <div class="row g-3 mt-1">
+                                            {% for opt in "ABC"|make_list %}
+                                            <div class="col-4">
+                                                <div class="auto-crop-btn {% if opt == q.correct_ans %}ans-correct{% elif opt == q.user_ans and not q.is_correct %}ans-wrong{% endif %}">
+                                                    <div class="crop-window show-part-{{ opt }}"><img src="{{ q.image.url }}" alt="{{ opt }}"></div>
+                                                    <div class="opt-circle mt-2">{{ opt }}</div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+
+                                    <!-- 5. PHẦN TRẮC NGHIỆM CHỮ A-B-C THÔNG THƯỜNG -->
+                                    {% else %}
+                                        <div class="row g-2 mt-1">
+                                            {% if q.option_a or q.option_a_pinyin %}
+                                            <div class="col-md-4">
+                                                <div class="opt-label {% if q.correct_ans == 'A' %}ans-correct{% elif q.user_ans == 'A' and not q.is_correct %}ans-wrong{% endif %}">
+                                                    <span class="opt-circle me-2">A</span>
+                                                    <div>
+                                                        {% if q.option_a_pinyin and q.option_a_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_a|default:"" }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if q.option_b or q.option_b_pinyin %}
+                                            <div class="col-md-4">
+                                                <div class="opt-label {% if q.correct_ans == 'B' %}ans-correct{% elif q.user_ans == 'B' and not q.is_correct %}ans-wrong{% endif %}">
+                                                    <span class="opt-circle me-2">B</span>
+                                                    <div>
+                                                        {% if q.option_b_pinyin and q.option_b_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_b|default:"" }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if q.option_c or q.option_c_pinyin %}
+                                            <div class="col-md-4">
+                                                <div class="opt-label {% if q.correct_ans == 'C' %}ans-correct{% elif q.user_ans == 'C' and not q.is_correct %}ans-wrong{% endif %}">
+                                                    <span class="opt-circle me-2">C</span>
+                                                    <div>
+                                                        {% if q.option_c_pinyin and q.option_c_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_c|default:"" }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
-
-                            <div class="mt-2">
-                                {% if '11-15' in q.question_group or '21-25' in q.question_group or '26-30' in q.question_group or '31-35' in q.question_group %}
-                                    <div class="af-options-wrapper mt-3">
-                                        {% for opt in "ABCDEF"|make_list %}
-                                            <div class="circle-box {% if q.correct_ans == opt and q.user_ans %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
-                                                {{ opt }}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% elif q.image %}
-                                    <div class="row g-4 mt-1">
-                                        {% for opt in "ABC"|make_list %}
-                                        <div class="col-4">
-                                            <div class="auto-crop-box {% if q.correct_ans == opt and q.user_ans %}correct-ans{% elif q.user_ans == opt %}wrong-ans{% endif %}">
-                                                <div class="crop-window show-part-{{ opt }}"><img src="{{ q.image.url }}"></div>
-                                                <div class="text-center mt-3 fw-bold fs-5">
-                                                    {{ opt }} 
-                                                    {% if q.correct_ans == opt and q.user_ans %}
-                                                        <span class="badge bg-success ms-1 small"><i class="fas fa-check"></i></span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="row g-3 mt-1">
-                                        {% if q.option_a or q.option_a_pinyin %}
-                                        <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'A' and q.user_ans %}correct-ans{% elif q.user_ans == 'A' %}wrong-ans{% endif %}">
-                                                <span class="fw-bold fs-4 me-3">A.</span>
-                                                <div>
-                                                    {% if q.option_a_pinyin %}<div class="pinyin-text small">{{ q.option_a_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_a }}</div>
-                                                </div>
-                                                {% if q.correct_ans == 'A' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        {% if q.option_b or q.option_b_pinyin %}
-                                        <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'B' and q.user_ans %}correct-ans{% elif q.user_ans == 'B' %}wrong-ans{% endif %}">
-                                                <span class="fw-bold fs-4 me-3">B.</span>
-                                                <div>
-                                                    {% if q.option_b_pinyin %}<div class="pinyin-text small">{{ q.option_b_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_b }}</div>
-                                                </div>
-                                                {% if q.correct_ans == 'B' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        {% if q.option_c or q.option_c_pinyin %}
-                                        <div class="col-md-4">
-                                            <div class="opt-box {% if q.correct_ans == 'C' and q.user_ans %}correct-ans{% elif q.user_ans == 'C' %}wrong-ans{% endif %}">
-                                                <span class="fw-bold fs-4 me-3">C.</span>
-                                                <div>
-                                                    {% if q.option_c_pinyin %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
-                                                    <div class="chinese-text">{{ q.option_c }}</div>
-                                                </div>
-                                                {% if q.correct_ans == 'C' and q.user_ans %}<span class="ms-auto badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> Đáp án đúng</span>{% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-
-                                {% if not q.user_ans %}
-                                    <div class="alert mt-4 mb-0 py-3 px-4 shadow-sm fw-bold" style="border-radius: 12px; border-left: 6px solid #F59E0B; background: #FEF3C7; color: #B45309;">
-                                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i> Bạn đã bỏ qua câu này! Hệ thống đã ẩn đáp án đúng.
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
             {% endfor %}
         </div>
 
-        <div class="col-xl-3 col-lg-4">
+        <!-- ================= CỘT PHẢI: BẢNG ĐIỀU HƯỚNG KẾT QUẢ ================= -->
+        <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
             <div class="sticky-sidebar">
-                <div class="panel-box text-center mb-4">
-                    <h1 class="fw-black mb-0" style="color: var(--primary-color); font-family: 'Playfair Display', serif;">{{ result.score }} <span class="fs-4 text-muted">/ 200</span></h1>
-                    <p class="text-muted fw-bold mb-0">ĐIỂM SỐ CỦA BẠN</p>
-                </div>
-                <div class="panel-box">
-                    <p class="fw-bold mb-3" style="font-size: 1.1rem;"><i class="fas fa-th-large text-primary"></i> Tổng quan 40 câu</p>
-                    <div class="d-flex justify-content-between mb-3 small fw-bold">
-                        <span class="text-success"><i class="fas fa-square"></i> Đúng</span>
-                        <span class="text-danger"><i class="fas fa-square"></i> Sai</span>
-                        <span style="color: #F59E0B;"><i class="fas fa-square"></i> Trống</span>
+                {% if exam.hsk_level <= 2 %}
+                <div class="panel-box text-center mb-3 p-3">
+                    <p class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.8rem;"><i class="fas fa-language me-1"></i> Chế độ Pinyin</p>
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 m-0" style="padding-left: 0;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Tắt</span>
+                        <input class="form-check-input m-0 custom-switch" type="checkbox" id="pinyinToggle" checked style="width: 3em; height: 1.5em; cursor: pointer;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--success-color);" id="pinyinToggleLabel">Bật</span>
                     </div>
-                    <div class="grid-progress">
+                </div>
+                {% endif %}
+
+                <div class="panel-box">
+                    <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem; color: var(--text-main);">
+                        <i class="fas fa-tasks me-2" style="color: var(--primary-color);"></i>Bảng Tổng Kết Câu Hỏi
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 mb-3 small fw-bold">
+                        <span class="text-success"><i class="fas fa-square me-1"></i>Đúng</span>
+                        <span class="text-danger"><i class="fas fa-square me-1"></i>Sai / Trống</span>
+                    </div>
+                    <div class="grid-progress mb-4">
                         {% for q in questions %}
-                            <div class="grid-item {% if q.is_correct %}correct{% elif q.user_ans %}wrong{% else %}empty{% endif %}" onclick="scrollToQ({{ q.question_number }})">
+                            <div class="grid-item {% if q.is_correct %}grid-correct{% else %}grid-wrong{% endif %}" onclick="scrollToQ({{ q.question_number }})">
                                 {{ q.question_number }}
                             </div>
                         {% endfor %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'take_exam' exam.id %}" class="btn fw-bold py-2 text-white" style="background: var(--success-color); border-radius: 8px;">
+                            <i class="fas fa-redo me-2"></i> Làm lại đề này
+                        </a>
+                        <a href="{% url 'exam_list' %}" class="btn fw-bold py-2" style="background: #E4E4E7; color: var(--text-main); border-radius: 8px;">
+                            <i class="fas fa-arrow-left me-2"></i> Danh sách đề thi
+                        </a>
                     </div>
                 </div>
             </div>
@@ -245,86 +504,202 @@
 
 {% block extra_js %}
 <script>
-    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
-
-    function scrollToQ(qNumber) {
-        const el = document.getElementById('q' + qNumber);
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const pinyinToggle = document.getElementById('pinyinToggle');
+    const pinyinToggleLabel = document.getElementById('pinyinToggleLabel');
+    if (pinyinToggle) {
+        pinyinToggle.addEventListener('change', function() {
+            if (this.checked) { document.body.classList.remove('hide-pinyin'); pinyinToggleLabel.style.color = 'var(--success-color)';
+            } else { document.body.classList.add('hide-pinyin'); pinyinToggleLabel.style.color = 'var(--text-muted)'; }
+        });
     }
 
-    // Phần đếm ngược thời gian (Chỉ dùng cho take_exam, nếu ở review_exam có báo lỗi nhẹ ở console thì bỏ qua không sao)
-    if (document.getElementById('countdown')) {
-        let timeInSeconds = {{ exam.duration_minutes|default:0 }} * 60;
-        function startTimer() {
-            let display = document.getElementById('countdown');
-            let timer = setInterval(function () {
-                let minutes = parseInt(timeInSeconds / 60, 10);
-                let seconds = parseInt(timeInSeconds % 60, 10);
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-                display.textContent = minutes + ":" + seconds;
+    function scrollToQ(qNumber) { 
+        const el = document.getElementById('q' + qNumber); 
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
 
-                if (--timeInSeconds < 0) {
-                    clearInterval(timer);
-                    alert("⏳ Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
-                    if(document.getElementById('exam-form')) {
-                        document.getElementById('exam-form').submit();
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. TÁCH DÒNG TIẾNG TRUNG / PINYIN & NHẬN DIỆN CHỖ TRỐNG ( ____ )
+        document.querySelectorAll('.interleave-group').forEach(function(group) {
+            let pinyinRaw = group.querySelector('.raw-pinyin');
+            let chineseRaw = group.querySelector('.raw-chinese');
+            let output = group.querySelector('.interleaved-output');
+            if (output) {
+                let pHtml = pinyinRaw ? pinyinRaw.innerHTML : "";
+                let cHtml = chineseRaw ? chineseRaw.innerHTML : "";
+                let pLines = pHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
+                let cLines = cHtml.split(/<br\s*\/?>/i).map(s => { let t = document.createElement('div'); t.innerHTML = s; return (t.textContent || t.innerText || "").trim() === 'nan' ? "" : (t.textContent || t.innerText || "").trim(); });
+                let maxLines = Math.max(pLines.length, cLines.length);
+                let html = '';
+                
+                for(let i = 0; i < maxLines; i++) {
+                    let pStr = i < pLines.length ? pLines[i] : "";
+                    let cStr = i < cLines.length ? cLines[i] : "";
+                    
+                    if (cStr) cStr = cStr.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
+                    if (pStr) pStr = pStr.replace(/[(（][\s_]*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
+
+                    if (pStr || cStr) {
+                        html += '<div style="margin-bottom: 4px;">';
+                        if (pStr) html += `<div class="pinyin-text">${pStr}</div>`;
+                        if (cStr) html += `<div class="chinese-text">${cStr}</div>`;
+                        html += '</div>';
                     }
                 }
-            }, 1000);
-        }
-        window.onload = startTimer;
-    }
+                output.innerHTML = html;
+            }
+        });
 
-    function submitExam() {
-        let totalDone = document.querySelectorAll('.grid-item.done').length;
-        let totalQ = document.querySelectorAll('.grid-item').length;
-        if (totalDone < totalQ) {
-            let missing = totalQ - totalDone;
-            if (!confirm(`⚠️ CẢNH BÁO: Bạn vẫn còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN muốn nộp bài sớm không?`)) return;
-        } else {
-            if (!confirm("✅ Xác nhận nộp bài?")) return;
-        }
-        document.getElementById('exam-form').submit();
-    }
+        // 2. XỬ LÝ PINYIN TREO TRÊN NGOẶC TRỐNG Ở CÂU 61-65 HSK 3
+        document.querySelectorAll('.q61-text').forEach(function(el) {
+            let py = (el.getAttribute('data-pinyin') || '').trim();
+            let html = el.innerHTML;
+            let rubyHtml = `
+                <span class="pinyin-blank-ruby">
+                    <span class="pinyin-blank-top">${py}</span>
+                    <span>（<span class="auto-fill-target"></span>）</span>
+                </span>
+            `;
+            el.innerHTML = html.replace(/[(（][\s_]*[)）]/g, rubyHtml);
+        });
 
-    // ==========================================
-    // BỘ QUÉT RỔ ĐÁP ÁN (PHIÊN BẢN TỐI THƯỢNG)
-    // ==========================================
-    document.addEventListener("DOMContentLoaded", function() {
-        let sharedTexts = document.querySelectorAll('.format-shared-options');
-        
-        sharedTexts.forEach(function(el) {
-            // 1. Lấy nội dung nguyên thủy
-            let rawText = el.innerText || el.textContent;
-            
-            // Thay thế toàn bộ dấu xuống dòng, tab, khoảng trắng kép, và ĐẶC BIỆT là khoảng trắng full-width của tiếng Trung
-let cleanText = rawText.replace(/[\r\n\t\u3000]+/g, ' ').replace(/\s+/g, ' ').trim();
-            
-            // 3. Bộ lọc Regex xịn: Tìm chữ A-F đứng đầu, theo sau là dấu chấm/khoảng trắng
-            let regex = /(?:^|\s)([A-F])[.、:：\s]+(.*?)(?=\s+[A-F][.、:：\s]+|$)/g;
+        // 3. GOM NHÓM CÁC CÂU DÙNG CHUNG ĐOẠN VĂN Ở HSK 3 (57-58, 59-60)
+        const rows51_60 = Array.from(document.querySelectorAll('.question-row')).filter(row => {
+            const idNum = parseInt((row.id || '').replace('q', ''), 10);
+            return idNum >= 51 && idNum <= 60;
+        });
+        let idx = 0;
+        while (idx < rows51_60.length) {
+            let currRow = rows51_60[idx];
+            let currNum = parseInt(currRow.id.replace('q', ''), 10);
+            let currPassageEl = currRow.querySelector('.q-passage-box');
+            let currText = currPassageEl ? currPassageEl.innerText.trim() : '';
+            if (currText) {
+                let groupRows = [currRow];
+                let j = idx + 1;
+                while (j < rows51_60.length) {
+                    let nextRow = rows51_60[j];
+                    let nextPassageEl = nextRow.querySelector('.q-passage-box');
+                    let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
+                    if (nextText === currText) { groupRows.push(nextRow); j++; } else { break; }
+                }
+                if (groupRows.length > 1) {
+                    let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+                    let sharedHeader = document.createElement('div');
+                    sharedHeader.className = 'shared-passage-header';
+                    sharedHeader.innerHTML = `
+                        <div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${currNum}–${lastNum} 题 (Dùng chung đoạn văn)</div>
+                        <div class="chinese-text shared-passage-content">${currPassageEl.innerHTML}</div>
+                    `;
+                    currRow.parentNode.insertBefore(sharedHeader, currRow);
+                    groupRows.forEach(r => {
+                        let pBox = r.querySelector('.q-passage-box');
+                        if (pBox) pBox.remove();
+                    });
+                    idx = j;
+                    continue;
+                }
+            }
+            idx++;
+        }
+
+        // 4. VẼ KHUNG Ô CHỮ ĐIỀN (TIANZIGE) HSK 2 CÂU 51-55
+        const autoMissingPosMap = {
+            '邦': 'B', '占': 'B', '烈': 'B', '然': 'B', '照': 'B', '黑': 'B', '分': 'B', '公': 'B', '今': 'B', '元': 'B', '先': 'B', '兄': 'B',
+            '古': 'T', '平': 'T', '生': 'T', '田': 'T', '由': 'T', '甲': 'T', '申': 'T', '央': 'T', '奇': 'T', '合': 'T', '同': 'T', '名': 'T', '各': 'T', '字': 'T', '安': 'T', '完': 'T', '官': 'T', '定': 'T', '客': 'T', '室': 'T', '家': 'T', '容': 'T', '宿': 'T',
+            '列': 'R', '则': 'R', '刚': 'R', '创': 'R', '别': 'R', '利': 'R', '到': 'R', '制': 'R', '刷': 'R', '刻': 'R', '前': 'R', '剧': 'R', '故': 'R', '教': 'R', '敢': 'R', '散': 'R', '敬': 'R', '数': 'R',
+            '工': 'L', '旦': 'L', '董': 'L', '什': 'L', '他': 'L', '们': 'L', '代': 'L', '以': 'L', '件': 'L', '任': 'L', '休': 'L', '伙': 'L', '会': 'L', '伟': 'L', '传': 'L', '伤': 'L', '伴': 'L', '伸': 'L', '似': 'L', '但': 'L', '位': 'L', '低': 'L', '住': 'L', '体': 'L', '何': 'L', '作': 'L', '你': 'L', '佳': 'L', '使': 'L', '例': 'L', '供': 'L', '依': 'L', '便': 'L', '保': 'L', '信': 'L', '俩': 'L', '修': 'L', '倍': 'L', '倒': 'L', '候': 'L', '借': 'L', '倦': 'L', '倩': 'L', '债': 'L', '值': 'L', '假': 'L', '偏': 'L', '做': 'L', '停': 'L', '健': 'L', '偶': 'L', '偷': 'L', '偿': 'L', '傅': 'L', '傍': 'L', '储': 'L', '催': 'L', '傲': 'L', '傻': 'L', '像': 'L', '僧': 'L', '儒': 'L'
+        };
+
+        document.querySelectorAll('.tianzige-render').forEach(function(el) {
+            let rawHanzi = (el.getAttribute('data-hanzi') || '').trim();
+            let rawPinyin = (el.getAttribute('data-pinyin') || '').trim();
+            let cleanHanzi = rawHanzi.replace(/\s+/g, '');
+            let regex = /(\[(?:BL\vert{}TL\vert{}L\vert{}R\vert{}T\vert{}B)\])?([^\[\]]{1})/gi;
+            let items = [];
             let match;
+            let hasExplicitTag = /\[(?:BL\vert{}TL\vert{}L\vert{}R\vert{}T\vert{}B)\]/i.test(cleanHanzi);
+            while ((match = regex.exec(cleanHanzi)) !== null) {
+                let tag = match[1] ? match[1].replace(/[\[\]]/g, '').toUpperCase() : '';
+                let char = match[2];
+                if (!hasExplicitTag && autoMissingPosMap[char]) tag = autoMissingPosMap[char];
+                items.push({ char: char, pos: tag });
+            }
+            let pinyinWords = rawPinyin.split(/\s+/);
+            if (items.length > 0) {
+                let html = '<div class="tianzige-wrapper">';
+                for (let i = 0; i < items.length; i++) {
+                    let h = items[i].char || '';
+                    let posClass = items[i].pos ? `missing-${items[i].pos}` : '';
+                    let p = pinyinWords[i] || '';
+                    html += `
+                        <div class="tianzige-col">
+                            <div class="tianzige-pinyin pinyin-text" style="margin:0;">${p}</div>
+                            <div class="tianzige-hanzi"><span class="hanzi-char ${posClass}">${h}</span></div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                el.innerHTML = html;
+            }
+        });
+
+        // 5. XỬ LÝ RỔ ĐÁP ÁN CHỮ DÙNG CHUNG (A-F)
+        function parseOptions(text) {
+            let dict = {};
+            if (!text) return dict;
+            let cleanText = text.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/[\r\n\t\u3000]+/g, ' ').trim();
+            let parts = cleanText.split(/([A-F])[.、:：\s]+/);
+            for (let i = 1; i < parts.length; i += 2) {
+                let letter = parts[i].trim();
+                let content = parts[i+1] ? parts[i+1].trim().replace(/\/+$/, '').trim() : "";
+                if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
+            }
+            return dict;
+        }
+
+        document.querySelectorAll('.format-shared-options').forEach(function(el) {
+            let textDict = parseOptions(el.textContent || el.innerText || "");
+            let pinyinEl = el.parentElement.querySelector('.format-shared-pinyin');
+            let pinyinDict = {};
+            if (pinyinEl) {
+                let rawPinyinText = pinyinEl.textContent || pinyinEl.innerText || "";
+                if (/([A-F])[.、:：\s]+/.test(rawPinyinText)) { pinyinDict = parseOptions(rawPinyinText); } 
+                else {
+                    let pinyinLines = pinyinEl.innerHTML.split(/<br\s*\/?>/i).map(s => { let tmp = document.createElement('div'); tmp.innerHTML = s; return (tmp.textContent || tmp.innerText || "").trim(); }).filter(s => s.length > 0 && s !== 'nan');
+                    let letters = Object.keys(textDict).sort(); 
+                    for (let i = 0; i < letters.length; i++) { if (pinyinLines[i]) pinyinDict[letters[i]] = pinyinLines[i]; }
+                }
+            }
             let html = '<div class="shared-options-grid">';
             let found = false;
-            
-            while ((match = regex.exec(cleanText)) !== null) {
-                found = true;
-                let letter = match[1].trim();
-                let content = match[2].trim();
-                html += `
-                    <div class="shared-opt-item shadow-sm">
-                        <div class="shared-opt-letter">${letter}</div>
-                        <div class="shared-opt-text chinese-text" style="font-size: 1.25rem; line-height: 1.3;">${content}</div>
-                    </div>`;
-            }
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+                if (textDict[letter]) {
+                    found = true;
+                    let safeText = textDict[letter].replace(/"/g, '&quot;');
+                    let safePinyin = (pinyinDict[letter] || '').replace(/"/g, '&quot;');
+                    let pinyinHtml = pinyinDict[letter] ? `<div class="pinyin-text small" style="color: #475569; margin-bottom: 2px;">${pinyinDict[letter]}</div>` : '';
+                    html += `<div class="shared-opt-item pool-item" data-letter="${letter}" data-text="${safeText}" data-pinyin="${safePinyin}"><div class="shared-opt-letter">${letter}</div><div>${pinyinHtml}<div class="chinese-text">${textDict[letter]}</div></div></div>`;
+                }
+            });
             html += '</div>';
-            
-            // 4. Quyết định hiển thị
-            if (found) { 
-                el.insertAdjacentHTML('afterend', html); 
-            } else { 
-                el.style.display = 'block'; 
-                el.classList.add('chinese-text', 'mb-2'); 
+            if (found) el.insertAdjacentHTML('afterend', html); 
+        });
+
+        // 6. TỰ ĐỘNG ĐIỀN ĐÁP ÁN ĐÚNG VÀO CHỖ TRỐNG ( ____ ) TRÊN CÂU HỎI ĐỂ HỌC VIÊN DỄ ĐỌC
+        document.querySelectorAll('.question-row').forEach(function(row) {
+            let targetSpan = row.querySelector('.auto-fill-target');
+            let pinyinSpan = row.querySelector('.auto-fill-pinyin');
+            if (targetSpan) {
+                let correctAns = row.getAttribute('data-correct-ans') || '';
+                let wrapper = row.closest('.q-group-wrapper');
+                let poolItem = wrapper ? wrapper.querySelector(`.pool-item[data-letter="${correctAns}"]`) : null;
+                if (poolItem) {
+                    targetSpan.innerText = poolItem.getAttribute('data-text') || correctAns;
+                    if (pinyinSpan) pinyinSpan.innerText = poolItem.getAttribute('data-pinyin') || '';
+                } else {
+                    targetSpan.innerText = correctAns;
+                }
             }
         });
     });

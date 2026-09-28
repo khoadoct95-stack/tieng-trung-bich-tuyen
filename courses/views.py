@@ -261,7 +261,6 @@ def check_chinese_sentence_rules(sentence, keyword):
     if not sentence or not keyword:
         return False
     
-    # Xóa dấu câu và khoảng trắng để kiểm tra phần chữ thực tế
     clean_sent = re.sub(r'[^\w\u4e00-\u9fff]', '', sentence)
     if keyword not in clean_sent:
         return False
@@ -269,26 +268,31 @@ def check_chinese_sentence_rules(sentence, keyword):
     # 1. Phải có ít nhất 2 chữ Hán khác ngoài từ khóa gợi ý
     rem_text = clean_sent.replace(keyword, '', 1)
     chinese_chars = re.findall(r'[\u4e00-\u9fff]', rem_text)
-    if len(chinese_chars) < 2:
+    if len(chinese_chars) < 2 or len(set(chinese_chars)) < 2:
         return False
         
-    # 2. Chặn hành vi lặp lại chính từ khóa hoặc gõ toàn ký tự giống nhau (VD: 羽毛球羽毛球, 饱啊啊啊)
-    if len(set(chinese_chars)) < 2:
+    # 2. Kiểm tra dấu hiệu cấu trúc câu tiếng Trung (chặn ghép danh từ rời rạc như '饱桌子跑步')
+    grammar_markers = set("我你他她它们这那哪的了着过得地在不没很太真最都也还就才要会能可以想喜欢爱去来上下进出回过到有是看听说话吃喝打玩买穿坐骑住学习工作睡觉休息跑走爬哭笑洗用找给让被把比和跟对向从离为因所但虽然如果觉得认为知道希望打算准备开始完好大少多快慢远近高低长短新旧贵便宜晴阴")
+    if not (set(chinese_chars) & grammar_markers):
+        return False
+
+    if keyword == "饱" and not (set(clean_sent) & set("吃喝了很太不没真")):
         return False
         
     return True
 
 def grade_hsk3_writing_ai(questions_66_70, user_answers_dict):
-    """Chấm điểm tự luận câu 66-70 bằng Gemini AI (kèm Fallback tự động sang Rule-based)"""
+    """Chấm điểm tự luận câu 66-70 bằng Gemini 3.5 Flash Lite"""
     results = {}
     items_to_grade = []
+
+    api_key = open(KEY_FILE_PATH).read().strip() if os.path.exists(KEY_FILE_PATH) else ""
 
     for q in questions_66_70:
         ans = user_answers_dict.get(str(q.id), '').strip()
         kw = str(q.content).strip()
         sample = str(q.correct_answer).strip()
         
-        # Kiểm tra sơ bộ bằng quy tắc trước
         rule_passed = check_chinese_sentence_rules(ans, kw)
         results[str(q.id)] = rule_passed
         
@@ -300,40 +304,38 @@ def grade_hsk3_writing_ai(questions_66_70, user_answers_dict):
                 "student_sentence": ans
             })
 
-    # Nếu chưa gắn API Key hoặc không có câu nào qua vòng lọc cơ bản -> Trả kết quả ngay
-    if not GEMINI_API_KEY or not items_to_grade:
+    if not api_key or not items_to_grade:
         return results
 
-    # Gọi Gemini API chấm ngữ pháp & ngữ nghĩa cả 5 câu trong 1 lần
     prompt = (
-        "Bạn là giám khảo chấm thi HSK 3 phần Viết (Đặt câu với từ cho sẵn và tranh). "
-        "Hãy đánh giá từng câu của học viên dưới đây. Câu được tính là ĐÚNG (true) nếu: "
-        "1. Có chứa từ khóa (keyword). 2. Đúng ngữ pháp tiếng Trung. 3. Có ý nghĩa hợp lý. "
+        "Bạn là giám khảo chấm thi HSK 3 phần Viết (Đặt câu với từ cho sẵn). "
+        "Hãy đánh giá nghiêm khắc từng câu của học viên dưới đây. Câu chỉ được tính là ĐÚNG (true) nếu: "
+        "1. Có chứa từ khóa (keyword). 2. Đúng ngữ pháp tiếng Trung. 3. Có ý nghĩa hợp lý, tự nhiên (nếu câu vô nghĩa như '羽毛球我吃桌子' hoặc '饱桌子跑步' thì bắt buộc trả về false). "
         "Chỉ trả về định dạng JSON thuần túy có dạng: {\"q_id\": true/false, ...}\n"
         f"Dữ liệu: {json.dumps(items_to_grade, ensure_ascii=False)}"
     )
 
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}"
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.0}
         }
         req = urllib.request.Request(
             url, 
             data=json.dumps(payload).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
         )
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=12) as response:
             res_data = json.loads(response.read().decode('utf-8'))
-            ai_text = res_data['candidates'][0]['content']['parts'][0]['text']
+            ai_text = res_data['candidates'][0]['content']['parts'][0]['text'].strip()
+            ai_text = re.sub(r'^```(?:json)?|```$', '', ai_text, flags=re.MULTILINE).strip()
             ai_verdicts = json.loads(ai_text)
             for q_id, is_valid in ai_verdicts.items():
-                if q_id in results:
-                    results[q_id] = bool(is_valid)
-    except Exception:
-        # Nếu mất mạng hoặc PythonAnywhere chặn kết nối ngoài -> Giữ nguyên kết quả chấm của Bộ lọc Quy tắc
-        pass
+                if str(q_id) in results:
+                    results[str(q_id)] = bool(is_valid)
+    except Exception as e:
+        print("Loi Gemini API:", e)
 
     return results
 

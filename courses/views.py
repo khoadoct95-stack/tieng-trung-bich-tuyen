@@ -250,8 +250,11 @@ def github_webhook(request):
 # ==========================================
 import urllib.request
 
-# Điền API Key lấy miễn phí tại https://aistudio.google.com/apikey (Nếu để trống sẽ dùng Bộ lọc Quy tắc nội bộ)
-GEMINI_API_KEY = "" 
+# Tự động đọc API Key từ file bảo mật trên server (Không bao giờ lộ lên GitHub)
+KEY_FILE_PATH = '/home/khoadoct95/gemini_key.txt'
+GEMINI_API_KEY = (
+    open(KEY_FILE_PATH).read().strip() if os.path.exists(KEY_FILE_PATH) else ''
+)
 
 def check_chinese_sentence_rules(sentence, keyword):
     """Bộ lọc ngữ pháp nội bộ: Chặn gõ rác, lặp từ và kiểm tra cấu trúc câu tiếng Trung"""

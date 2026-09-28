@@ -358,6 +358,7 @@ def take_exam(request, exam_id):
         if exam.hsk_level == 3:
             q_66_70 = [q for q in questions if q.question_number >= 66]
             hsk3_writing_results = grade_hsk3_writing_ai(q_66_70, user_answers_dict)
+            user_answers_dict['ai_graded'] = hsk3_writing_results
 
         # Chấm điểm chi tiết từng câu
         for q in questions:
@@ -434,7 +435,11 @@ def review_exam(request, result_id):
         keyword = str(q.content).strip().upper() if q.content else ''
         
         if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
-            q.is_correct = check_chinese_sentence_rules(q.user_ans, keyword)
+            ai_graded = result.user_answers.get('ai_graded', {})
+            if str(q.id) in ai_graded:
+                q.is_correct = bool(ai_graded[str(q.id)])
+            else:
+                q.is_correct = check_chinese_sentence_rules(q.user_ans, keyword)
         else:
             q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 

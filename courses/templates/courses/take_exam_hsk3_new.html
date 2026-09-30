@@ -258,8 +258,35 @@
 
             {% if exam.listening_audio %}
             <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
-                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
-                <audio controls class="w-100" style="height: 35px; outline: none;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;">
+                    <i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài
+                    <span id="audio-loading-text" class="text-muted ms-2" style="font-size: 0.8rem; font-weight: normal; font-style: italic;">(Đang xử lý bộ nhớ đệm để tua...)</span>
+                </p>
+                
+                <!-- controlsList="nodownload": Ẩn nút tải xuống | oncontextmenu="return false;": Chặn chuột phải để không cho lưu file -->
+                <audio id="exam-audio" controls controlsList="nodownload" oncontextmenu="return false;" class="w-100" style="height: 35px; outline: none;"></audio>
+                
+                <!-- Xử lý nạp Audio thành Blob (Khắc phục triệt để lỗi tua bị nhảy về đầu) -->
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        var audioEl = document.getElementById("exam-audio");
+                        var loadingText = document.getElementById("audio-loading-text");
+                        if (audioEl) {
+                            fetch("{{ exam.listening_audio.url }}")
+                                .then(response => response.blob())
+                                .then(blob => {
+                                    audioEl.src = URL.createObjectURL(blob);
+                                    if(loadingText) loadingText.style.display = 'none'; // Ẩn chữ đang xử lý
+                                })
+                                .catch(err => {
+                                    console.error("Lỗi nạp audio: ", err);
+                                    // Chạy dự phòng nếu kết nối gián đoạn
+                                    audioEl.src = "{{ exam.listening_audio.url }}";
+                                    if(loadingText) loadingText.style.display = 'none';
+                                });
+                        }
+                    });
+                </script>
             </div>
             {% endif %}
 

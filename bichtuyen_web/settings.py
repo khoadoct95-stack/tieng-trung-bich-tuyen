@@ -180,3 +180,10 @@ ACCOUNT_USERNAME_REQUIRED = False      # Không bắt buộc điền Username (H
 ACCOUNT_EMAIL_REQUIRED = True          # Bắt buộc phải có Email từ Google
 ACCOUNT_AUTHENTICATION_METHOD = 'email'# Dùng Email làm thông tin định danh chính
 ACCOUNT_EMAIL_VERIFICATION = 'none'    # Tắt việc gửi email xác thực (vào thẳng web luôn)
+
+# Bắt buộc trình duyệt chỉ gửi cookie qua kết nối HTTPS an toàn
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Đảm bảo Django cũng tự động chuyển hướng HTTP sang HTTPS
+SECURE_SSL_REDIRECT = True

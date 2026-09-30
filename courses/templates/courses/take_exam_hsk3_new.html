@@ -194,6 +194,57 @@
         padding-top: 16px;
         background: #FCFDFE;
     }
+
+    /* Tạo thanh cuộn cho bảng tiến độ */
+    .grid-progress {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        max-height: 280px;      /* Giới hạn chiều cao */
+        overflow-y: auto;       /* Bật thanh cuộn dọc */
+        padding-right: 6px;     /* Tránh thanh cuộn đè lên nút */
+    }
+
+    /* Làm đẹp thanh cuộn */
+    .grid-progress::-webkit-scrollbar {
+        width: 6px;
+    }
+    .grid-progress::-webkit-scrollbar-track {
+        background: #F4F4F5;
+        border-radius: 4px;
+    }
+    .grid-progress::-webkit-scrollbar-thumb {
+        background: #A1A1AA;
+        border-radius: 4px;
+    }
+    .grid-progress::-webkit-scrollbar-thumb:hover {
+        background: #71717A;
+    }
+
+    #back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #27272A;
+    color: #FFFFFF; /* Hiển thị icon màu trắng */
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1050; /* Nổi lên trên cùng */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+#back-to-top.show {
+    opacity: 1;
+    pointer-events: auto;
+}
 </style>
 {% endblock %}
 
@@ -622,7 +673,8 @@
         </div>
     </div>
 
-    <button id="backToTopBtn" onclick="scrollToTop()" title="Lên đầu trang" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 999; border: none; outline: none; background-color: var(--text-main); color: white; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0, 0.2); transition: all 0.2s ease; align-items: center; justify-content: center; font-size: 1rem;">
+    <!-- Nút mới dán ở đây (ngay trên thẻ đóng div exam-container) -->
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
         <i class="fas fa-arrow-up"></i>
     </button>
 </div>
@@ -630,19 +682,18 @@
 
 {% block extra_js %}
 <script>
+    // Cập nhật sự kiện scroll để nút ẩn/hiện mượt mà thông qua CSS
     window.addEventListener('scroll', function() {
-        let btn = document.getElementById("backToTopBtn");
+        let btn = document.getElementById("back-to-top");
         if (btn) {
             if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btn.style.display = "flex"; btn.style.opacity = "1";
+                btn.classList.add('show');
             } else {
-                btn.style.opacity = "0";
-                setTimeout(() => { if (btn.style.opacity == "0") btn.style.display = "none"; }, 200);
+                btn.classList.remove('show');
             }
         }
     });
 
-    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
     function scrollToQ(qNumber) { 
         const el = document.getElementById('q' + qNumber); 

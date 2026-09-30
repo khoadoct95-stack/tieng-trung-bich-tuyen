@@ -3,8 +3,8 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap)" rel="stylesheet">
-<link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -135,7 +135,6 @@
     .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
     .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: monospace; background: var(--primary-light); }
-    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
     .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; background: #FAFAFA; }
     .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; }
     .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 8px; padding: 12px; font-size: 1.05rem; border: none; }
@@ -195,17 +194,15 @@
         background: #FCFDFE;
     }
 
-    /* Tạo thanh cuộn cho bảng tiến độ */
+    /* ================= THANH CUỘN BẢNG TIẾN ĐỘ ================= */
     .grid-progress {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 6px;
-        max-height: 280px;      /* Giới hạn chiều cao */
-        overflow-y: auto;       /* Bật thanh cuộn dọc */
-        padding-right: 6px;     /* Tránh thanh cuộn đè lên nút */
+        max-height: 280px;
+        overflow-y: auto;
+        padding-right: 6px;
     }
-
-    /* Làm đẹp thanh cuộn */
     .grid-progress::-webkit-scrollbar {
         width: 6px;
     }
@@ -221,30 +218,20 @@
         background: #71717A;
     }
 
+    /* ================= NÚT CUỘN ĐẦU TRANG SVG ================= */
     #back-to-top {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-color: #27272A;
-    color: #FFFFFF; /* Hiển thị icon màu trắng */
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1050; /* Nổi lên trên cùng */
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-}
-#back-to-top.show {
-    opacity: 1;
-    pointer-events: auto;
-}
+        position: fixed; bottom: 30px; right: 30px;
+        width: 45px; height: 45px; border-radius: 50%;
+        background-color: #27272A; color: #FFFFFF;
+        border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 1050;
+        opacity: 0; visibility: hidden; transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+    #back-to-top.show {
+        opacity: 1; visibility: visible; transform: translateY(0);
+    }
 </style>
 {% endblock %}
 
@@ -654,12 +641,17 @@
                 </div>
 
                 <div class="panel-box">
+                    <!-- Nút mở bảng trên điện thoại -->
                     <button class="btn w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse" style="background: #E4E4E7; color: var(--text-main);">
-                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ (70 câu)
+                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ <span class="progress-count-text text-danger ms-1">(0/70)</span>
                     </button>
                     
                     <div class="collapse d-lg-block" id="gridCollapse">
-                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ</p>
+                        <!-- Tiêu đề bảng trên máy tính -->
+                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);">
+                            <i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ <span class="progress-count-text text-danger ms-1">(0/70)</span>
+                        </p>
+                        
                         <div class="grid-progress mb-4">
                             {% for q in questions %}
                                 <div class="grid-item" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">{{ q.question_number }}</div>
@@ -673,16 +665,16 @@
         </div>
     </div>
 
-    <!-- Nút mới dán ở đây (ngay trên thẻ đóng div exam-container) -->
-    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-        <i class="fas fa-arrow-up"></i>
+    <!-- Nút cuộn lên đầu trang (Dùng SVG) -->
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Lên đầu trang">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: #fff;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
     </button>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Cập nhật sự kiện scroll để nút ẩn/hiện mượt mà thông qua CSS
+    // Ẩn/hiện nút cuộn trang mượt mà
     window.addEventListener('scroll', function() {
         let btn = document.getElementById("back-to-top");
         if (btn) {
@@ -694,7 +686,27 @@
         }
     });
 
-    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
+    // Hàm cập nhật số câu đã làm (X/70)
+    function updateProgressCount() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = document.querySelectorAll('.grid-item').length;
+        document.querySelectorAll('.progress-count-text').forEach(el => {
+            el.innerText = `(${totalDone}/${totalQ})`;
+            if (totalDone === totalQ) {
+                el.classList.remove('text-danger');
+                el.classList.add('text-success');
+            } else {
+                el.classList.add('text-danger');
+                el.classList.remove('text-success');
+            }
+        });
+    }
+
+    function markDone(qNumber) { 
+        document.getElementById('grid-btn-' + qNumber).classList.add('done'); 
+        updateProgressCount();
+    }
+    
     function scrollToQ(qNumber) { 
         const el = document.getElementById('q' + qNumber); 
         if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -714,6 +726,7 @@
                 targetSpan.innerText = val;
             }
         }
+        updateProgressCount();
     }
 
     if (document.getElementById('countdown')) {
@@ -749,12 +762,16 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // Cập nhật biến đếm ngay khi load trang (trường hợp load lại session đã chọn sẵn)
+        updateProgressCount();
+
         // 1. NHẬN DIỆN CHỖ TRỐNG ( ____ ) Ở CÂU 41-50
         document.querySelectorAll('.q-raw-text').forEach(function(el) {
             let html = el.innerHTML;
             html = html.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
             el.innerHTML = html;
         });
+
         // 1B. TỰ ĐỘNG GOM NHÓM CÁC CÂU DÙNG CHUNG ĐOẠN VĂN (VD: 57~58, 59~60)
         const rows51_60 = Array.from(document.querySelectorAll('.question-row')).filter(row => {
             const idNum = parseInt((row.id || '').replace('q', ''), 10);
@@ -776,7 +793,6 @@
                     let nextPassageEl = nextRow.querySelector('.q-passage-box');
                     let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
 
-                    // Gộp nếu câu tiếp theo có đoạn văn giống hệt câu hiện tại
                     if (nextText === currText) {
                         groupRows.push(nextRow);
                         j++;
@@ -785,7 +801,6 @@
                     }
                 }
 
-                // Nếu có từ 2 câu trở lên dùng chung 1 đoạn văn -> Tạo Header đoạn văn chung
                 if (groupRows.length > 1) {
                     let firstNum = currNum;
                     let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
@@ -877,6 +892,8 @@
                         }
                     }
                 }
+                // Cập nhật đếm số lượng câu đã làm
+                updateProgressCount();
             }
         });
     });

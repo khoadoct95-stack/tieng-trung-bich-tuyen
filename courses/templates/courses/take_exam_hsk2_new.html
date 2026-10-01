@@ -3,7 +3,6 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<!-- Kế thừa nguyên vẹn style css như HSK 1 của bạn -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -45,7 +44,7 @@
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
 
-    /* ================= VÍ DỤ CHUẨN MỰC (ĐỒNG BỘ HSK 1) ================= */
+    /* ================= VÍ DỤ CHUẨN MỰC ================= */
     .example-box { background: linear-gradient(to right, #FFFBEB, #FFFFFF); border-left: 4px solid #F59E0B; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
     .ex-badge { background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -69,7 +68,14 @@
     .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
     .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: monospace; background: var(--primary-light); }
-    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    
+    /* ================= THANH CUỘN BẢNG TIẾN ĐỘ ================= */
+    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 6px; }
+    .grid-progress::-webkit-scrollbar { width: 6px; }
+    .grid-progress::-webkit-scrollbar-track { background: #F4F4F5; border-radius: 4px; }
+    .grid-progress::-webkit-scrollbar-thumb { background: #A1A1AA; border-radius: 4px; }
+    .grid-progress::-webkit-scrollbar-thumb:hover { background: #71717A; }
+    
     .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; background: #FAFAFA; }
     .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; }
     .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 8px; padding: 12px; font-size: 1.05rem; border: none; }
@@ -79,110 +85,26 @@
     .input-chinese:focus { border-color: #0284C7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); }
     
     /* ================= KHUNG Ô CHỮ ĐIỀN (TIANZIGE) CHO CÂU 51-55 ================= */
-    .tianzige-wrapper {
-        display: inline-flex;
-        border: 2px solid #3B82F6;
-        border-radius: 4px;
-        background: #fff;
-        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
-        margin-bottom: 12px;
-        overflow: hidden;
-    }
-    .tianzige-col {
-        display: flex;
-        flex-direction: column;
-        width: 76px;
-        border-right: 1.5px solid #3B82F6;
-    }
-    .tianzige-col:last-child {
-        border-right: none;
-    }
-    /* Khung Pinyin 4 dòng kẻ (Tứ tuyến tam cách) */
-    .tianzige-pinyin {
-        height: 32px;
-        border-bottom: 1.5px solid #3B82F6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #1E293B;
-        position: relative;
-        background-image: linear-gradient(
-            to bottom,
-            transparent 28%,
-            #93C5FD 28%,
-            #93C5FD 32%,
-            transparent 32%,
-            transparent 64%,
-            #93C5FD 64%,
-            #93C5FD 68%,
-            transparent 68%
-        );
-    }
-    /* Ô vuông viết chữ Hán có đường chéo/nét đứt */
-    .tianzige-hanzi {
-        height: 76px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'KaiTi', 'STKaiti', 'BiauKai', 'Noto Sans SC', serif;
-        font-size: 2.6rem;
-        color: #0F172A;
-        position: relative;
-        z-index: 1;
-        line-height: 1;
-    }
-    /* Đường kẻ ngang dọc nét đứt bên trong ô chữ Hán */
-    .tianzige-hanzi::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-image: 
-            linear-gradient(to right, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%),
-            linear-gradient(to bottom, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%);
-        background-size: 8px 8px;
-        z-index: -1;
-        pointer-events: none;
-    }
-    /* Định vị khoảng trống cho chữ Hán bị khuyết bộ thủ */
-    .tianzige-hanzi .hanzi-char {
-        display: inline-block;
-        transition: transform 0.2s ease;
-    }
-    /* Khuyết TRÁI (L): Đẩy chữ sang phải, thu hẹp chiều ngang */
-    .tianzige-hanzi .missing-L {
-        transform: translateX(12px) scale(0.70, 0.92);
-    }
-    /* Khuyết PHẢI (R): Đẩy chữ sang trái, thu hẹp chiều ngang */
-    .tianzige-hanzi .missing-R {
-        transform: translateX(-12px) scale(0.70, 0.92);
-    }
-    /* Khuyết DƯỚI (B): Đẩy chữ lên trên, thu hẹp chiều dọc */
-    .tianzige-hanzi .missing-B {
-        transform: translateY(-11px) scale(0.88, 0.66);
-    }
-    /* Khuyết TRÊN (T): Đẩy chữ xuống dưới, thu hẹp chiều dọc */
-    .tianzige-hanzi .missing-T {
-        transform: translateY(11px) scale(0.88, 0.66);
-    }
-    /* Khuyết BAO QUANH TRÁI-DƯỚI (BL - như bộ 辶) */
-    .tianzige-hanzi .missing-BL {
-        transform: translate(9px, -7px) scale(0.74, 0.74);
-    }
-    /* Khuyết BAO QUANH TRÊN-TRÁI (TL - như bộ 广, 疒, 尸) */
-    .tianzige-hanzi .missing-TL {
-        transform: translate(8px, 8px) scale(0.74, 0.74);
-    }
+    .tianzige-wrapper { display: inline-flex; border: 2px solid #3B82F6; border-radius: 4px; background: #fff; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12); margin-bottom: 12px; overflow: hidden; }
+    .tianzige-col { display: flex; flex-direction: column; width: 76px; border-right: 1.5px solid #3B82F6; }
+    .tianzige-col:last-child { border-right: none; }
+    .tianzige-pinyin { height: 32px; border-bottom: 1.5px solid #3B82F6; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; color: #1E293B; position: relative; background-image: linear-gradient( to bottom, transparent 28%, #93C5FD 28%, #93C5FD 32%, transparent 32%, transparent 64%, #93C5FD 64%, #93C5FD 68%, transparent 68% ); }
+    .tianzige-hanzi { height: 76px; display: flex; align-items: center; justify-content: center; font-family: 'KaiTi', 'STKaiti', 'BiauKai', 'Noto Sans SC', serif; font-size: 2.6rem; color: #0F172A; position: relative; z-index: 1; line-height: 1; }
+    .tianzige-hanzi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(to right, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%), linear-gradient(to bottom, transparent 49%, #BFDBFE 49%, #BFDBFE 51%, transparent 51%); background-size: 8px 8px; z-index: -1; pointer-events: none; }
+    .tianzige-hanzi .hanzi-char { display: inline-block; transition: transform 0.2s ease; }
+    .tianzige-hanzi .missing-L { transform: translateX(12px) scale(0.70, 0.92); }
+    .tianzige-hanzi .missing-R { transform: translateX(-12px) scale(0.70, 0.92); }
+    .tianzige-hanzi .missing-B { transform: translateY(-11px) scale(0.88, 0.66); }
+    .tianzige-hanzi .missing-T { transform: translateY(11px) scale(0.88, 0.66); }
+    .tianzige-hanzi .missing-BL { transform: translate(9px, -7px) scale(0.74, 0.74); }
+    .tianzige-hanzi .missing-TL { transform: translate(8px, 8px) scale(0.74, 0.74); }
+
+    /* ================= NÚT CUỘN ĐẦU TRANG SVG ================= */
+    #back-to-top { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; border-radius: 50%; background-color: #27272A; color: #FFFFFF; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease; }
+    #back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
 
     @media (max-width: 1200px) { .shared-options-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 991px) {
-        .shared-img-grid { grid-template-columns: repeat(3, 1fr); }
-        .q-options-area.ms-5 { margin-left: 0 !important; }
-        .example-box { padding: 15px; }
-        .question-row { padding: 15px; }
-    }
+    @media (max-width: 991px) { .shared-img-grid { grid-template-columns: repeat(3, 1fr); } .q-options-area.ms-5 { margin-left: 0 !important; } .example-box { padding: 15px; } .question-row { padding: 15px; } }
 </style>
 {% endblock %}
 
@@ -210,8 +132,30 @@
 
             {% if exam.listening_audio %}
             <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
-                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
-                <audio controls class="w-100" style="height: 35px; outline: none;"><source src="{{ exam.listening_audio.url }}" type="audio/mpeg"></audio>
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem; color: var(--text-main);">
+                    <i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài
+                    <span id="audio-loading-text" class="text-muted ms-2" style="font-size: 0.8rem; font-weight: normal; font-style: italic;">(Đang xử lý bộ nhớ đệm để tua...)</span>
+                </p>
+                <audio id="exam-audio" controls controlsList="nodownload" oncontextmenu="return false;" class="w-100" style="height: 35px; outline: none;"></audio>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        var audioEl = document.getElementById("exam-audio");
+                        var loadingText = document.getElementById("audio-loading-text");
+                        if (audioEl) {
+                            fetch("{{ exam.listening_audio.url }}")
+                                .then(response => response.blob())
+                                .then(blob => {
+                                    audioEl.src = URL.createObjectURL(blob);
+                                    if(loadingText) loadingText.style.display = 'none';
+                                })
+                                .catch(err => {
+                                    console.error("Lỗi nạp audio: ", err);
+                                    audioEl.src = "{{ exam.listening_audio.url }}";
+                                    if(loadingText) loadingText.style.display = 'none';
+                                });
+                        }
+                    });
+                </script>
             </div>
             {% endif %}
 
@@ -221,7 +165,6 @@
                 {% regroup questions by question_group as grouped_questions %}
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
-                        <!-- HEADER TỪNG PHẦN THI (ĐÃ CHUẨN HÓA THỨ TỰ ĐỀ MỤC HSK 2) -->
                         {% with first_q_obj=group.list.0 %}
                             {% if first_q_obj.question_number == 1 %}
                                 <div class="text-center mt-2 mb-3">
@@ -237,7 +180,6 @@
                                 </div>
                             {% endif %}
 
-                            <!-- CHỈ HIỂN THỊ ĐỀ MỤC NHỎ & HƯỚNG DẪN Ở NHÓM ĐẦU TIÊN (Ẩn ở câu 11 và 41 vì dùng chung đề mục) -->
                             {% if first_q_obj.question_number != 11 and first_q_obj.question_number != 41 %}
                                 <div class="text-center mb-2 mt-1">
                                     <div class="hsk-part-title">
@@ -248,7 +190,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- HƯỚNG DẪN TỪNG PHẦN THI (HSK2) -->
                                 <div class="part-instruction">
                                     {% if first_q_obj.question_number == 1 %}
                                         <div class="zh">听录音，选出对应的图片。</div><div class="vi">Nghe và chọn bức tranh đúng với nội dung nghe được.</div>
@@ -273,10 +214,8 @@
 
                         <div class="q-card-group">
                             {% with first_q_obj=group.list.0 %}
-                                <!-- ================= RỔ DÙNG CHUNG (TỐI ƯU HSK 2) ================= -->
                                 {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 or first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
                                     <div class="shared-pool">
-                                        <!-- CHỈ HIỂN THỊ RỔ TEXT NẾU CÓ DỮ LIỆU THẬT SỰ -->
                                         {% if first_q_obj.question_number == 31 or first_q_obj.question_number == 36 or first_q_obj.question_number == 41 or first_q_obj.question_number == 51 %}
                                             {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
                                                 <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
@@ -284,11 +223,9 @@
                                             {% endif %}
                                         {% endif %}
                                         
-                                        <!-- CHỈ HIỂN THỊ RỔ ẢNH CHO PHẦN 6, 11, 26 -->
                                         {% if first_q_obj.question_number == 6 or first_q_obj.question_number == 11 or first_q_obj.question_number == 26 %}
                                             {% if first_q_obj.image %}
                                                 <div class="shared-img-grid">
-                                                    <!-- NẾU LÀ CÂU 11 CHỈ HIỆN 5 ẢNH (A ĐẾN E) -->
                                                     {% if first_q_obj.question_number == 11 %}
                                                         {% for opt in "ABCDE"|make_list %}
                                                         <div class="pool-item" data-letter="{{ opt }}">
@@ -297,7 +234,6 @@
                                                         </div>
                                                         {% endfor %}
                                                     {% else %}
-                                                        <!-- CÁC CÂU KHÁC HIỆN ĐỦ 6 ẢNH (A ĐẾN F) -->
                                                         {% for opt in "ABCDEF"|make_list %}
                                                         <div class="pool-item" data-letter="{{ opt }}">
                                                             <div class="shared-crop-window pos-{{ opt }}"><img src="{{ first_q_obj.image.url }}" alt="{{ opt }}"></div>
@@ -315,7 +251,6 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- ================= CÁC KHỐI VÍ DỤ ĐÃ KHÓA CỨNG (ĐỒNG BỘ GIAO DIỆN CÂU HỎI) ================= -->
                                 {% if first_q_obj.question_number == 1 %}
                                 <div class="example-box">
                                     <div class="ex-badge">Ví dụ · 例如</div>
@@ -323,27 +258,21 @@
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" checked disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none;">
-                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
-                                                    <img src="/static/images/examples/hsk2_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                </div>
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;"><img src="/static/images/examples/hsk2_p1_A.jpg" alt="A" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"></div>
                                                 <div class="opt-circle mt-2">A</div>
                                             </label>
                                         </div>
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none; background: transparent; border-color: #D4D4D8;">
-                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
-                                                    <img src="/static/images/examples/hsk2_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                </div>
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;"><img src="/static/images/examples/hsk2_p1_B.jpg" alt="B" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"></div>
                                                 <div class="opt-circle mt-2">B</div>
                                             </label>
                                         </div>
                                         <div class="col-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="auto-crop-btn" style="cursor: default; pointer-events: none; background: transparent; border-color: #D4D4D8;">
-                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;">
-                                                    <img src="/static/images/examples/hsk2_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
-                                                </div>
+                                                <div style="width: 85%; padding-top: 60%; position: relative; overflow: hidden; border-radius: 4px; background-color: #fff; border: 1px solid #E4E4E7; margin: 0 auto;"><img src="/static/images/examples/hsk2_p1_C.jpg" alt="C" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"></div>
                                                 <div class="opt-circle mt-2">C</div>
                                             </label>
                                         </div>
@@ -394,22 +323,19 @@
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" checked disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                <span class="opt-circle me-2">A</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">xìngmíng</div><div class="chinese-text" style="font-size: 1rem;">姓名</div></div>
+                                                <span class="opt-circle me-2">A</span><div><div class="pinyin-text" style="font-size: 0.85rem;">xìngmíng</div><div class="chinese-text" style="font-size: 1rem;">姓名</div></div>
                                             </label>
                                         </div>
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">B</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">shíjiān</div><div class="chinese-text" style="font-size: 1rem;">时间</div></div>
+                                                <span class="opt-circle me-2">B</span><div><div class="pinyin-text" style="font-size: 0.85rem;">shíjiān</div><div class="chinese-text" style="font-size: 1rem;">时间</div></div>
                                             </label>
                                         </div>
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">C</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">wèntí</div><div class="chinese-text" style="font-size: 1rem;">问题</div></div>
+                                                <span class="opt-circle me-2">C</span><div><div class="pinyin-text" style="font-size: 0.85rem;">wèntí</div><div class="chinese-text" style="font-size: 1rem;">问题</div></div>
                                             </label>
                                         </div>
                                     </div>
@@ -483,22 +409,19 @@
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">A</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">xiàkè le</div><div class="chinese-text" style="font-size: 1rem;">下课 了</div></div>
+                                                <span class="opt-circle me-2">A</span><div><div class="pinyin-text" style="font-size: 0.85rem;">xiàkè le</div><div class="chinese-text" style="font-size: 1rem;">下课 了</div></div>
                                             </label>
                                         </div>
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" checked disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none;">
-                                                <span class="opt-circle me-2">B</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">xǐhuan tiàowǔ</div><div class="chinese-text" style="font-size: 1rem;">喜欢 跳舞</div></div>
+                                                <span class="opt-circle me-2">B</span><div><div class="pinyin-text" style="font-size: 0.85rem;">xǐhuan tiàowǔ</div><div class="chinese-text" style="font-size: 1rem;">喜欢 跳舞</div></div>
                                             </label>
                                         </div>
                                         <div class="col-md-4">
                                             <input type="radio" class="opt-radio" disabled>
                                             <label class="opt-label" style="cursor: default; pointer-events: none; background: transparent;">
-                                                <span class="opt-circle me-2">C</span>
-                                                <div><div class="pinyin-text" style="font-size: 0.85rem;">shì xiǎoxuéshēng</div><div class="chinese-text" style="font-size: 1rem;">是 小学生</div></div>
+                                                <span class="opt-circle me-2">C</span><div><div class="pinyin-text" style="font-size: 0.85rem;">shì xiǎoxuéshēng</div><div class="chinese-text" style="font-size: 1rem;">是 小学生</div></div>
                                             </label>
                                         </div>
                                     </div>
@@ -554,7 +477,6 @@
                                     <div class="q-header-inline">
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
-                                            <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (CHO PHẦN 46-50) -->
                                             {% if q.passage_text and q.passage_text != 'nan' and q.question_number >= 46 and q.question_number <= 50 %}
                                                 <div class="interleave-group passage-group border-bottom mb-2 pb-2">
                                                     <div class="raw-pinyin" style="display: none;">{{ q.passage_pinyin|default:""|linebreaksbr }}</div>
@@ -563,8 +485,6 @@
                                                 </div>
                                             {% endif %}
                                             
-                                            <!-- CÂU HỎI -->
-                                            <!-- Bổ sung điều kiện KHÔNG hiển thị text ở câu 51-55 vì đã có khung Ô chữ điền -->
                                             {% if q.question_number < 51 or q.question_number > 55 %}
                                                 {% if q.content and 'Nghe Audio' not in q.content or q.content_pinyin and q.content_pinyin != 'nan' %}
                                                     <div class="interleave-group content-group">
@@ -578,7 +498,6 @@
                                     </div>
 
                                     <div class="q-options-area ms-5">
-                                        <!-- HIỂN THỊ KHUNG Ô CHỮ ĐIỀN BẰNG CSS (CÂU 51-55) -->
                                         {% if q.question_number >= 51 and q.question_number <= 55 %}
                                             {% if q.content and q.content != 'nan' %}
                                                 <div class="tianzige-render" data-hanzi="{{ q.content }}" data-pinyin="{{ q.content_pinyin|default:'' }}"></div>
@@ -589,7 +508,6 @@
                                             {% endif %}
                                         {% endif %}
 
-                                        <!-- PHẦN VIẾT CHỮ HÁN TỰ LUẬN (CÂU 56-60) -->
                                         {% if q.question_number >= 56 %}
                                             <div class="row mt-2">
                                                 <div class="col-12 col-md-6">
@@ -597,10 +515,8 @@
                                                 </div>
                                             </div>
                                             
-                                        <!-- PHẦN CHỌN ĐÁP ÁN NỐI (A-F / A-E) -->
                                         {% elif q.question_number >= 26 and q.question_number <= 45 or q.question_number >= 51 and q.question_number <= 55 or q.question_number >= 6 and q.question_number <= 15 %}
                                             <div class="af-options-wrapper">
-                                                <!-- NẾU TỪ CÂU 11 ĐẾN 15 CHỈ HIỆN 5 NÚT BẤM -->
                                                 {% if q.question_number >= 11 and q.question_number <= 15 %}
                                                     {% for opt in "ABCDE"|make_list %}
                                                         <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
@@ -614,7 +530,6 @@
                                                 {% endif %}
                                             </div>
                                             
-                                        <!-- PHẦN TRẮC NGHIỆM ẢNH (CÂU 1-5) -->
                                         {% elif q.image and q.question_number <= 5 %}
                                             <div class="row g-3 mt-1">
                                                 {% for opt in "ABC"|make_list %}
@@ -628,7 +543,6 @@
                                                 {% endfor %}
                                             </div>
                                             
-                                        <!-- PHẦN TRẮC NGHIỆM TEXT THÔNG THƯỜNG -->
                                         {% else %}
                                             <div class="row g-2 mt-1">
                                                 {% if q.option_a or q.option_a_pinyin %}
@@ -660,7 +574,7 @@
             </form>
         </div>
 
-        <!-- ================= CỘT PHẢI (SIDEBAR) ================= -->
+        <!-- ================= CỘT PHẢI ================= -->
         <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
             <div class="sticky-sidebar">
                 <div class="panel-box text-center mb-3 p-3">
@@ -681,11 +595,11 @@
 
                 <div class="panel-box">
                     <button class="btn w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse" style="background: #E4E4E7; color: var(--text-main);">
-                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ
+                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ <span class="progress-count-text text-danger ms-1">(0/60)</span>
                     </button>
                     
                     <div class="collapse d-lg-block" id="gridCollapse">
-                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ</p>
+                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ <span class="progress-count-text text-danger ms-1">(0/60)</span></p>
                         <div class="grid-progress mb-4">
                             {% for q in questions %}
                                 <div class="grid-item" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">{{ q.question_number }}</div>
@@ -699,9 +613,7 @@
         </div>
     </div>
     
-    <button id="backToTopBtn" onclick="scrollToTop()" title="Lên đầu trang" style="display: none; position: fixed; bottom: 30px; right: 30px; z-index: 999; border: none; outline: none; background-color: var(--text-main); color: white; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0, 0.2); transition: all 0.2s ease; align-items: center; justify-content: center; font-size: 1rem;">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Lên đầu trang"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: #fff;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 </div>
 {% endblock %}
 
@@ -717,19 +629,38 @@
     }
 
     window.addEventListener('scroll', function() {
-        let btn = document.getElementById("backToTopBtn");
+        let btn = document.getElementById("back-to-top");
         if (btn) {
             if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btn.style.display = "flex"; btn.style.opacity = "1";
+                btn.classList.add('show');
             } else {
-                btn.style.opacity = "0";
-                setTimeout(() => { if (btn.style.opacity == "0") btn.style.display = "none"; }, 200);
+                btn.classList.remove('show');
             }
         }
     });
 
+    function updateProgressCount() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = document.querySelectorAll('.grid-item').length;
+        document.querySelectorAll('.progress-count-text').forEach(el => {
+            el.innerText = `(${totalDone}/${totalQ})`;
+            if (totalDone === totalQ && totalQ > 0) {
+                el.classList.remove('text-danger');
+                el.classList.add('text-success');
+            } else {
+                el.classList.add('text-danger');
+                el.classList.remove('text-success');
+            }
+        });
+    }
+
     function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    function markDone(qNumber) { document.getElementById('grid-btn-' + qNumber).classList.add('done'); }
+    
+    function markDone(qNumber) { 
+        document.getElementById('grid-btn-' + qNumber).classList.add('done'); 
+        updateProgressCount();
+    }
+    
     function scrollToQ(qNumber) { 
         const el = document.getElementById('q' + qNumber); 
         if (el) {
@@ -757,6 +688,7 @@
                 targetSpan.innerText = val;
             }
         }
+        updateProgressCount();
     }
     
     if (document.getElementById('countdown')) {
@@ -792,7 +724,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. TÁCH DÒNG NỘI DUNG TIẾNG TRUNG / PINYIN & NHẬN DIỆN CHỖ TRỐNG ( ____ )
+        updateProgressCount();
+
         document.querySelectorAll('.interleave-group').forEach(function(group) {
             let pinyinRaw = group.querySelector('.raw-pinyin');
             let chineseRaw = group.querySelector('.raw-chinese');
@@ -809,7 +742,6 @@
                     let pStr = i < pLines.length ? pLines[i] : "";
                     let cStr = i < cLines.length ? cLines[i] : "";
                     
-                    // Nâng cấp: Nhận diện cả ngoặc trống () lẫn ngoặc có gạch dưới ( ____ )
                     if (cStr) cStr = cStr.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
                     if (pStr) pStr = pStr.replace(/[(（][\s_]*[)）]/g, ' (<span class="auto-fill-pinyin"></span>) ');
 
@@ -824,23 +756,16 @@
             }
         });
 
-        // 2. TỰ ĐỘNG VẼ KHUNG Ô CHỮ ĐIỀN & CHỪA KHOẢNG TRỐNG BỘ THỦ (CÂU 51-55)
         const autoMissingPosMap = {
-            // Khuyết dưới (Bottom)
             '邦': 'B', '占': 'B', '烈': 'B', '然': 'B', '照': 'B', '黑': 'B', '分': 'B', '公': 'B', '今': 'B', '元': 'B', '先': 'B', '兄': 'B', '兑': 'B', '免': 'B',
-            // Khuyết trên (Top)
             '古': 'T', '平': 'T', '生': 'T', '田': 'T', '由': 'T', '甲': 'T', '申': 'T', '央': 'T', '奇': 'T', '合': 'T', '同': 'T', '名': 'T', '各': 'T', '字': 'T', '安': 'T', '完': 'T', '官': 'T', '定': 'T', '宜': 'T', '客': 'T', '宣': 'T', '室': 'T', '宫': 'T', '害': 'T', '家': 'T', '容': 'T', '宿': 'T', '寂': 'T', '寄': 'T', '密': 'T', '富': 'T', '寒': 'T',
-            // Khuyết phải (Right)
             '列': 'R', '则': 'R', '刚': 'R', '创': 'R', '别': 'R', '利': 'R', '到': 'R', '制': 'R', '刷': 'R', '刻': 'R', '前': 'R', '剧': 'R', '剩': 'R', '副': 'R', '割': 'R', '故': 'R', '政': 'R', '效': 'R', '敌': 'R', '敏': 'R', '救': 'R', '教': 'R', '敢': 'R', '散': 'R', '敬': 'R', '数': 'R', '整': 'R',
-            // Khuyết trái (Left) - Phổ biến nhất trong HSK 2
             '工': 'L', '旦': 'L', '董': 'L', '什': 'L', '他': 'L', '们': 'L', '付': 'L', '代': 'L', '令': 'L', '以': 'L', '仰': 'L', '件': 'L', '任': 'L', '份': 'L', '仿': 'L', '企': 'L', '伊': 'L', '伍': 'L', '伏': 'L', '伐': 'L', '休': 'L', '优': 'L', '伙': 'L', '会': 'L', '伟': 'L', '传': 'L', '伤': 'L', '伦': 'L', '伪': 'L', '伯': 'L', '估': 'L', '伴': 'L', '伶': 'L', '伸': 'L', '伺': 'L', '似': 'L', '伽': 'L', '但': 'L', '位': 'L', '低': 'L', '住': 'L', '佐': 'L', '佑': 'L', '体': 'L', '何': 'L', '余': 'L', '佛': 'L', '作': 'L', '你': 'L', '佣': 'L', '佩': 'L', '佳': 'L', '使': 'L', '侄': 'L', '侈': 'L', '例': 'L', '侍': 'L', '侗': 'L', '供': 'L', '依': 'L', '侠': 'L', '侣': 'L', '侥': 'L', '侦': 'L', '侧': 'L', '侨': 'L', '侬': 'L', '侮': 'L', '侯': 'L', '侵': 'L', '便': 'L', '促': 'L', '俄': 'L', '俊': 'L', '俎': 'L', '俏': 'L', '俐': 'L', '俑': 'L', '俗': 'L', '俘': 'L', '俚': 'L', '俜': 'L', '保': 'L', '俞': 'L', '俟': 'L', '信': 'L', '俨': 'L', '俩': 'L', '俪': 'L', '俭': 'L', '修': 'L', '俯': 'L', '俱': 'L', '俳': 'L', '俸': 'L', '俺': 'L', '俾': 'L', '倓': 'L', '俶': 'L', '倅': 'L', '倆': 'L', '仓': 'L', '倍': 'L', '倒': 'L', '倔': 'L', '倘': 'L', '候': 'L', '倚': 'L', '倜': 'L', '借': 'L', '倡': 'L', '倥': 'L', '倦': 'L', '倨': 'L', '倩': 'L', '倪': 'L', '倬': 'L', '倭': 'L', '倮': 'L', '债': 'L', '值': 'L', '倾': 'L', '偃': 'L', '假': 'L', '偈': 'L', '偏': 'L', '偕': 'L', '做': 'L', '停': 'L', '健': 'L', '偬': 'L', '偶': 'L', '偷': 'L', '偻': 'L', '偾': 'L', '偿': 'L', '傀': 'L', '傅': 'L', '傈': 'L', '傍': 'L', '滇': 'L', '傥': 'L', '傧': 'L', '储': 'L', '傩': 'L', '催': 'L', '傲': 'L', '傺': 'L', '傻': 'L', '像': 'L', '僖': 'L', '僚': 'L', '僦': 'L', '僧': 'L', '僬': 'L', '僭': 'L', '僮': 'L', '僳': 'L', '僵': 'L', '僻': 'L', '儆': 'L', '儇': 'L', '儋': 'L', '儒': 'L', '儡': 'L', '可': 'L', '台': 'L', '只': 'L', '召': 'L', '叮': 'L', '史': 'L', '右': 'L', '叶': 'L', '号': 'L', '司': 'L', '叹': 'L', '叼': 'L', '叽': 'L', '吁': 'L', '吃': 'L', '吉': 'L', '吊': 'L', '后': 'L', '吏': 'L', '吐': 'L', '向': 'L', '吒': 'L', '吓': 'L', '吕': 'L', '吗': 'L', '君': 'L', '吝': 'L', '吞': 'L', '吟': 'L', '吠': 'L', '吡': 'L', '吣': 'L', '否': 'L', '吧': 'L', '吨': 'L', '吩': 'L', '含': 'L', '听': 'L', '吭': 'L', '吮': 'L', '启': 'L', '吱': 'L', '吲': 'L', '吴': 'L', '吵': 'L', '呐': 'L', '吷': 'L', '吸': 'L', '吹': 'L', '吻': 'L', '吼': 'L', '吽': 'L', '吾': 'L', '告': 'L', '呀': 'L', '呃': 'L', '呆': 'L', '呈': 'L', '呋': 'L', '尺': 'L', '尼': 'L', '尽': 'L', '尾': 'L', '尿': 'L', '局': 'L', '屁': 'L', '层': 'L', '居': 'L', '屈': 'L', '届': 'L', '屋': 'L', '屎': 'L', '屏': 'L', '屐': 'L', '屑': 'L', '展': 'L', '屙': 'L', '属': 'L', '屠': 'L', '屡': 'L', '屣': 'L', '履': 'L', '屦': 'L', '屯': 'L', '山': 'L', '屹': 'L', '屺': 'L', '屿': 'L', '岁': 'L', '岂': 'L', '岈': 'L', '岌': 'L', '岍': 'L', '岐': 'L', '岑': 'L', '岔': 'L', '岖': 'L', '岗': 'L', '岘': 'L', '岙': 'L', '岚': 'L', '岛': 'L', '岜': 'L', '岢': 'L', '岣': 'L', '岩': 'L', '岫': 'L', '岬': 'L', '岭': 'L', '岱': 'L', '岳': 'L', '岵': 'L', '岷': 'L', '岸': 'L', '岿': 'L', '峁': 'L', '峄': 'L', '峋': 'L', '峒': 'L', '峙': 'L', '峡': 'L', '峤': 'L', '峥': 'L', '峦': 'L', '峨': 'L', '峪': 'L', '峭': 'L', '峰': 'L', '峻': 'L', '崂': 'L', '崃': 'L', '崆': 'L', '崇': 'L', '崎': 'L', '崔': 'L', '崖': 'L', '崛': 'L', '崞': 'L', '崤': 'L', '崦': 'L', '崧': 'L', '崩': 'L', '崭': 'L', '崮': 'L', '崴': 'L', '崽': 'L', '崾': 'L', '嵇': 'L', '嵊': 'L', '嵋': 'L', '嵌': 'L', '嵘': 'L', '嵛': 'L', '嵝': 'L', '嵩': 'L', '嵫': 'L', '嵬': 'L', '嵯': 'L', '嵴': 'L', '嶂': 'L', '嶙': 'L', '嶝': 'L', '嶷': 'L', '巅': 'L', '巍': 'L', '川': 'L', '州': 'L', '巡': 'L', '巢': 'L', '巧': 'L', '巨': 'L', '巩': 'L', '巫': 'L', '差': 'L', '己': 'L', '已': 'L', '巳': 'L', '巴': 'L', '巷': 'L', '巽': 'L', '巾': 'L', '币': 'L', '市': 'L', '布': 'L', '帅': 'L', '帆': 'L', '师': 'L', '希': 'L', '帏': 'L', '帐': 'L', '帑': 'L', '帔': 'L', '帕': 'L', '帖': 'L', '帘': 'L', '帙': 'L', '帚': 'L', '帛': 'L', '帜': 'L', '帝': 'L', '带': 'L', '帧': 'L', '席': 'L', '帮': 'L', '帱': 'L', '帷': 'L', '常': 'L', '帻': 'L', '帼': 'L', '帽': 'L', '幂': 'L', '幄': 'L', '幅': 'L', '幌': 'L', '幔': 'L', '幕': 'L', '幛': 'L', '幞': 'L', '幡': 'L', '幢': 'L', '干': 'L', '年': 'L', '并': 'L', '幸': 'L', '幺': 'L', '幻': 'L', '幼': 'L', '幽': 'L', '几': 'L', '广': 'L', '庀': 'L', '庆': 'L', '庇': 'L', '床': 'L', '庋': 'L', '序': 'L', '庐': 'L', '庑': 'L', '库': 'L', '应': 'L', '底': 'L', '庖': 'L', '店': 'L', '庙': 'L', '庚': 'L', '府': 'L', '庞': 'L', '废': 'L', '庠': 'L', '庥': 'L', '度': 'L', '座': 'L', '庭': 'L', '庳': 'L', '庵': 'L', '庶': 'L', '康': 'L', '庸': 'L', '庹': 'L', '庾': 'L', '廉': 'L', '廊': 'L', '廑': 'L', '廒': 'L', '廓': 'L', '廖': 'L', '廛': 'L', '廨': 'L', '廪': 'L', '延': 'L', '廷': 'L', '建': 'L', '廿': 'L', '开': 'L', '弁': 'L', '异': 'L', '弃': 'L', '弄': 'L', '弈': 'L', '弊': 'L', '弋': 'L', '式': 'L', '弑': 'L', '弓': 'L', '引': 'L', '弗': 'L', '弘': 'L', '弛': 'L', '弟': 'L', '张': 'L', '弥': 'L', '弦': 'L', '弧': 'L', '弩': 'L', '弭': 'L', '弯': 'L', '弱': 'L', '弹': 'L', '强': 'L', '弼': 'L', '彀': 'L', '归': 'L', '当': 'L', '录': 'L', '彖': 'L', '彗': 'L', '彘': 'L', '彝': 'L', '形': 'L', '彤': 'L', '彦': 'L', '彩': 'L', '彪': 'L', '彬': 'L', '彭': 'L', '彰': 'L', '影': 'L', '彳': 'L', '彷': 'L', '役': 'L', '彻': 'L', '彼': 'L', '往': 'L', '征': 'L', '徂': 'L', '待': 'L', '徇': 'L', '很': 'L', '徉': 'L', '徊': 'L', '律': 'L', '徐': 'L', '径': 'L', '徒': 'L', '得': 'L', '徘': 'L', '徙': 'L', '徛': 'L', '徜': 'L', '从': 'L', '徕': 'L', '御': 'L', '徨': 'L', '复': 'L', '循': 'L', '微': 'L', '德': 'L', '徼': 'L', '徽': 'L'
         };
 
         document.querySelectorAll('.tianzige-render').forEach(function(el) {
             let rawHanzi = (el.getAttribute('data-hanzi') || '').trim();
             let rawPinyin = (el.getAttribute('data-pinyin') || '').trim();
-            
-            // Phân tách ký hiệu hướng khuyết [L], [R], [T], [B], [BL], [TL] đi kèm từng chữ Hán
             let cleanHanzi = rawHanzi.replace(/\s+/g, '');
             let regex = /(\[(?:BL|TL|L|R|T|B)\])?([^\[\]]{1})/gi;
             let items = [];
@@ -850,33 +775,24 @@
             while ((match = regex.exec(cleanHanzi)) !== null) {
                 let tag = match[1] ? match[1].replace(/[\[\]]/g, '').toUpperCase() : '';
                 let char = match[2];
-                if (!hasExplicitTag && autoMissingPosMap[char]) {
-                    tag = autoMissingPosMap[char];
-                }
+                if (!hasExplicitTag && autoMissingPosMap[char]) { tag = autoMissingPosMap[char]; }
                 items.push({ char: char, pos: tag });
             }
 
             let pinyinWords = rawPinyin.split(/\s+/);
-            
             if (items.length > 0) {
                 let html = '<div class="tianzige-wrapper">';
                 for (let i = 0; i < items.length; i++) {
                     let h = items[i].char || '';
                     let posClass = items[i].pos ? `missing-${items[i].pos}` : '';
                     let p = pinyinWords[i] || '';
-                    html += `
-                        <div class="tianzige-col">
-                            <div class="tianzige-pinyin pinyin-text" style="margin:0;">${p}</div>
-                            <div class="tianzige-hanzi"><span class="hanzi-char ${posClass}">${h}</span></div>
-                        </div>
-                    `;
+                    html += `<div class="tianzige-col"><div class="tianzige-pinyin pinyin-text" style="margin:0;">${p}</div><div class="tianzige-hanzi"><span class="hanzi-char ${posClass}">${h}</span></div></div>`;
                 }
                 html += '</div>';
                 el.innerHTML = html;
             }
         });
 
-        // 3. XỬ LÝ RỔ ĐÁP ÁN CHỮ DÙNG CHUNG (A-F) & XÓA DẤU '/' THỪA
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -885,7 +801,7 @@
             for (let i = 1; i < parts.length; i += 2) {
                 let letter = parts[i].trim();
                 let content = parts[i+1] ? parts[i+1].trim() : "";
-                content = content.replace(/\/+$/, '').trim(); // Xóa dấu / ở cuối nếu có
+                content = content.replace(/\/+$/, '').trim();
                 if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
             }
             return dict;
@@ -921,7 +837,6 @@
             if (found) el.insertAdjacentHTML('afterend', html); 
         });
 
-        // 4. LÀM MỜ RỔ ĐÁP ÁN & TỰ ĐỘNG ĐIỀN CHỮ VÀO NGOẶC TRỐNG KHI CHỌN RADIO
         document.addEventListener('change', function(e) {
             if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
                 let wrapper = e.target.closest('.q-group-wrapper');
@@ -947,10 +862,10 @@
                         }
                     }
                 }
+                updateProgressCount();
             }
         });
 
-        // 5. TỰ ĐỘNG ĐIỀN CHỮ HÁN LÊN CÂU HỎI KHI HỌC VIÊN GÕ PHẦN VIẾT (CÂU 56-60)
         document.querySelectorAll('.input-chinese').forEach(function(input) {
             input.addEventListener('input', function() {
                 let questionRow = this.closest('.question-row');

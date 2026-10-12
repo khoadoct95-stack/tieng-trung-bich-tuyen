@@ -722,45 +722,63 @@ def import_excel(request):
 
         status_notes = []
 
-        # 2. XỬ LÝ FILE EXCEL (CẬP NHẬT ĐÈ TỪNG CÂU, GIỮ NGUYÊN ẢNH CŨ)
+        # 2. XỬ LÝ FILE EXCEL ĐỌC THÔNG MINH THEO TÊN CỘT
         if excel_file:
             try:
                 df = pd.read_excel(excel_file).fillna('')
-                if len(df.columns) < 14:
-                    messages.error(request, "❌ File Excel không đủ 14 cột chuẩn! Vui lòng kiểm tra lại.")
-                    if not is_updated:
-                        exam.delete()
-                    return redirect(request.path)
+                # Chuẩn hóa tên cột để dò tìm (viết thường, bỏ khoảng trắng thừa)
+                cols = [str(c).strip().lower() for c in df.columns]
 
                 q_count = 0
                 for index, row in df.iterrows():
-                    raw_q_num = str(row.iloc[0]).strip()
+                    # Hàm dò tìm giá trị linh hoạt theo tên cột
+                    def get_val(*keywords, default_idx):
+                        val = ''
+                        for kw in keywords:
+                            for i, c in enumerate(cols):
+                                if kw in c:
+                                    val = str(row.iloc[i]).strip()
+                                    break
+                            if val and val.lower() != 'nan':
+                                return val
+                        
+                        # Fallback về index mặc định nếu không khớp tên cột
+                        if default_idx < len(row):
+                            val = str(row.iloc[default_idx]).strip()
+                        return '' if val.lower() == 'nan' else val
+
+                    # Tìm số thứ tự câu
+                    raw_q_num = get_val('số tt', 'stt', default_idx=0)
                     if not raw_q_num:
                         continue
                     q_num_int = int(float(raw_q_num))
 
+                    # Tự động gán dữ liệu bất chấp vị trí cột
                     defaults_data = {
-                        'section_type': str(row.iloc[1]).strip(),
-                        'question_group': str(row.iloc[2]).strip(),
-                        'passage_text': str(row.iloc[3]).strip(),
-                        'passage_pinyin': str(row.iloc[4]).strip(),
-                        'content': str(row.iloc[5]).strip(),
-                        'content_pinyin': str(row.iloc[6]).strip(),
-                        'option_a': str(row.iloc[7]).strip(),
-                        'option_a_pinyin': str(row.iloc[8]).strip(),
-                        'option_b': str(row.iloc[9]).strip(),
-                        'option_b_pinyin': str(row.iloc[10]).strip(),
-                        'option_c': str(row.iloc[11]).strip(),
-                        'option_c_pinyin': str(row.iloc[12]).strip(),
+                        'section_type': get_val('phần thi', default_idx=1),
+                        'question_group': get_val('nhóm', default_idx=2),
+                        'passage_text': get_val('đoạn văn', default_idx=3),
+                        'passage_pinyin': get_val('pinyin đo', default_idx=4),
+                        'content': get_val('câu hỏi', default_idx=5),
+                        'content_pinyin': get_val('pinyin câu', default_idx=6),
+                        'option_a': get_val('nút a', 'đáp án a', default_idx=7),
+                        'option_a_pinyin': get_val('pinyin a', default_idx=8),
+                        'option_b': get_val('nút b', 'đáp án b', default_idx=9),
+                        'option_b_pinyin': get_val('pinyin b', default_idx=10),
+                        'option_c': get_val('nút c', 'đáp án c', default_idx=11),
+                        'option_c_pinyin': get_val('pinyin c', default_idx=12),
+                        'option_d': get_val('nút d', 'đáp án d', default_idx=13),
                     }
-
-                    # TỰ ĐỘNG NHẬN DIỆN: Nếu là Excel HSK 4 (có >= 16 cột) thì đọc thêm cột D
-                    if len(df.columns) >= 16:
-                        defaults_data['option_d'] = str(row.iloc[13]).strip()
-                        defaults_data['correct_answer'] = str(row.iloc[15]).strip().upper()
-                    else:
-                        # Nếu là Excel HSK 1,2,3 (chỉ có 14 cột)
-                        defaults_data['correct_answer'] = str(row.iloc[13]).strip().upper()
+                    
+                    # Ưu tiên tìm cột "Đáp án", nếu lệch thì dò tìm giá trị A,B,C,D ở các cột cuối
+                    ans = get_val('đáp án', 'correct', default_idx=15).upper()
+                    if ans not in ['A', 'B', 'C', 'D', 'E', 'F']:
+                        for i in range(13, len(row)):
+                            val = str(row.iloc[i]).strip().upper()
+                            if val in ['A', 'B', 'C', 'D', 'E', 'F']:
+                                ans = val
+                                break
+                    defaults_data['correct_answer'] = ans
 
                     ExamQuestion.objects.update_or_create(
                         exam=exam,

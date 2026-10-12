@@ -3,8 +3,8 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap)" rel="stylesheet">
+<link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
 <style>
     :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -39,8 +39,8 @@
     .opt-radio:checked + .opt-label { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
     .opt-radio:checked + .opt-label .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
     
-    /* Shared pool (Q33-42) */
-    .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+    /* Shared pool (Q33-42 & Q58-64) */
+    .shared-pool { background: #FAFAFA; padding: 20px 24px; }
     .shared-options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
     .shared-opt-item { background: #F0F9FF; border: 1.5px solid #BAE6FD; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; transition: all 0.3s ease; }
     .shared-opt-letter { margin-right: 15px; flex-shrink: 0; font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
@@ -171,7 +171,7 @@
                             {% with first_q_obj=group.list.0 %}
                                 <!-- ================= RỔ ĐÁP ÁN CHỮ DÙNG CHUNG (CÂU 33-37, 38-42) ================= -->
                                 {% if first_q_obj.question_number == 33 or first_q_obj.question_number == 38 %}
-                                    <div class="shared-pool">
+                                    <div class="shared-pool border-bottom">
                                         {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
                                             <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
                                         {% endif %}
@@ -328,7 +328,6 @@
 
 {% block extra_js %}
 <script>
-    // 1. Logic ẩn/hiện nút Scroll to Top
     window.addEventListener('scroll', function() {
         let btn = document.getElementById("back-to-top");
         if (btn) {
@@ -337,7 +336,6 @@
         }
     });
 
-    // 2. Logic Nạp Audio qua Fetch Blob
     document.addEventListener("DOMContentLoaded", function() {
         const audioEl = document.getElementById('exam-audio');
         if (audioEl && audioEl.dataset.src) {
@@ -348,7 +346,6 @@
         }
     });
 
-    // Cập nhật bộ đếm câu
     function updateProgressCount() {
         let totalDone = document.querySelectorAll('.grid-item.done').length;
         document.querySelectorAll('.progress-count-text').forEach(el => {
@@ -423,36 +420,8 @@
         document.getElementById('exam-form').submit();
     }
 
-    // TÍNH NĂNG LÀM MỜ TỰ ĐỘNG CHUNG CHO TẤT CẢ CÁC FORM ĐIỀN TỪ (Q33-42 VÀ Q58-64)
+    // TÍNH NĂNG LÀM MỜ TỰ ĐỘNG (Dùng chung cho TẤT CẢ các rổ đáp án)
     function updatePoolDims() {
-        // 1. Quét làm mờ cho HTML dạng Grid nhúng từ DB (Câu 58-64)
-        document.querySelectorAll('.shared-passage-header').forEach(header => {
-            let poolOptions = header.querySelectorAll('.pool-option');
-            if(poolOptions.length > 0) {
-                let selectedVals = [];
-                let currNode = header.nextElementSibling;
-                while(currNode && currNode.classList && (currNode.classList.contains('grouped-first') || currNode.classList.contains('grouped-next'))) {
-                    let checked = currNode.querySelector('input[type="radio"]:checked');
-                    if(checked) selectedVals.push(checked.value);
-                    currNode = currNode.nextElementSibling;
-                }
-                
-                poolOptions.forEach(opt => {
-                    opt.style.transition = 'all 0.3s ease';
-                    if(selectedVals.includes(opt.getAttribute('data-opt'))) {
-                        opt.style.opacity = '0.35';
-                        opt.style.filter = 'grayscale(100%)';
-                        opt.style.pointerEvents = 'none';
-                    } else {
-                        opt.style.opacity = '1';
-                        opt.style.filter = 'none';
-                        opt.style.pointerEvents = 'auto';
-                    }
-                });
-            }
-        });
-
-        // 2. Quét làm mờ cho cấu trúc sinh tự động cũ (Câu 33-42)
         document.querySelectorAll('.q-group-wrapper').forEach(wrapper => {
             let poolItems = wrapper.querySelectorAll('.pool-item');
             if(poolItems.length > 0) {
@@ -470,14 +439,14 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        // Nhận diện chỗ trống cho Auto-fill câu 33-42
+        // 1. Nhận diện chỗ trống cho Auto-fill câu 33-42
         document.querySelectorAll('.q-raw-text').forEach(function(el) {
             let html = el.innerHTML;
             html = html.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
             el.innerHTML = html;
         });
 
-        // Gộp đoạn văn chung
+        // 2. Tách đoạn văn và rổ đáp án (Dựa trên từ khóa |OPTIONS|)
         const rowsPassage = Array.from(document.querySelectorAll('.question-row')).filter(row => {
             const idNum = parseInt((row.id || '').replace('q', ''), 10);
             return idNum >= 43 && idNum <= 64;
@@ -504,7 +473,16 @@
                 if (groupRows.length > 1) {
                     let firstNum = currNum;
                     let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+                    
                     let processedText = currText;
+                    let optionsText = "";
+                    
+                    // Logic tách hộp rổ đáp án độc lập
+                    if (processedText.includes('|OPTIONS|')) {
+                        let parts = processedText.split('|OPTIONS|');
+                        processedText = parts[0];
+                        optionsText = parts[1] || "";
+                    }
                     
                     if (firstNum >= 58) {
                         processedText = processedText.replace(/(?:(\d{2})\s*[（(][.…]*[)）]|[（(]\s*(\d{2})\s*[.…]*[)）])/g, function(match, p1, p2) {
@@ -515,7 +493,18 @@
 
                     let sharedHeader = document.createElement('div');
                     sharedHeader.className = 'shared-passage-header';
-                    sharedHeader.innerHTML = `<div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题</div><div class="chinese-text shared-passage-content">${processedText}</div>`;
+                    
+                    let headerHTML = `<div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题</div>
+                                      <div class="chinese-text shared-passage-content">${processedText}</div>`;
+                    
+                    // Nếu có rổ đáp án, tạo thêm 1 khối hộp xám mượt mà bên dưới
+                    if (optionsText) {
+                        headerHTML += `<div class="shared-pool mt-3" style="border-radius: 8px; border: 1px solid var(--border-color);">
+                                           <div class="format-shared-options visually-hidden">${optionsText}</div>
+                                       </div>`;
+                    }
+                    
+                    sharedHeader.innerHTML = headerHTML;
                     currRow.parentNode.insertBefore(sharedHeader, currRow);
 
                     groupRows.forEach((r, idx) => {
@@ -530,7 +519,7 @@
             i++;
         }
 
-        // Render cấu trúc rổ cũ (Câu 33-42)
+        // 3. Render giao diện Rổ đáp án (Chạy tự động cho cả Q33-42 và Q58-64)
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -559,7 +548,7 @@
             if (found) el.insertAdjacentHTML('afterend', html);
         });
 
-        // Kích hoạt sự kiện Auto-fill & Dimming
+        // 4. Kích hoạt sự kiện Auto-fill & Dimming
         document.addEventListener('change', function(e) {
             if (e.target && e.target.matches('.circle-radio, .opt-radio')) {
                 // Cập nhật làm mờ
@@ -578,7 +567,7 @@
             }
         });
         
-        // Khởi động làm mờ khi vừa load trang (lỡ người dùng bấm F5 reload)
+        // Khởi động làm mờ khi vừa load trang
         setTimeout(updatePoolDims, 300);
     });
 </script>

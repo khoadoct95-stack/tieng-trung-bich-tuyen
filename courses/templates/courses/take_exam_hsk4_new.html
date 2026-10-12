@@ -241,31 +241,39 @@
                                             <div class="row g-2 mt-1">
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_A_txt">
-                                                        <span class="opt-circle me-2">A</span>
-                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_a|default:""|safe }}</div>
+                                                    <label class="opt-label {% if not q.option_a or q.option_a == 'nan' or q.option_a == 'A' or q.option_a == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_A_txt">
+                                                        <span class="opt-circle {% if q.option_a and q.option_a != 'nan' and q.option_a != 'A' and q.option_a != '&nbsp;' %}me-2{% endif %}">A</span>
+                                                        {% if q.option_a and q.option_a != 'nan' and q.option_a != 'A' and q.option_a != '&nbsp;' %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_a|safe }}</div>
+                                                        {% endif %}
                                                     </label>
                                                 </div>
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_B_txt">
-                                                        <span class="opt-circle me-2">B</span>
-                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_b|default:""|safe }}</div>
+                                                    <label class="opt-label {% if not q.option_b or q.option_b == 'nan' or q.option_b == 'B' or q.option_b == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_B_txt">
+                                                        <span class="opt-circle {% if q.option_b and q.option_b != 'nan' and q.option_b != 'B' and q.option_b != '&nbsp;' %}me-2{% endif %}">B</span>
+                                                        {% if q.option_b and q.option_b != 'nan' and q.option_b != 'B' and q.option_b != '&nbsp;' %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_b|safe }}</div>
+                                                        {% endif %}
                                                     </label>
                                                 </div>
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_C_txt">
-                                                        <span class="opt-circle me-2">C</span>
-                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_c|default:""|safe }}</div>
+                                                    <label class="opt-label {% if not q.option_c or q.option_c == 'nan' or q.option_c == 'C' or q.option_c == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_C_txt">
+                                                        <span class="opt-circle {% if q.option_c and q.option_c != 'nan' and q.option_c != 'C' and q.option_c != '&nbsp;' %}me-2{% endif %}">C</span>
+                                                        {% if q.option_c and q.option_c != 'nan' and q.option_c != 'C' and q.option_c != '&nbsp;' %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_c|safe }}</div>
+                                                        {% endif %}
                                                     </label>
                                                 </div>
                                                 {% if q.option_d and q.option_d != 'nan' %}
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})">
-                                                    <label class="opt-label" for="q{{ q.id }}_D_txt">
-                                                        <span class="opt-circle me-2">D</span>
-                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_d|default:""|safe }}</div>
+                                                    <label class="opt-label {% if not q.option_d or q.option_d == 'nan' or q.option_d == 'D' or q.option_d == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_D_txt">
+                                                        <span class="opt-circle {% if q.option_d and q.option_d != 'nan' and q.option_d != 'D' and q.option_d != '&nbsp;' %}me-2{% endif %}">D</span>
+                                                        {% if q.option_d and q.option_d != 'nan' and q.option_d != 'D' and q.option_d != '&nbsp;' %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_d|safe }}</div>
+                                                        {% endif %}
                                                     </label>
                                                 </div>
                                                 {% endif %}
@@ -313,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Nút cuộn trang SVG viết liền 1 dòng theo chuẩn Rule 1 -->
+    <!-- Nút cuộn trang SVG -->
     <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Lên đầu trang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: #fff;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 </div>
 {% endblock %}
@@ -329,7 +337,7 @@
         }
     });
 
-    // 2. Logic Nạp Audio qua Fetch Blob để chống giật tua
+    // 2. Logic Nạp Audio qua Fetch Blob
     document.addEventListener("DOMContentLoaded", function() {
         const audioEl = document.getElementById('exam-audio');
         if (audioEl && audioEl.dataset.src) {
@@ -372,9 +380,8 @@
         }
     }
 
-    // Xử lý đếm chữ câu 70
     function updateWordCount(textareaEl, qNumber) {
-        let textVal = textareaEl.value.replace(/\s/g, ''); // Bỏ qua khoảng trắng
+        let textVal = textareaEl.value.replace(/\s/g, ''); 
         let wordCount = textVal.length;
         let countSpan = document.getElementById('q70-word-count');
         if (countSpan) {
@@ -416,15 +423,61 @@
         document.getElementById('exam-form').submit();
     }
 
+    // TÍNH NĂNG LÀM MỜ TỰ ĐỘNG CHUNG CHO TẤT CẢ CÁC FORM ĐIỀN TỪ (Q33-42 VÀ Q58-64)
+    function updatePoolDims() {
+        // 1. Quét làm mờ cho HTML dạng Grid nhúng từ DB (Câu 58-64)
+        document.querySelectorAll('.shared-passage-header').forEach(header => {
+            let poolOptions = header.querySelectorAll('.pool-option');
+            if(poolOptions.length > 0) {
+                let selectedVals = [];
+                let currNode = header.nextElementSibling;
+                while(currNode && currNode.classList && (currNode.classList.contains('grouped-first') || currNode.classList.contains('grouped-next'))) {
+                    let checked = currNode.querySelector('input[type="radio"]:checked');
+                    if(checked) selectedVals.push(checked.value);
+                    currNode = currNode.nextElementSibling;
+                }
+                
+                poolOptions.forEach(opt => {
+                    opt.style.transition = 'all 0.3s ease';
+                    if(selectedVals.includes(opt.getAttribute('data-opt'))) {
+                        opt.style.opacity = '0.35';
+                        opt.style.filter = 'grayscale(100%)';
+                        opt.style.pointerEvents = 'none';
+                    } else {
+                        opt.style.opacity = '1';
+                        opt.style.filter = 'none';
+                        opt.style.pointerEvents = 'auto';
+                    }
+                });
+            }
+        });
+
+        // 2. Quét làm mờ cho cấu trúc sinh tự động cũ (Câu 33-42)
+        document.querySelectorAll('.q-group-wrapper').forEach(wrapper => {
+            let poolItems = wrapper.querySelectorAll('.pool-item');
+            if(poolItems.length > 0) {
+                let checkedRadios = wrapper.querySelectorAll('.circle-radio:checked:not([disabled]), .opt-radio:checked:not([disabled])');
+                let selectedValues = Array.from(checkedRadios).map(r => r.value);
+                poolItems.forEach(item => {
+                    if (selectedValues.includes(item.getAttribute('data-letter'))) {
+                        item.classList.add('used-item');
+                    } else {
+                        item.classList.remove('used-item');
+                    }
+                });
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
-        // Nhận diện chỗ trống (____) cho Auto-fill câu 33-42
+        // Nhận diện chỗ trống cho Auto-fill câu 33-42
         document.querySelectorAll('.q-raw-text').forEach(function(el) {
             let html = el.innerHTML;
             html = html.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
             el.innerHTML = html;
         });
 
-        // Gộp các câu dùng chung đoạn văn đọc hiểu (Câu 43-64)
+        // Gộp đoạn văn chung
         const rowsPassage = Array.from(document.querySelectorAll('.question-row')).filter(row => {
             const idNum = parseInt((row.id || '').replace('q', ''), 10);
             return idNum >= 43 && idNum <= 64;
@@ -435,7 +488,7 @@
             let currRow = rowsPassage[i];
             let currNum = parseInt(currRow.id.replace('q', ''), 10);
             let currPassageEl = currRow.querySelector('.q-passage-box');
-            let currText = currPassageEl ? currPassageEl.innerHTML : ''; // Lấy innerHTML để giữ thẻ <br>
+            let currText = currPassageEl ? currPassageEl.innerHTML : '';
 
             if (currText.trim()) {
                 let groupRows = [currRow];
@@ -451,11 +504,9 @@
                 if (groupRows.length > 1) {
                     let firstNum = currNum;
                     let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
-
-                    // XỬ LÝ TẠO KHOẢNG TRỐNG CÓ SỐ CÂU NẰM TRÊN (Cho nhóm 58-64)
                     let processedText = currText;
+                    
                     if (firstNum >= 58) {
-                        // Bắt mọi định dạng: (58), 58(), 58(....), （58）
                         processedText = processedText.replace(/(?:(\d{2})\s*[（(][.…]*[)）]|[（(]\s*(\d{2})\s*[.…]*[)）])/g, function(match, p1, p2) {
                             let num = p1 || p2;
                             return `<span class="pinyin-blank-ruby" style="margin: 0 6px;"><span class="pinyin-blank-top" style="color: var(--success-color); font-weight: 800; font-size: 1rem;">${num}</span><span>（<span style="display: inline-block; min-width: 40px; border-bottom: 1.5px dashed var(--success-color); margin: 0 2px;"></span>）</span></span>`;
@@ -479,7 +530,7 @@
             i++;
         }
 
-        // Parse rổ đáp án dùng chung
+        // Render cấu trúc rổ cũ (Câu 33-42)
         function parseOptions(text) {
             let dict = {};
             if (!text) return dict;
@@ -508,22 +559,16 @@
             if (found) el.insertAdjacentHTML('afterend', html);
         });
 
-        // Logic Auto-fill & Dimming
+        // Kích hoạt sự kiện Auto-fill & Dimming
         document.addEventListener('change', function(e) {
-            if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
+            if (e.target && e.target.matches('.circle-radio, .opt-radio')) {
+                // Cập nhật làm mờ
+                updatePoolDims();
+
+                // Cập nhật Auto-fill text lên chỗ trống (Cho câu 33-42)
                 let wrapper = e.target.closest('.q-group-wrapper');
-                if (!wrapper) return;
-
-                let checkedRadios = wrapper.querySelectorAll('.circle-radio:checked:not([disabled]), .opt-radio:checked:not([disabled])');
-                let selectedValues = Array.from(checkedRadios).map(r => r.value);
-
-                wrapper.querySelectorAll('.pool-item').forEach(item => {
-                    if (selectedValues.includes(item.getAttribute('data-letter'))) item.classList.add('used-item');
-                    else item.classList.remove('used-item');
-                });
-
                 let questionRow = e.target.closest('.question-row');
-                if (questionRow) {
+                if (wrapper && questionRow) {
                     let targetSpan = questionRow.querySelector('.auto-fill-target');
                     if (targetSpan) {
                         let poolItem = wrapper.querySelector(`.pool-item[data-letter="${e.target.value}"]`);
@@ -532,6 +577,9 @@
                 }
             }
         });
+        
+        // Khởi động làm mờ khi vừa load trang (lỡ người dùng bấm F5 reload)
+        setTimeout(updatePoolDims, 300);
     });
 </script>
 {% endblock %}

@@ -722,61 +722,63 @@ def import_excel(request):
 
         status_notes = []
 
-        # 2. XỬ LÝ FILE EXCEL ĐỌC THÔNG MINH THEO TÊN CỘT
+        # 2. XỬ LÝ FILE EXCEL (ĐỌC TRỰC TIẾP THEO TÊN CỘT)
         if excel_file:
             try:
                 df = pd.read_excel(excel_file).fillna('')
-                # Chuẩn hóa tên cột để dò tìm (viết thường, bỏ khoảng trắng thừa)
-                cols = [str(c).strip().lower() for c in df.columns]
+                # Chuyển DataFrame thành danh sách các từ điển (Dict) để bắt chính xác tên cột
+                records = df.to_dict('records')
+                
+                # Chuẩn hóa tên cột: Viết thường, xóa khoảng trắng thừa
+                cleaned_records = []
+                for rec in records:
+                    clean_rec = {str(k).strip().lower(): str(v).strip() for k, v in rec.items()}
+                    cleaned_records.append(clean_rec)
 
                 q_count = 0
-                for index, row in df.iterrows():
-                    # Hàm dò tìm giá trị linh hoạt theo tên cột
-                    def get_val(*keywords, default_idx):
-                        val = ''
-                        for kw in keywords:
-                            for i, c in enumerate(cols):
-                                if kw in c:
-                                    val = str(row.iloc[i]).strip()
-                                    break
-                            if val and val.lower() != 'nan':
-                                return val
-                        
-                        # Fallback về index mặc định nếu không khớp tên cột
-                        if default_idx < len(row):
-                            val = str(row.iloc[default_idx]).strip()
-                        return '' if val.lower() == 'nan' else val
-
-                    # Tìm số thứ tự câu
-                    raw_q_num = get_val('số tt', 'stt', default_idx=0)
-                    if not raw_q_num:
+                for row in cleaned_records:
+                    # Lấy số thứ tự câu
+                    q_num = row.get('số tt') or row.get('stt') or row.get('câu') or row.get('số thứ tự')
+                    if not q_num:
+                        q_num = list(row.values())[0] # Lấy cột đầu tiên nếu tên cột lạ
+                    if not q_num or str(q_num).lower() == 'nan':
                         continue
-                    q_num_int = int(float(raw_q_num))
+                        
+                    q_num_int = int(float(q_num))
 
-                    # Tự động gán dữ liệu bất chấp vị trí cột
+                    # Hàm tìm giá trị linh hoạt theo từ khóa trong tên cột
+                    def get_val(*keys):
+                        for k in keys:
+                            for row_key, row_val in row.items():
+                                if k in row_key:
+                                    if row_val and row_val.lower() != 'nan':
+                                        return row_val
+                        return ''
+
+                    # Bắt đúng dữ liệu theo tên cột bạn đang thấy trên Excel
                     defaults_data = {
-                        'section_type': get_val('phần thi', default_idx=1),
-                        'question_group': get_val('nhóm', default_idx=2),
-                        'passage_text': get_val('đoạn văn', default_idx=3),
-                        'passage_pinyin': get_val('pinyin đo', default_idx=4),
-                        'content': get_val('câu hỏi', default_idx=5),
-                        'content_pinyin': get_val('pinyin câu', default_idx=6),
-                        'option_a': get_val('nút a', 'đáp án a', default_idx=7),
-                        'option_a_pinyin': get_val('pinyin a', default_idx=8),
-                        'option_b': get_val('nút b', 'đáp án b', default_idx=9),
-                        'option_b_pinyin': get_val('pinyin b', default_idx=10),
-                        'option_c': get_val('nút c', 'đáp án c', default_idx=11),
-                        'option_c_pinyin': get_val('pinyin c', default_idx=12),
-                        'option_d': get_val('nút d', 'đáp án d', default_idx=13),
+                        'section_type': get_val('phần thi', 'section'),
+                        'question_group': get_val('nhóm', 'group'),
+                        'passage_text': get_val('đoạn văn', 'passage'),
+                        'passage_pinyin': get_val('pinyin đo'),
+                        'content': get_val('câu hỏi', 'content'),
+                        'content_pinyin': get_val('pinyin câ', 'pinyin cau'),
+                        'option_a': get_val('nút a', 'đáp án a'),
+                        'option_a_pinyin': get_val('pinyin a'),
+                        'option_b': get_val('nút b', 'đáp án b'),
+                        'option_b_pinyin': get_val('pinyin b'),
+                        'option_c': get_val('nút c', 'đáp án c'),
+                        'option_c_pinyin': get_val('pinyin c'),
+                        'option_d': get_val('nút d', 'đáp án d'),
                     }
                     
-                    # Ưu tiên tìm cột "Đáp án", nếu lệch thì dò tìm giá trị A,B,C,D ở các cột cuối
-                    ans = get_val('đáp án', 'correct', default_idx=15).upper()
+                    # Ưu tiên lấy đáp án đúng
+                    ans = get_val('đáp án', 'correct').upper()
                     if ans not in ['A', 'B', 'C', 'D', 'E', 'F']:
-                        for i in range(13, len(row)):
-                            val = str(row.iloc[i]).strip().upper()
-                            if val in ['A', 'B', 'C', 'D', 'E', 'F']:
-                                ans = val
+                        # Nếu cột Đáp án bị đặt tên khác, quét ngược 3 cột cuối cùng tìm A/B/C/D
+                        for val in reversed(list(row.values())):
+                            if str(val).upper() in ['A', 'B', 'C', 'D', 'E', 'F']:
+                                ans = str(val).upper()
                                 break
                     defaults_data['correct_answer'] = ans
 

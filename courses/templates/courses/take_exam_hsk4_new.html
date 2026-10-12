@@ -455,8 +455,11 @@
                     // XỬ LÝ TẠO KHOẢNG TRỐNG CÓ SỐ CÂU NẰM TRÊN (Cho nhóm 58-64)
                     let processedText = currText;
                     if (firstNum >= 58) {
-                        // Tự động tìm chuỗi (58), (59) và biến thành khoảng trống điền từ
-                        processedText = processedText.replace(/[(（]\s*(\d{2})\s*[)）]/g, '<span class="pinyin-blank-ruby" style="margin: 0 4px;"><span class="pinyin-blank-top" style="color: var(--success-color); font-weight: 800; font-size: 1rem;">$1</span><span>（<span style="display: inline-block; min-width: 35px; border-bottom: 1.5px dashed var(--success-color); margin: 0 2px;"></span>）</span></span>');
+                        // Bắt mọi định dạng: (58), 58(), 58(....), （58）
+                        processedText = processedText.replace(/(?:(\d{2})\s*[（(][.…]*[)）]|[（(]\s*(\d{2})\s*[.…]*[)）])/g, function(match, p1, p2) {
+                            let num = p1 || p2;
+                            return `<span class="pinyin-blank-ruby" style="margin: 0 6px;"><span class="pinyin-blank-top" style="color: var(--success-color); font-weight: 800; font-size: 1rem;">${num}</span><span>（<span style="display: inline-block; min-width: 40px; border-bottom: 1.5px dashed var(--success-color); margin: 0 2px;"></span>）</span></span>`;
+                        });
                     }
 
                     let sharedHeader = document.createElement('div');

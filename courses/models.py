@@ -101,7 +101,12 @@ class Exam(models.Model):
     listening_audio = models.FileField(upload_to='exam_audios/', blank=True, null=True, verbose_name="File Audio toàn bài") 
     description = models.TextField(blank=True, null=True, verbose_name="Mô tả đề thi")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
-    exam_type = models.CharField(max_length=10, default='new', choices=[('new', 'HSK 3.0'), ('old', 'HSK Bản cũ')], verbose_name="Loại đề thi")
+    exam_type = models.CharField(
+    max_length=10, 
+    default='new', 
+    choices=[('new', 'Chuẩn HSK 3.0'), ('old', 'Chuẩn HSK Cũ')], 
+    verbose_name="Loại đề thi"
+)
 
     class Meta:
         verbose_name = "Đề thi"

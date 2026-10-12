@@ -225,10 +225,46 @@
                                         <!-- PHẦN TRẮC NGHIỆM 4 ĐÁP ÁN A, B, C, D (NGHE & ĐỌC CÒN LẠI) -->
                                         {% else %}
                                             <div class="row g-2 mt-1">
-                                                {% if q.option_a %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_A_txt"><span class="opt-circle me-2">A</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_a }}</div></label></div>{% endif %}
-                                                {% if q.option_b %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_B_txt"><span class="opt-circle me-2">B</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_b }}</div></label></div>{% endif %}
-                                                {% if q.option_c %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_C_txt"><span class="opt-circle me-2">C</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_c }}</div></label></div>{% endif %}
-                                                {% if q.option_d %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_D_txt"><span class="opt-circle me-2">D</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_d }}</div></label></div>{% endif %}
+                                                <!-- Đáp án A -->
+                                                <div class="col-md-6 col-lg-3">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label {% if not q.option_a or q.option_a == 'nan' %}justify-content-center{% endif %}" for="q{{ q.id }}_A_txt">
+                                                        <span class="opt-circle {% if q.option_a and q.option_a != 'nan' %}me-2{% endif %}">A</span>
+                                                        {% if q.option_a and q.option_a != 'nan' %}
+                                                        <div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_a }}</div></div>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                                <!-- Đáp án B -->
+                                                <div class="col-md-6 col-lg-3">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label {% if not q.option_b or q.option_b == 'nan' %}justify-content-center{% endif %}" for="q{{ q.id }}_B_txt">
+                                                        <span class="opt-circle {% if q.option_b and q.option_b != 'nan' %}me-2{% endif %}">B</span>
+                                                        {% if q.option_b and q.option_b != 'nan' %}
+                                                        <div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_b }}</div></div>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                                <!-- Đáp án C -->
+                                                <div class="col-md-6 col-lg-3">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label {% if not q.option_c or q.option_c == 'nan' %}justify-content-center{% endif %}" for="q{{ q.id }}_C_txt">
+                                                        <span class="opt-circle {% if q.option_c and q.option_c != 'nan' %}me-2{% endif %}">C</span>
+                                                        {% if q.option_c and q.option_c != 'nan' %}
+                                                        <div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_c }}</div></div>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                                <!-- Đáp án D -->
+                                                <div class="col-md-6 col-lg-3">
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="opt-label {% if not q.option_d or q.option_d == 'nan' %}justify-content-center{% endif %}" for="q{{ q.id }}_D_txt">
+                                                        <span class="opt-circle {% if q.option_d and q.option_d != 'nan' %}me-2{% endif %}">D</span>
+                                                        {% if q.option_d and q.option_d != 'nan' %}
+                                                        <div><div class="chinese-text" style="font-size: 1rem;">{{ q.option_d }}</div></div>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
                                             </div>
                                         {% endif %}
                                     </div>

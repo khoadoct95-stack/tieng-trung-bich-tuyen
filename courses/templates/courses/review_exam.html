@@ -574,39 +574,50 @@
             return false;
         });
         
-        let idx = 0;
-        while (idx < rowsPassage.length) {
-            let currRow = rowsPassage[idx];
+        let i = 0;
+        while (i < rowsPassage.length) {
+            let currRow = rowsPassage[i];
             let currNum = parseInt(currRow.id.replace('q', ''), 10);
             let currPassageEl = currRow.querySelector('.q-passage-box');
-            let currText = currPassageEl ? currPassageEl.innerText.trim() : '';
-            if (currText) {
+            let currText = currPassageEl ? currPassageEl.innerHTML : ''; // Lấy innerHTML để giữ thẻ <br>
+
+            if (currText.trim()) {
                 let groupRows = [currRow];
-                let j = idx + 1;
+                let j = i + 1;
                 while (j < rowsPassage.length) {
                     let nextRow = rowsPassage[j];
                     let nextPassageEl = nextRow.querySelector('.q-passage-box');
-                    let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
-                    if (nextText === currText) { groupRows.push(nextRow); j++; } else { break; }
+                    let nextText = nextPassageEl ? nextPassageEl.innerHTML : '';
+                    if (nextText.trim() === currText.trim()) { groupRows.push(nextRow); j++; } 
+                    else { break; }
                 }
+
                 if (groupRows.length > 1) {
+                    let firstNum = currNum;
                     let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+
+                    // XỬ LÝ TẠO KHOẢNG TRỐNG CÓ SỐ CÂU NẰM TRÊN (Cho nhóm 58-64)
+                    let processedText = currText;
+                    if (firstNum >= 58) {
+                        // Tự động tìm chuỗi (58), (59) và biến thành khoảng trống điền từ
+                        processedText = processedText.replace(/[(（]\s*(\d{2})\s*[)）]/g, '<span class="pinyin-blank-ruby" style="margin: 0 4px;"><span class="pinyin-blank-top" style="color: var(--success-color); font-weight: 800; font-size: 1rem;">$1</span><span>（<span style="display: inline-block; min-width: 35px; border-bottom: 1.5px dashed var(--success-color); margin: 0 2px;"></span>）</span></span>');
+                    }
+
                     let sharedHeader = document.createElement('div');
                     sharedHeader.className = 'shared-passage-header';
-                    sharedHeader.innerHTML = `
-                        <div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${currNum}–${lastNum} 题</div>
-                        <div class="chinese-text shared-passage-content">${currPassageEl.innerHTML}</div>
-                    `;
+                    sharedHeader.innerHTML = `<div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题</div><div class="chinese-text shared-passage-content">${processedText}</div>`;
                     currRow.parentNode.insertBefore(sharedHeader, currRow);
-                    groupRows.forEach(r => {
+
+                    groupRows.forEach((r, idx) => {
                         let pBox = r.querySelector('.q-passage-box');
                         if (pBox) pBox.remove();
+                        r.classList.add(idx === 0 ? 'grouped-first' : 'grouped-next');
                     });
-                    idx = j;
+                    i = j;
                     continue;
                 }
             }
-            idx++;
+            i++;
         }
 
         // 4. VẼ KHUNG Ô CHỮ ĐIỀN (TIANZIGE) HSK 2 CÂU 51-55

@@ -355,12 +355,27 @@ def take_exam(request, exam_id):
             submitted_answer = request.POST.get(f'q_{q.id}', '').strip().upper()
             user_answers_dict[str(q.id)] = submitted_answer
 
-        # Chấm riêng nhóm câu 66-70 của HSK 3 bằng AI + Bộ lọc ngữ pháp
-        hsk3_writing_results = {}
+        # Chấm riêng nhóm câu Viết bằng AI + Bộ lọc ngữ pháp
+        writing_results = {}
         if exam.hsk_level == 3:
             q_66_70 = [q for q in questions if q.question_number >= 66]
-            hsk3_writing_results = grade_hsk3_writing_ai(q_66_70, user_answers_dict)
-            user_answers_dict['ai_graded'] = hsk3_writing_results
+            writing_results = grade_hsk3_writing_ai(q_66_70, user_answers_dict)
+            user_answers_dict['ai_graded'] = writing_results
+            
+        elif exam.hsk_level == 4:
+            # Chấm câu 65-69 (đặt câu với từ) bằng logic tương tự HSK 3
+            q_65_69 = [q for q in questions if 65 <= q.question_number <= 69]
+            writing_results = grade_hsk3_writing_ai(q_65_69, user_answers_dict)
+            
+            # Chấm câu 70 (Viết bài luận >= 80 chữ)
+            q_70 = questions.filter(question_number=70).first()
+            if q_70:
+                ans_70 = user_answers_dict.get(str(q_70.id), '')
+                word_count = len(re.sub(r'\s', '', ans_70))
+                # Tạm thời chấm đỗ nếu đạt đủ 80 chữ (bạn có thể viết thêm prompt AI riêng cho câu này sau)
+                writing_results[str(q_70.id)] = word_count >= 80 
+                
+            user_answers_dict['ai_graded'] = writing_results
 
         # Chấm điểm chi tiết từng câu
         for q in questions:
@@ -368,8 +383,9 @@ def take_exam(request, exam_id):
             correct_ans = str(q.correct_answer).strip().upper()
 
             if submitted_answer:
-                if exam.hsk_level == 3 and q.question_number >= 66:
-                    if hsk3_writing_results.get(str(q.id), False):
+                # Xử lý kết quả AI cho HSK 3 và 4
+                if (exam.hsk_level == 3 and q.question_number >= 66) or (exam.hsk_level == 4 and q.question_number >= 65):
+                    if writing_results.get(str(q.id), False):
                         total_correct += 1
                 elif submitted_answer == correct_ans:
                     total_correct += 1
@@ -411,6 +427,8 @@ def take_exam(request, exam_id):
         return render(request, 'courses/take_exam_hsk2_new.html', context)
     elif exam.hsk_level == 3:
         return render(request, 'courses/take_exam_hsk3_new.html', context)
+    elif exam.hsk_level == 4:
+        return render(request, 'courses/take_exam_hsk4_new.html', context)
             
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 
@@ -436,12 +454,20 @@ def review_exam(request, result_id):
         q.correct_ans = str(raw_correct).strip().upper() if raw_correct else ''
         keyword = str(q.content).strip().upper() if q.content else ''
         
-        if exam.hsk_level == 3 and q.question_number >= 66 and keyword:
+        # Đồng bộ logic lấy kết quả AI cho HSK 3 (câu >= 66) và HSK 4 (câu >= 65)
+        is_hsk3_writing = (exam.hsk_level == 3 and q.question_number >= 66)
+        is_hsk4_writing = (exam.hsk_level == 4 and q.question_number >= 65)
+        
+        if (is_hsk3_writing or is_hsk4_writing) and keyword:
             ai_graded = result.user_answers.get('ai_graded', {})
             if str(q.id) in ai_graded:
                 q.is_correct = bool(ai_graded[str(q.id)])
             else:
-                q.is_correct = check_chinese_sentence_rules(q.user_ans, keyword)
+                # Fallback nếu không có dữ liệu AI
+                if q.question_number == 70 and exam.hsk_level == 4:
+                    q.is_correct = len(re.sub(r'\s', '', q.user_ans)) >= 80
+                else:
+                    q.is_correct = check_chinese_sentence_rules(q.user_ans, keyword)
         else:
             q.is_correct = (q.user_ans == q.correct_ans and q.user_ans != '')
 

@@ -1,0 +1,487 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+{% block title %}Thi thử - {{ exam.title }}{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+    .chinese-text { font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; color: #18181b; line-height: 1.75; font-weight: 500; word-wrap: break-word; } 
+    .exam-container { max-width: 1350px; margin: 0 auto; padding: 30px 15px; } 
+    .exam-main-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 5px;}
+    .hsk-badge { background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 15px; }
+    .exam-rules-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 25px; box-shadow: var(--shadow-sm); margin-bottom: 25px; }
+    .rules-title { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;}
+    .rules-list { margin: 0; padding-left: 20px; font-size: 0.95rem; line-height: 1.7; }
+    .part-instruction { background: #F0F9FF; border-left: 4px solid #0284C7; padding: 14px 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+    .part-instruction .zh { font-family: 'Noto Sans SC', sans-serif; font-size: 1.1rem; font-weight: 700; color: #0369A1; margin-bottom: 4px; }
+    .part-instruction .vi { font-size: 0.95rem; color: #475569; font-style: italic; }
+    .hsk-major-title { display: inline-block; font-family: 'Noto Sans SC', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; position: relative; margin-bottom: 15px; }
+    .hsk-major-title::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: var(--primary-color); border-radius: 2px; }
+    .hsk-part-title { display: inline-block; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); background: #E4E4E7; padding: 4px 14px; border-radius: 6px; margin-bottom: 15px; }
+    .sticky-audio { position: sticky; top: 15px; z-index: 105; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important; border: 1px solid var(--border-color); }
+    .q-group-wrapper { margin-bottom: 35px; }
+    .q-card-group { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .question-row { padding: 20px 24px; border-top: 1px solid var(--border-color); transition: background 0.2s; scroll-margin-top: 80px; }
+    .question-row:first-child { border-top: none; }
+    .question-row:hover { background: #FAFAFA; }
+    .q-header-inline { display: flex; align-items: flex-start; gap: 12px; }
+    .q-number-text { font-size: 1.15rem; font-weight: 800; color: var(--success-color); min-width: 28px; margin-top: 2px; }
+    .q-options-area { margin-top: 10px; } .q-options-area.ms-5 { margin-left: 40px !important; }
+    
+    /* Options styling */
+    .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; flex-shrink: 0; }
+    .opt-radio, .circle-radio { display: none; }
+    .opt-label { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; background: #fff; height: 100%; transition: all 0.2s ease; }
+    .opt-label:hover { border-color: #A1A1AA; background: #FAFAFA; }
+    .opt-radio:checked + .opt-label { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
+    .opt-radio:checked + .opt-label .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
+    
+    /* Shared pool (Q33-42) */
+    .shared-pool { background: #FAFAFA; padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+    .shared-options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
+    .shared-opt-item { background: #F0F9FF; border: 1.5px solid #BAE6FD; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; transition: all 0.3s ease; }
+    .shared-opt-letter { margin-right: 15px; flex-shrink: 0; font-size: 0.95rem; font-weight: 800; color: white; background: linear-gradient(135deg, #0284C7, #0369A1); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .circle-label { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; border: 1.5px solid #D4D4D8; border-radius: 50%; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text-muted); background: #fff; margin: 0; }
+    .circle-radio:checked + .circle-label { background: var(--success-color); border-color: var(--success-color); color: white; transform: scale(1.05); }
+    .af-options-wrapper { display: flex; flex-wrap: wrap; gap: 8px; }
+    .used-item { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+    .auto-fill-target { color: var(--success-color); font-weight: 900; margin: 0 4px; display: inline-block; min-width: 36px; text-align: center; border-bottom: 1.5px dashed var(--success-color); padding: 0 4px; }
+
+    /* Writing Section (Q65-69) */
+    .writing-prompt-card { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
+    .writing-img-box { width: 160px; height: 120px; border-radius: 8px; overflow: hidden; border: 1.5px solid #CBD5E1; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .writing-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    .writing-keyword-badge { background: #EFF6FF; border: 2px solid #93C5FD; color: #1D4ED8; font-family: 'Noto Sans SC', sans-serif; font-size: 1.4rem; font-weight: 800; padding: 8px 22px; border-radius: 10px; letter-spacing: 2px; }
+    .input-sentence { font-size: 1.2rem; height: 50px; border: 2px solid #BAE6FD; border-radius: 10px; color: #0F172A; font-family: 'Noto Sans SC', sans-serif; padding: 0 16px; }
+    .input-sentence:focus { border-color: #0284C7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); }
+    
+    /* Essay Textarea (Q70) */
+    .input-essay { font-size: 1.1rem; border: 2px solid #BAE6FD; border-radius: 10px; color: #0F172A; font-family: 'Noto Sans SC', sans-serif; padding: 12px 16px; width: 100%; resize: vertical; min-height: 150px; }
+    .input-essay:focus { border-color: #0284C7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); outline: none; }
+    .word-counter-badge { display: inline-block; margin-top: 8px; font-size: 0.9rem; font-weight: bold; background: #F1F5F9; padding: 4px 10px; border-radius: 6px; border: 1px solid #E2E8F0; }
+
+    /* Reading Passages */
+    .single-passage-box { background: #F8FAFC; border-left: 3.5px solid #0284C7; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; text-indent: 2em; }
+    .shared-passage-header { background: linear-gradient(to bottom, #F0F9FF, #F8FAFC); border-top: 2px solid #BAE6FD; border-bottom: 1px solid #E2E8F0; padding: 20px 24px 16px 24px; }
+    .shared-passage-badge { display: inline-flex; align-items: center; gap: 6px; background: #0284C7; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 4px 12px; border-radius: 6px; margin-bottom: 10px; letter-spacing: 0.5px; }
+    .shared-passage-content { background: #fff; border: 1px solid #BAE6FD; border-left: 4px solid #0284C7; padding: 14px 18px; border-radius: 8px; text-indent: 2em; box-shadow: 0 1px 3px rgba(2, 132, 199, 0.06); }
+    .question-row.grouped-first { border-top: none !important; padding-top: 16px; background: #FCFDFE; }
+    .question-row.grouped-next { border-top: 1.5px dashed #CBD5E1 !important; padding-top: 16px; background: #FCFDFE; }
+
+    /* Sidebar & Progress Grid */
+    .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
+    .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
+    .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: monospace; background: var(--primary-light); }
+    
+    .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 6px; }
+    .grid-progress::-webkit-scrollbar { width: 6px; }
+    .grid-progress::-webkit-scrollbar-track { background: #F4F4F5; border-radius: 4px; }
+    .grid-progress::-webkit-scrollbar-thumb { background: #A1A1AA; border-radius: 4px; }
+    .grid-progress::-webkit-scrollbar-thumb:hover { background: #71717A; }
+    
+    .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; background: #FAFAFA; }
+    .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 8px; padding: 12px; font-size: 1.05rem; border: none; }
+    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+
+    #back-to-top { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; border-radius: 50%; background-color: #27272A; color: #FFFFFF; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease; }
+    #back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <div class="row">
+        <!-- ================= CỘT TRÁI ================= -->
+        <div class="col-xl-9 col-lg-8 order-2 order-lg-1">
+            <div class="text-center mb-4 mt-1">
+                <div class="hsk-badge"><i class="fas fa-graduation-cap"></i> HSK {{ exam.hsk_level }}</div>
+                <h1 class="exam-main-title">{{ exam.title }}</h1>
+            </div>
+
+            <div class="exam-rules-box">
+                <div class="rules-title"><i class="fas fa-info-circle text-primary"></i> THỂ LỆ BÀI THI HSK 4 (3.0)</div>
+                <ul class="rules-list">
+                    <li><strong>Cấu trúc:</strong> Bài thi HSK (Cấp 4) gồm 3 phần: Nghe, Đọc và Viết. Tổng cộng 70 câu hỏi.</li>
+                    <li><strong>Nghe hiểu (32 câu):</strong> Thời gian khoảng 20 phút.</li>
+                    <li><strong>Đọc hiểu (32 câu):</strong> Thời gian làm bài 30 phút.</li>
+                    <li><strong>Viết (6 câu):</strong> Thời gian làm bài 25 phút (Gồm 5 câu nhìn tranh + từ gợi ý đặt câu, 1 câu viết bài luận ≥ 80 chữ).</li>
+                </ul>
+            </div>
+
+            {% if exam.listening_audio %}
+            <div class="q-card-group mb-4 sticky-audio" style="padding: 12px 20px; border-radius: 12px;">
+                <p class="fw-bold mb-2 text-center" style="font-size: 0.95rem;"><i class="fas fa-headphones me-2" style="color: var(--primary-color);"></i>Băng ghi âm toàn bài</p>
+                <audio id="exam-audio" controls controlsList="nodownload" oncontextmenu="return false;" data-src="{{ exam.listening_audio.url }}" class="w-100" style="height: 35px; outline: none;"></audio>
+            </div>
+            {% endif %}
+
+            <form id="exam-form" action="" method="POST">
+                {% csrf_token %}
+                
+                {% regroup questions by question_group as grouped_questions %}
+                {% for group in grouped_questions %}
+                    <div class="q-group-wrapper">
+                        {% with first_q_obj=group.list.0 %}
+                            <!-- TIÊU ĐỀ LỚN 3 PHẦN -->
+                            {% if first_q_obj.question_number == 1 %}
+                                <div class="text-center mt-2 mb-3">
+                                    <div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div>
+                                </div>
+                            {% elif first_q_obj.question_number == 33 %}
+                                <div class="text-center mt-5 mb-3">
+                                    <div class="hsk-major-title">二、阅 读 <span style="font-size: 1.15rem; font-weight: 800;">(ĐỌC HIỂU)</span></div>
+                                </div>
+                            {% elif first_q_obj.question_number == 65 %}
+                                <div class="text-center mt-5 mb-3">
+                                    <div class="hsk-major-title">三、书 写 <span style="font-size: 1.15rem; font-weight: 800;">(VIẾT)</span></div>
+                                </div>
+                            {% endif %}
+
+                            <!-- ĐỀ MỤC NHỎ (Ẩn ở các nhóm dùng chung mục) -->
+                            {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 15 or first_q_obj.question_number == 33 or first_q_obj.question_number == 43 or first_q_obj.question_number == 58 or first_q_obj.question_number == 65 or first_q_obj.question_number == 70 %}
+                                <div class="text-center mb-2 mt-1">
+                                    <div class="hsk-part-title">
+                                        {% if first_q_obj.question_number == 1 or first_q_obj.question_number == 33 or first_q_obj.question_number == 65 %}第一部分{% endif %}
+                                        {% if first_q_obj.question_number == 15 or first_q_obj.question_number == 43 or first_q_obj.question_number == 70 %}第二部分{% endif %}
+                                        {% if first_q_obj.question_number == 58 %}第三部分{% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+
+                        <div class="q-card-group">
+                            {% with first_q_obj=group.list.0 %}
+                                <!-- ================= RỔ ĐÁP ÁN CHỮ DÙNG CHUNG (CÂU 33-37, 38-42) ================= -->
+                                {% if first_q_obj.question_number == 33 or first_q_obj.question_number == 38 %}
+                                    <div class="shared-pool">
+                                        {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
+                                            <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+
+                            <!-- ================= DANH SÁCH CÂU HỎI ================= -->
+                            {% for q in group.list %}
+                                <div class="question-row" id="q{{ q.question_number }}">
+                                    <div class="q-header-inline">
+                                        <div class="q-number-text">{{ q.question_number }}.</div>
+                                        <div class="q-content-area w-100">
+                                            <!-- ĐOẠN VĂN RIÊNG (ĐỌC 43-64) -->
+                                            {% if q.passage_text and q.passage_text != 'nan' and q.question_number >= 43 and q.question_number <= 64 %}
+                                                <div class="chinese-text q-passage-box single-passage-box">{{ q.passage_text|safe }}</div>
+                                            {% endif %}
+
+                                            <!-- NỘI DUNG CÂU 65-69 (NHÌN TRANH + TỪ GỢI Ý ĐẶT CÂU) -->
+                                            {% if q.question_number >= 65 and q.question_number <= 69 %}
+                                                <div class="writing-prompt-card">
+                                                    {% if q.image %}
+                                                        <div class="writing-img-box"><img src="{{ q.image.url }}" alt="Câu {{ q.question_number }}"></div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="text-muted small fw-bold mb-1">Từ vựng bắt buộc sử dụng:</div>
+                                                        <div class="writing-keyword-badge">{{ q.content }}</div>
+                                                    </div>
+                                                </div>
+                                            <!-- NỘI DUNG CÂU 70 (VIẾT BÀI LUẬN) -->
+                                            {% elif q.question_number == 70 %}
+                                                <div class="chinese-text fw-bold">{{ q.content|safe|default:"请写一篇不少于80字的短文，介绍一下你最难忘的一次旅行。" }}</div>
+                                            <!-- CÁC CÂU KHÁC -->
+                                            {% elif q.content and 'Nghe Audio' not in q.content and q.content != 'nan' %}
+                                                <div class="chinese-text q-raw-text">{% if q.question_number >= 43 and q.question_number <= 57 %}★ {% endif %}{{ q.content|safe }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="q-options-area ms-5">
+                                        <!-- PHẦN VIẾT 1 (65-69) -->
+                                        {% if q.question_number >= 65 and q.question_number <= 69 %}
+                                            <div class="mt-1">
+                                                <input type="text" name="q_{{ q.id }}" class="form-control input-sentence" placeholder="Gõ câu tiếng Trung hoàn chỉnh có chứa từ 「{{ q.content }}」..." oninput="syncChineseInput(this, {{ q.question_number }})" onchange="syncChineseInput(this, {{ q.question_number }})">
+                                            </div>
+                                        
+                                        <!-- PHẦN VIẾT 2 (70) WORD COUNTER -->
+                                        {% elif q.question_number == 70 %}
+                                            <div class="mt-2">
+                                                <textarea name="q_{{ q.id }}" class="input-essay" placeholder="Nhập bài viết của bạn vào đây..." oninput="updateWordCount(this, {{ q.question_number }})"></textarea>
+                                                <div class="word-counter-badge">
+                                                    Số chữ (tiếng Trung): <span id="q70-word-count" style="color: red;">0</span> / 80+
+                                                </div>
+                                            </div>
+
+                                        <!-- PHẦN ĐIỀN TỪ A-F (CÂU 33-42) -->
+                                        {% elif q.question_number >= 33 and q.question_number <= 42 %}
+                                            <div class="af-options-wrapper">
+                                                {% for opt in "ABCDEF"|make_list %}
+                                                    <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_{{ opt }}" value="{{ opt }}" class="circle-radio" onchange="markDone({{ q.question_number }})">
+                                                    <label class="circle-label" for="q{{ q.id }}_{{ opt }}">{{ opt }}</label>
+                                                {% endfor %}
+                                            </div>
+
+                                        <!-- PHẦN TRẮC NGHIỆM 4 ĐÁP ÁN A, B, C, D (NGHE & ĐỌC CÒN LẠI) -->
+                                        {% else %}
+                                            <div class="row g-2 mt-1">
+                                                {% if q.option_a %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_A_txt" value="A" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_A_txt"><span class="opt-circle me-2">A</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_a }}</div></label></div>{% endif %}
+                                                {% if q.option_b %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_B_txt" value="B" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_B_txt"><span class="opt-circle me-2">B</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_b }}</div></label></div>{% endif %}
+                                                {% if q.option_c %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_C_txt" value="C" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_C_txt"><span class="opt-circle me-2">C</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_c }}</div></label></div>{% endif %}
+                                                {% if q.option_d %}<div class="col-md-6 col-lg-3"><input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})"><label class="opt-label" for="q{{ q.id }}_D_txt"><span class="opt-circle me-2">D</span><div class="chinese-text" style="font-size: 1rem;">{{ q.option_d }}</div></label></div>{% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- ================= CỘT PHẢI (SIDEBAR) ================= -->
+        <div class="col-xl-3 col-lg-4 order-1 order-lg-2 mb-4 mb-lg-0">
+            <div class="sticky-sidebar">
+                <div class="panel-box text-center mb-3">
+                    <p class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.85rem;">Thời gian còn lại</p>
+                    <div class="timer-circle" id="countdown-circle">
+                        <span id="countdown">{{ exam.duration_minutes|default:85 }}:00</span>
+                    </div>
+                </div>
+
+                <div class="panel-box">
+                    <button class="btn w-100 d-lg-none mb-3 fw-bold py-2" type="button" data-bs-toggle="collapse" data-bs-target="#gridCollapse" style="background: #E4E4E7; color: var(--text-main);">
+                        <i class="fas fa-list me-2"></i> Bảng Tiến Độ <span class="progress-count-text text-danger ms-1">(0/70)</span>
+                    </button>
+                    
+                    <div class="collapse d-lg-block" id="gridCollapse">
+                        <p class="fw-bold mb-3 d-none d-lg-block text-center" style="font-size: 0.95rem; color: var(--text-main);">
+                            <i class="fas fa-th-large me-2" style="color: var(--primary-color);"></i>Bảng tiến độ <span class="progress-count-text text-danger ms-1">(0/70)</span>
+                        </p>
+                        
+                        <div class="grid-progress mb-4">
+                            {% for q in questions %}
+                                <div class="grid-item" id="grid-btn-{{ q.question_number }}" onclick="scrollToQ({{ q.question_number }})">{{ q.question_number }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-submit w-100" onclick="submitExam()"><i class="fas fa-paper-plane me-2"></i> NỘP BÀI THI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nút cuộn trang SVG viết liền 1 dòng theo chuẩn Rule 1 -->
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Lên đầu trang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px; color: #fff;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Logic ẩn/hiện nút Scroll to Top
+    window.addEventListener('scroll', function() {
+        let btn = document.getElementById("back-to-top");
+        if (btn) {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) btn.classList.add('show');
+            else btn.classList.remove('show');
+        }
+    });
+
+    // 2. Logic Nạp Audio qua Fetch Blob để chống giật tua
+    document.addEventListener("DOMContentLoaded", function() {
+        const audioEl = document.getElementById('exam-audio');
+        if (audioEl && audioEl.dataset.src) {
+            fetch(audioEl.dataset.src)
+                .then(res => res.blob())
+                .then(blob => { audioEl.src = URL.createObjectURL(blob); })
+                .catch(err => console.error("Lỗi nạp audio blob:", err));
+        }
+    });
+
+    // Cập nhật bộ đếm câu
+    function updateProgressCount() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        document.querySelectorAll('.progress-count-text').forEach(el => {
+            el.innerText = `(${totalDone}/70)`;
+            if(totalDone === 70) {
+                el.classList.remove('text-danger');
+                el.classList.add('text-success');
+            }
+        });
+    }
+
+    function markDone(qNumber) { 
+        document.getElementById('grid-btn-' + qNumber).classList.add('done'); 
+        updateProgressCount();
+    }
+    
+    function scrollToQ(qNumber) { 
+        const el = document.getElementById('q' + qNumber); 
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function syncChineseInput(inputEl, qNumber) {
+        let val = inputEl.value.trim();
+        let gridBtn = document.getElementById('grid-btn-' + qNumber);
+        if (gridBtn) {
+            if (val !== '') gridBtn.classList.add('done');
+            else gridBtn.classList.remove('done');
+            updateProgressCount();
+        }
+    }
+
+    // Xử lý đếm chữ câu 70
+    function updateWordCount(textareaEl, qNumber) {
+        let textVal = textareaEl.value.replace(/\s/g, ''); // Bỏ qua khoảng trắng
+        let wordCount = textVal.length;
+        let countSpan = document.getElementById('q70-word-count');
+        if (countSpan) {
+            countSpan.innerText = wordCount;
+            countSpan.style.color = wordCount >= 80 ? "green" : "red";
+        }
+        syncChineseInput(textareaEl, qNumber);
+    }
+
+    if (document.getElementById('countdown')) {
+        let timeInSeconds = {{ exam.duration_minutes|default:85 }} * 60;
+        function startTimer() {
+            let display = document.getElementById('countdown');
+            let timer = setInterval(function () {
+                let minutes = parseInt(timeInSeconds / 60, 10);
+                let seconds = parseInt(timeInSeconds % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+                if (--timeInSeconds < 0) {
+                    clearInterval(timer);
+                    alert("⏳ Đã hết thời gian! Tự động nộp bài.");
+                    if(document.getElementById('exam-form')) document.getElementById('exam-form').submit();
+                }
+            }, 1000);
+        }
+        window.onload = startTimer;
+    }
+
+    function submitExam() {
+        let totalDone = document.querySelectorAll('.grid-item.done').length;
+        let totalQ = document.querySelectorAll('.grid-item').length;
+        if (totalDone < totalQ) {
+            let missing = totalQ - totalDone;
+            if (!confirm(`⚠️ CẢNH BÁO: Còn ${missing} câu chưa làm. Bạn có CHẮC CHẮN nộp bài không?`)) return;
+        } else {
+            if (!confirm("✅ Xác nhận nộp bài?")) return;
+        }
+        document.getElementById('exam-form').submit();
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Nhận diện chỗ trống (____) cho Auto-fill câu 33-42
+        document.querySelectorAll('.q-raw-text').forEach(function(el) {
+            let html = el.innerHTML;
+            html = html.replace(/[(（][\s_]*[)）]/g, '（<span class="auto-fill-target"></span>）');
+            el.innerHTML = html;
+        });
+
+        // Gộp các câu dùng chung đoạn văn đọc hiểu (Câu 43-64)
+        const rowsPassage = Array.from(document.querySelectorAll('.question-row')).filter(row => {
+            const idNum = parseInt((row.id || '').replace('q', ''), 10);
+            return idNum >= 43 && idNum <= 64;
+        });
+
+        let i = 0;
+        while (i < rowsPassage.length) {
+            let currRow = rowsPassage[i];
+            let currNum = parseInt(currRow.id.replace('q', ''), 10);
+            let currPassageEl = currRow.querySelector('.q-passage-box');
+            let currText = currPassageEl ? currPassageEl.innerText.trim() : '';
+
+            if (currText) {
+                let groupRows = [currRow];
+                let j = i + 1;
+                while (j < rowsPassage.length) {
+                    let nextRow = rowsPassage[j];
+                    let nextPassageEl = nextRow.querySelector('.q-passage-box');
+                    let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
+                    if (nextText === currText) { groupRows.push(nextRow); j++; } 
+                    else { break; }
+                }
+
+                if (groupRows.length > 1) {
+                    let firstNum = currNum;
+                    let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+
+                    let sharedHeader = document.createElement('div');
+                    sharedHeader.className = 'shared-passage-header';
+                    sharedHeader.innerHTML = `<div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题</div><div class="chinese-text shared-passage-content">${currPassageEl.innerHTML}</div>`;
+                    currRow.parentNode.insertBefore(sharedHeader, currRow);
+
+                    groupRows.forEach((r, idx) => {
+                        let pBox = r.querySelector('.q-passage-box');
+                        if (pBox) pBox.remove();
+                        r.classList.add(idx === 0 ? 'grouped-first' : 'grouped-next');
+                    });
+                    i = j;
+                    continue;
+                }
+            }
+            i++;
+        }
+
+        // Parse rổ đáp án dùng chung
+        function parseOptions(text) {
+            let dict = {};
+            if (!text) return dict;
+            let cleanText = text.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/[\r\n\t\u3000]+/g, ' ').trim();
+            let parts = cleanText.split(/([A-F])[.、:：\s]+/);
+            for (let i = 1; i < parts.length; i += 2) {
+                let letter = parts[i].trim();
+                let content = parts[i+1] ? parts[i+1].trim().replace(/\/+$/, '').trim() : "";
+                if (['A','B','C','D','E','F'].includes(letter)) { dict[letter] = content; }
+            }
+            return dict;
+        }
+
+        document.querySelectorAll('.format-shared-options').forEach(function(el) {
+            let textDict = parseOptions(el.textContent || el.innerText || "");
+            let html = '<div class="shared-options-grid">';
+            let found = false;
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
+                if (textDict[letter]) {
+                    found = true;
+                    let safeText = textDict[letter].replace(/"/g, '&quot;');
+                    html += `<div class="shared-opt-item pool-item" data-letter="${letter}" data-text="${safeText}"><div class="shared-opt-letter">${letter}</div><div class="chinese-text">${textDict[letter]}</div></div>`;
+                }
+            });
+            html += '</div>';
+            if (found) el.insertAdjacentHTML('afterend', html);
+        });
+
+        // Logic Auto-fill & Dimming
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.matches('.circle-radio:not([disabled]), .opt-radio:not([disabled])')) {
+                let wrapper = e.target.closest('.q-group-wrapper');
+                if (!wrapper) return;
+
+                let checkedRadios = wrapper.querySelectorAll('.circle-radio:checked:not([disabled]), .opt-radio:checked:not([disabled])');
+                let selectedValues = Array.from(checkedRadios).map(r => r.value);
+
+                wrapper.querySelectorAll('.pool-item').forEach(item => {
+                    if (selectedValues.includes(item.getAttribute('data-letter'))) item.classList.add('used-item');
+                    else item.classList.remove('used-item');
+                });
+
+                let questionRow = e.target.closest('.question-row');
+                if (questionRow) {
+                    let targetSpan = questionRow.querySelector('.auto-fill-target');
+                    if (targetSpan) {
+                        let poolItem = wrapper.querySelector(`.pool-item[data-letter="${e.target.value}"]`);
+                        if (poolItem) targetSpan.innerText = poolItem.getAttribute('data-text') || e.target.value;
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

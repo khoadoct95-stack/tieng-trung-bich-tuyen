@@ -36,6 +36,10 @@ STRUCTURES = {
         "6_a", "6_b", "6_c", "6_d", "6_e",
         # Viết Phần 2 (66-70): 5 ảnh đơn đặt câu với từ gợi ý
         "66", "67", "68", "69", "70"
+    ],
+    "HSK 4 (3.0)": [
+        # Viết Phần 1 (65-69): 5 ảnh đơn nhìn tranh đặt câu với từ gợi ý
+        "65", "66", "67", "68", "69"
     ]
 }
 
@@ -53,7 +57,7 @@ class ImageRenamerApp:
         tk.Label(self.startup_frame, text="CHỌN LOẠI CẤU TRÚC ĐỀ THI", font=("Arial", 14, "bold"), bg="#F1F5F9", fg="#334155").pack(pady=15)
         
         self.combo_type = ttk.Combobox(self.startup_frame, values=list(STRUCTURES.keys()), font=("Arial", 12), state="readonly", width=25)
-        self.combo_type.current(2) # Mặc định chọn HSK 3 (3.0)
+        self.combo_type.current(3) # Mặc định chọn HSK 4 (3.0)
         self.combo_type.pack(pady=10)
         
         btn_start = tk.Button(

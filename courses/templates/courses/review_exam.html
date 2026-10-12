@@ -101,15 +101,13 @@
     .opt-label, .auto-crop-btn { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; background: #fff; height: 100%; cursor: default; }
     .auto-crop-btn { flex-direction: column; padding: 8px; }
 
-    /* Đáp án đúng */
+    /* Đáp án đúng / sai */
     .opt-label.ans-correct, .auto-crop-btn.ans-correct { border: 2px solid var(--success-color) !important; background: var(--success-light) !important; }
     .opt-label.ans-correct .opt-circle, .auto-crop-btn.ans-correct .opt-circle { background: var(--success-color) !important; border-color: var(--success-color) !important; color: #fff !important; }
-
-    /* Đáp án học viên chọn sai */
     .opt-label.ans-wrong, .auto-crop-btn.ans-wrong { border: 2px solid var(--danger-color) !important; background: var(--danger-light) !important; }
     .opt-label.ans-wrong .opt-circle, .auto-crop-btn.ans-wrong .opt-circle { background: var(--danger-color) !important; border-color: var(--danger-color) !important; color: #fff !important; }
 
-    /* KHUNG CẮT 3 ẢNH NGANG A-B-C (CÂU 1-5 HSK 1 & 2) */
+    /* KHUNG CẮT 3 ẢNH NGANG A-B-C */
     .crop-window { width: 85%; margin: 0 auto; padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px; background-color: #fff; }
     .crop-window img { position: absolute; top: 0; height: 100%; width: 300%; max-width: none !important; object-fit: fill; image-rendering: -webkit-optimize-contrast; }
     .show-part-A img { left: 0%; } .show-part-B img { left: -100%; } .show-part-C img { left: -200%; }
@@ -137,7 +135,7 @@
     .auto-fill-target.wrong-fill { color: var(--danger-color); border-bottom-color: var(--danger-color); text-decoration: line-through; }
     .auto-fill-pinyin { color: #2563eb; font-weight: 700; margin: 0 4px; display: inline-block; min-width: 32px; text-align: center; }
 
-    /* KHUNG Ô CHỮ ĐIỀN (TIANZIGE) HSK 2 CÂU 51-55 */
+    /* HSK 2 CÂU 51-55 (TIANZIGE) */
     .tianzige-wrapper { display: inline-flex; border: 2px solid #3B82F6; border-radius: 4px; background: #fff; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12); margin-bottom: 12px; overflow: hidden; }
     .tianzige-col { display: flex; flex-direction: column; width: 76px; border-right: 1.5px solid #3B82F6; }
     .tianzige-col:last-child { border-right: none; }
@@ -152,7 +150,7 @@
     .tianzige-hanzi .missing-BL { transform: translate(9px, -7px) scale(0.74, 0.74); }
     .tianzige-hanzi .missing-TL { transform: translate(8px, 8px) scale(0.74, 0.74); }
 
-    /* ĐẶC THÙ HSK 3: PINYIN RUBY (61-65), ĐẶT CÂU VỚI TRANH (66-70) & ĐOẠN VĂN GỘP (51-60) */
+    /* ĐẶC THÙ PHẦN VIẾT HSK 3 & 4 (RUBY, TỪ GỢI Ý & BÀI LUẬN) */
     .pinyin-blank-ruby { display: inline-flex; flex-direction: column; align-items: center; vertical-align: bottom; margin: 0 2px; line-height: 1.2; }
     .pinyin-blank-top { font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; color: #2563EB; margin-bottom: 2px; }
     .writing-prompt-card { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
@@ -166,21 +164,8 @@
     .shared-passage-content { background: #fff; border: 1px solid #BAE6FD; border-left: 4px solid #0284C7; padding: 14px 18px; border-radius: 8px; text-indent: 2em; }
 
     /* HỘP ĐỐI CHIẾU ĐÁP ÁN PHẦN VIẾT */
-    .writing-review-box {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 10px;
-    }
-    .writing-ans-item {
-        padding: 10px 16px;
-        border-radius: 10px;
-        font-family: 'Noto Sans SC', sans-serif;
-        font-size: 1.15rem;
-        font-weight: 700;
-        border: 1.5px solid var(--border-color);
-        background: #fff;
-    }
+    .writing-review-box { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+    .writing-ans-item { padding: 10px 16px; border-radius: 10px; font-family: 'Noto Sans SC', sans-serif; font-size: 1.15rem; font-weight: 700; border: 1.5px solid var(--border-color); background: #fff; white-space: pre-wrap; }
     .writing-ans-item.user-correct { background: var(--success-light); border-color: var(--success-color); color: var(--success-color); }
     .writing-ans-item.user-wrong { background: var(--danger-light); border-color: var(--danger-color); color: var(--danger-color); }
     .writing-ans-item.model-ans { background: #F0F9FF; border-color: #7DD3FC; color: #0369A1; }
@@ -245,16 +230,16 @@
             {% for group in grouped_questions %}
                 <div class="q-group-wrapper">
                     {% with first_q_obj=group.list.0 %}
-                        <!-- HEADER PHẦN LỚN (NGHE / ĐỌC / VIẾT) CHO HSK 1, 2, 3 -->
+                        <!-- HEADER PHẦN LỚN (NGHE / ĐỌC / VIẾT) -->
                         {% if first_q_obj.question_number == 1 %}
                             <div class="text-center mt-2 mb-3">
                                 <div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div>
                             </div>
-                        {% elif exam.hsk_level == 1 and first_q_obj.question_number == 21 or exam.hsk_level == 2 and first_q_obj.question_number == 26 or exam.hsk_level == 3 and first_q_obj.question_number == 31 %}
+                        {% elif exam.hsk_level == 1 and first_q_obj.question_number == 21 or exam.hsk_level == 2 and first_q_obj.question_number == 26 or exam.hsk_level == 3 and first_q_obj.question_number == 31 or exam.hsk_level == 4 and first_q_obj.question_number == 33 %}
                             <div class="text-center mt-5 mb-3">
                                 <div class="hsk-major-title">二、阅 读 <span style="font-size: 1.15rem; font-weight: 800;">(ĐỌC HIỂU)</span></div>
                             </div>
-                        {% elif exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number == 61 %}
+                        {% elif exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number == 61 or exam.hsk_level == 4 and first_q_obj.question_number == 65 %}
                             <div class="text-center mt-5 mb-3">
                                 <div class="hsk-major-title">三、书 写 <span style="font-size: 1.15rem; font-weight: 800;">(VIẾT)</span></div>
                             </div>
@@ -266,10 +251,10 @@
                     {% endwith %}
 
                     <div class="q-card-group">
-                        <!-- ================= RỔ DÙNG CHUNG (TỰ ĐỘNG THEO CẤP ĐỘ HSK 1, 2, 3) ================= -->
+                        <!-- ================= RỔ DÙNG CHUNG ================= -->
                         {% with first_q_obj=group.list.0 %}
                             {% if first_q_obj.passage_text and first_q_obj.passage_text != 'nan' %}
-                                {% if exam.hsk_level == 1 and first_q_obj.question_number in "26,31" or exam.hsk_level == 2 and first_q_obj.question_number < 46 or exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number < 51 %}
+                                {% if exam.hsk_level == 1 and first_q_obj.question_number in "26,31" or exam.hsk_level == 2 and first_q_obj.question_number < 46 or exam.hsk_level == 2 and first_q_obj.question_number == 51 or exam.hsk_level == 3 and first_q_obj.question_number < 51 or exam.hsk_level == 4 and first_q_obj.question_number == 33 or exam.hsk_level == 4 and first_q_obj.question_number == 38 %}
                                     <div class="shared-pool">
                                         <div class="format-shared-options visually-hidden">{{ first_q_obj.passage_text|safe }}</div>
                                         <div class="format-shared-pinyin visually-hidden">{{ first_q_obj.passage_pinyin|default:""|safe }}</div>
@@ -310,7 +295,7 @@
                                     <div class="d-flex align-items-start gap-2 w-100">
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
-                                            <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (HSK 1: 16-20, 36-40 | HSK 2: 46-50 | HSK 3: 51-60) -->
+                                            <!-- ĐOẠN VĂN RIÊNG TỪNG CÂU (HSK 1-3 Đan xen & HSK 3-4 Gộp) -->
                                             {% if q.passage_text and q.passage_text != 'nan' %}
                                                 {% if exam.hsk_level == 1 and q.question_number >= 16 and q.question_number <= 20 or exam.hsk_level == 1 and q.question_number >= 36 or exam.hsk_level == 2 and q.question_number >= 46 and q.question_number <= 50 %}
                                                     <div class="interleave-group passage-group border-bottom mb-2 pb-2">
@@ -318,7 +303,7 @@
                                                         <div class="raw-chinese" style="display: none;">{{ q.passage_text|linebreaksbr }}</div>
                                                         <div class="interleaved-output"></div>
                                                     </div>
-                                                {% elif exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 %}
+                                                {% elif exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 or exam.hsk_level == 4 and q.question_number >= 43 and q.question_number <= 64 %}
                                                     <div class="chinese-text q-passage-box single-passage-box">{{ q.passage_text|safe }}</div>
                                                 {% endif %}
                                             {% endif %}
@@ -326,7 +311,7 @@
                                             <!-- NỘI DUNG CÂU HỎI -->
                                             {% if exam.hsk_level == 3 and q.question_number >= 61 and q.question_number <= 65 %}
                                                 <div class="chinese-text q61-text" data-pinyin="{{ q.content_pinyin|default:'' }}">{{ q.content|safe }}</div>
-                                            {% elif exam.hsk_level == 3 and q.question_number >= 66 %}
+                                            {% elif exam.hsk_level == 3 and q.question_number >= 66 or exam.hsk_level == 4 and q.question_number >= 65 and q.question_number <= 69 %}
                                                 <div class="writing-prompt-card">
                                                     {% if q.image %}
                                                         <div class="writing-img-box"><img src="{{ q.image.url }}" alt="Câu {{ q.question_number }}"></div>
@@ -336,13 +321,15 @@
                                                         <div class="writing-keyword-badge">{{ q.content }}</div>
                                                     </div>
                                                 </div>
+                                            {% elif exam.hsk_level == 4 and q.question_number == 70 %}
+                                                <div class="chinese-text fw-bold">{{ q.content|safe|default:"请写一篇不少于80字的短文，介绍一下你最难忘的一次旅行。" }}</div>
                                             {% elif exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 %}
                                                 <!-- Câu 51-55 HSK 2 hiển thị bằng khung Tianzige bên dưới -->
                                             {% else %}
                                                 {% if q.content and 'Nghe Audio' not in q.content and q.content != 'nan' or q.content_pinyin and q.content_pinyin != 'nan' %}
                                                     <div class="interleave-group content-group">
                                                         <div class="raw-pinyin" style="display: none;">{{ q.content_pinyin|default:""|linebreaksbr }}</div>
-                                                        <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{% if exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 %}★ {% endif %}{{ q.content|linebreaksbr }}{% endif %}</div>
+                                                        <div class="raw-chinese" style="display: none;">{% if 'Nghe Audio' not in q.content %}{% if exam.hsk_level == 3 and q.question_number >= 51 and q.question_number <= 60 or exam.hsk_level == 4 and q.question_number >= 43 and q.question_number <= 64 %}★ {% endif %}{{ q.content|linebreaksbr }}{% endif %}</div>
                                                         <div class="interleaved-output"></div>
                                                     </div>
                                                 {% endif %}
@@ -368,24 +355,24 @@
                                         {% endif %}
                                     {% endif %}
 
-                                    <!-- 2. PHẦN TỰ LUẬN GÕ CHỮ HÁN / ĐẶT CÂU (HSK 2: 56-60 | HSK 3: 61-70) -->
-                                    {% if exam.hsk_level == 2 and q.question_number >= 56 or exam.hsk_level == 3 and q.question_number >= 61 %}
+                                    <!-- 2. PHẦN TỰ LUẬN (HSK 2: 56-60 | HSK 3: 61-70 | HSK 4: 65-70) -->
+                                    {% if exam.hsk_level == 2 and q.question_number >= 56 or exam.hsk_level == 3 and q.question_number >= 61 or exam.hsk_level == 4 and q.question_number >= 65 %}
                                         <div class="writing-review-box">
-                                            <div class="writing-ans-item {% if q.is_correct %}user-correct{% else %}user-wrong{% endif %}">
-                                                <span class="small fw-normal me-1">Bài làm của bạn:</span>
+                                            <div class="writing-ans-item {% if q.is_correct %}user-correct{% else %}user-wrong{% endif %} w-100">
+                                                <span class="small fw-normal me-1">Bài làm của bạn:</span><br>
                                                 <strong>{{ q.user_ans|default:"(Chưa trả lời)" }}</strong>
                                                 {% if q.is_correct %}<i class="fas fa-check ms-1"></i>{% else %}<i class="fas fa-times ms-1"></i>{% endif %}
                                             </div>
-                                            {% if not q.is_correct %}
-                                            <div class="writing-ans-item model-ans">
-                                                <span class="small fw-normal me-1">Đáp án chuẩn / Câu mẫu:</span>
+                                            {% if not q.is_correct and q.correct_answer and q.question_number != 70 %}
+                                            <div class="writing-ans-item model-ans w-100">
+                                                <span class="small fw-normal me-1">Đáp án chuẩn / Câu mẫu:</span><br>
                                                 <strong>{{ q.correct_answer }}</strong>
                                             </div>
                                             {% endif %}
                                         </div>
 
                                     <!-- 3. PHẦN CHỌN ĐÁP ÁN NỐI A-F / A-E -->
-                                    {% elif exam.hsk_level == 1 and q.question_number >= 11 and q.question_number <= 15 or exam.hsk_level == 1 and q.question_number >= 21 and q.question_number <= 35 or exam.hsk_level == 2 and q.question_number >= 6 and q.question_number <= 15 or exam.hsk_level == 2 and q.question_number >= 26 and q.question_number <= 45 or exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 or exam.hsk_level == 3 and q.question_number <= 10 or exam.hsk_level == 3 and q.question_number >= 31 and q.question_number <= 50 %}
+                                    {% elif exam.hsk_level == 1 and q.question_number >= 11 and q.question_number <= 15 or exam.hsk_level == 1 and q.question_number >= 21 and q.question_number <= 35 or exam.hsk_level == 2 and q.question_number >= 6 and q.question_number <= 15 or exam.hsk_level == 2 and q.question_number >= 26 and q.question_number <= 45 or exam.hsk_level == 2 and q.question_number >= 51 and q.question_number <= 55 or exam.hsk_level == 3 and q.question_number <= 10 or exam.hsk_level == 3 and q.question_number >= 31 and q.question_number <= 50 or exam.hsk_level == 4 and q.question_number >= 33 and q.question_number <= 42 %}
                                         <div class="af-options-wrapper">
                                             {% if exam.hsk_level == 2 and q.question_number >= 11 and q.question_number <= 15 or exam.hsk_level == 3 and q.question_number >= 6 and q.question_number <= 10 or exam.hsk_level == 3 and q.question_number >= 36 and q.question_number <= 40 %}
                                                 {% for opt in "ABCDE"|make_list %}
@@ -411,11 +398,11 @@
                                             {% endfor %}
                                         </div>
 
-                                    <!-- 5. PHẦN TRẮC NGHIỆM CHỮ A-B-C THÔNG THƯỜNG -->
+                                    <!-- 5. PHẦN TRẮC NGHIỆM CHỮ A-B-C-D THÔNG THƯỜNG -->
                                     {% else %}
                                         <div class="row g-2 mt-1">
                                             {% if q.option_a or q.option_a_pinyin %}
-                                            <div class="col-md-4">
+                                            <div class="col-md-6 col-lg-3">
                                                 <div class="opt-label {% if q.correct_ans == 'A' %}ans-correct{% elif q.user_ans == 'A' and not q.is_correct %}ans-wrong{% endif %}">
                                                     <span class="opt-circle me-2">A</span>
                                                     <div>
@@ -426,7 +413,7 @@
                                             </div>
                                             {% endif %}
                                             {% if q.option_b or q.option_b_pinyin %}
-                                            <div class="col-md-4">
+                                            <div class="col-md-6 col-lg-3">
                                                 <div class="opt-label {% if q.correct_ans == 'B' %}ans-correct{% elif q.user_ans == 'B' and not q.is_correct %}ans-wrong{% endif %}">
                                                     <span class="opt-circle me-2">B</span>
                                                     <div>
@@ -437,12 +424,23 @@
                                             </div>
                                             {% endif %}
                                             {% if q.option_c or q.option_c_pinyin %}
-                                            <div class="col-md-4">
+                                            <div class="col-md-6 col-lg-3">
                                                 <div class="opt-label {% if q.correct_ans == 'C' %}ans-correct{% elif q.user_ans == 'C' and not q.is_correct %}ans-wrong{% endif %}">
                                                     <span class="opt-circle me-2">C</span>
                                                     <div>
                                                         {% if q.option_c_pinyin and q.option_c_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_c_pinyin }}</div>{% endif %}
                                                         <div class="chinese-text" style="font-size: 1rem;">{{ q.option_c|default:"" }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if q.option_d or q.option_d_pinyin %}
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="opt-label {% if q.correct_ans == 'D' %}ans-correct{% elif q.user_ans == 'D' and not q.is_correct %}ans-wrong{% endif %}">
+                                                    <span class="opt-circle me-2">D</span>
+                                                    <div>
+                                                        {% if q.option_d_pinyin and q.option_d_pinyin != 'nan' %}<div class="pinyin-text small">{{ q.option_d_pinyin }}</div>{% endif %}
+                                                        <div class="chinese-text" style="font-size: 1rem;">{{ q.option_d|default:"" }}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -519,6 +517,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        const hskLevel = parseInt(document.querySelector('.exam-container').getAttribute('data-hsk-level'), 10);
+
         // 1. TÁCH DÒNG TIẾNG TRUNG / PINYIN & NHẬN DIỆN CHỖ TRỐNG ( ____ )
         document.querySelectorAll('.interleave-group').forEach(function(group) {
             let pinyinRaw = group.querySelector('.raw-pinyin');
@@ -563,22 +563,25 @@
             el.innerHTML = html.replace(/[(（][\s_]*[)）]/g, rubyHtml);
         });
 
-        // 3. GOM NHÓM CÁC CÂU DÙNG CHUNG ĐOẠN VĂN Ở HSK 3 (57-58, 59-60)
-        const rows51_60 = Array.from(document.querySelectorAll('.question-row')).filter(row => {
+        // 3. GOM NHÓM CÁC CÂU DÙNG CHUNG ĐOẠN VĂN (HSK 3: 51-60 | HSK 4: 43-64)
+        const rowsPassage = Array.from(document.querySelectorAll('.question-row')).filter(row => {
             const idNum = parseInt((row.id || '').replace('q', ''), 10);
-            return idNum >= 51 && idNum <= 60;
+            if (hskLevel === 3) return idNum >= 51 && idNum <= 60;
+            if (hskLevel === 4) return idNum >= 43 && idNum <= 64;
+            return false;
         });
+        
         let idx = 0;
-        while (idx < rows51_60.length) {
-            let currRow = rows51_60[idx];
+        while (idx < rowsPassage.length) {
+            let currRow = rowsPassage[idx];
             let currNum = parseInt(currRow.id.replace('q', ''), 10);
             let currPassageEl = currRow.querySelector('.q-passage-box');
             let currText = currPassageEl ? currPassageEl.innerText.trim() : '';
             if (currText) {
                 let groupRows = [currRow];
                 let j = idx + 1;
-                while (j < rows51_60.length) {
-                    let nextRow = rows51_60[j];
+                while (j < rowsPassage.length) {
+                    let nextRow = rowsPassage[j];
                     let nextPassageEl = nextRow.querySelector('.q-passage-box');
                     let nextText = nextPassageEl ? nextPassageEl.innerText.trim() : '';
                     if (nextText === currText) { groupRows.push(nextRow); j++; } else { break; }
@@ -588,7 +591,7 @@
                     let sharedHeader = document.createElement('div');
                     sharedHeader.className = 'shared-passage-header';
                     sharedHeader.innerHTML = `
-                        <div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${currNum}–${lastNum} 题 (Dùng chung đoạn văn)</div>
+                        <div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${currNum}–${lastNum} 题</div>
                         <div class="chinese-text shared-passage-content">${currPassageEl.innerHTML}</div>
                     `;
                     currRow.parentNode.insertBefore(sharedHeader, currRow);
@@ -686,7 +689,7 @@
             if (found) el.insertAdjacentHTML('afterend', html); 
         });
 
-        // 6. TỰ ĐỘNG ĐIỀN ĐÁP ÁN ĐÚNG VÀO CHỖ TRỐNG ( ____ ) TRÊN CÂU HỎI ĐỂ HỌC VIÊN DỄ ĐỌC
+        // 6. TỰ ĐỘNG ĐIỀN ĐÁP ÁN ĐÚNG VÀO CHỖ TRỐNG ( ____ )
         document.querySelectorAll('.question-row').forEach(function(row) {
             let targetSpan = row.querySelector('.auto-fill-target');
             let pinyinSpan = row.querySelector('.auto-fill-pinyin');

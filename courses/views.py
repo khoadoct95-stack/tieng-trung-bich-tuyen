@@ -739,24 +739,33 @@ def import_excel(request):
                         continue
                     q_num_int = int(float(raw_q_num))
 
+                    defaults_data = {
+                        'section_type': str(row.iloc[1]).strip(),
+                        'question_group': str(row.iloc[2]).strip(),
+                        'passage_text': str(row.iloc[3]).strip(),
+                        'passage_pinyin': str(row.iloc[4]).strip(),
+                        'content': str(row.iloc[5]).strip(),
+                        'content_pinyin': str(row.iloc[6]).strip(),
+                        'option_a': str(row.iloc[7]).strip(),
+                        'option_a_pinyin': str(row.iloc[8]).strip(),
+                        'option_b': str(row.iloc[9]).strip(),
+                        'option_b_pinyin': str(row.iloc[10]).strip(),
+                        'option_c': str(row.iloc[11]).strip(),
+                        'option_c_pinyin': str(row.iloc[12]).strip(),
+                    }
+
+                    # TỰ ĐỘNG NHẬN DIỆN: Nếu là Excel HSK 4 (có >= 16 cột) thì đọc thêm cột D
+                    if len(df.columns) >= 16:
+                        defaults_data['option_d'] = str(row.iloc[13]).strip()
+                        defaults_data['correct_answer'] = str(row.iloc[15]).strip().upper()
+                    else:
+                        # Nếu là Excel HSK 1,2,3 (chỉ có 14 cột)
+                        defaults_data['correct_answer'] = str(row.iloc[13]).strip().upper()
+
                     ExamQuestion.objects.update_or_create(
                         exam=exam,
                         question_number=q_num_int,
-                        defaults={
-                            'section_type': str(row.iloc[1]).strip(),
-                            'question_group': str(row.iloc[2]).strip(),
-                            'passage_text': str(row.iloc[3]).strip(),
-                            'passage_pinyin': str(row.iloc[4]).strip(),
-                            'content': str(row.iloc[5]).strip(),
-                            'content_pinyin': str(row.iloc[6]).strip(),
-                            'option_a': str(row.iloc[7]).strip(),
-                            'option_a_pinyin': str(row.iloc[8]).strip(),
-                            'option_b': str(row.iloc[9]).strip(),
-                            'option_b_pinyin': str(row.iloc[10]).strip(),
-                            'option_c': str(row.iloc[11]).strip(),
-                            'option_c_pinyin': str(row.iloc[12]).strip(),
-                            'correct_answer': str(row.iloc[13]).strip().upper(),
-                        }
+                        defaults=defaults_data
                     )
                     q_count += 1
                 status_notes.append(f"{'Cập nhật đè' if is_updated else 'Tạo mới'} {q_count} câu hỏi Excel")

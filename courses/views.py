@@ -449,6 +449,87 @@ Chỉ trả về định dạng JSON thuần túy: {{"is_correct": true/false}}"
 
     return results
 
+def grade_hsk5_advanced_ai(q_71, q_72, user_answers_dict):
+    """Hàm chấm thi HSK 5 bằng Gemini 1.5 Flash"""
+    results = {}
+    api_key = open(KEY_FILE_PATH).read().strip() if os.path.exists(KEY_FILE_PATH) else ""
+    if not api_key:
+        return results
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    # ==========================================
+    # 1. CHẤM CÂU 71 (MULTIMODAL - 4 BỨC ẢNH)
+    # ==========================================
+    if q_71:
+        ans_71 = user_answers_dict.get(str(q_71.id), '').strip()
+        word_count = len(re.sub(r'\s', '', ans_71))
+        
+        if word_count < 70: # Du di cho học viên một chút
+            results[str(q_71.id)] = False
+        else:
+            img_b64 = get_image_base64(q_71.image)
+            prompt_71 = f"""Bạn là giám khảo HSK 5. Đánh giá câu chuyện sau của học viên dựa trên bức ảnh đính kèm.
+- Câu chuyện học viên viết (Dài {word_count} chữ): "{ans_71}"
+
+Tiêu chí ĐẠT (trả về true):
+1. Nội dung phải mô tả đúng diễn biến logic của các sự kiện trong ảnh.
+2. Độ dài đạt khoảng 100 chữ Hán.
+3. Không sai quá nhiều ngữ pháp trung cấp.
+
+Chỉ trả về JSON: {{"is_correct": true/false}}"""
+
+            payload = {
+                "contents": [{"parts": [{"text": prompt_71}]}],
+                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+            }
+            if img_b64:
+                payload["contents"][0]["parts"].append({"inlineData": {"mimeType": "image/jpeg", "data": img_b64}})
+                
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    res_data = json.loads(response.read().decode('utf-8'))
+                    results[str(q_71.id)] = json.loads(res_data['candidates'][0]['content']['parts'][0]['text']).get('is_correct', False)
+            except:
+                results[str(q_71.id)] = word_count >= 100
+
+    # ==========================================
+    # 2. CHẤM CÂU 72 (BÀI LUẬN 200 CHỮ)
+    # ==========================================
+    if q_72:
+        ans_72 = user_answers_dict.get(str(q_72.id), '').strip()
+        req_72 = str(q_72.content).strip()
+        word_count = len(re.sub(r'\s', '', ans_72))
+
+        if word_count < 150: 
+            results[str(q_72.id)] = False
+        else:
+            prompt_72 = f"""Bạn là giám khảo HSK 5. Đánh giá bài luận sau:
+- Yêu cầu/Chủ đề: "{req_72}"
+- Bài làm (Dài {word_count} chữ): "{ans_72}"
+
+Tiêu chí ĐẠT (trả về true):
+1. Không lạc đề. Nêu được quan điểm cá nhân rõ ràng.
+2. Độ dài đạt mức 200 chữ Hán.
+3. Sử dụng từ vựng đa dạng, mạch lạc.
+
+Chỉ trả về JSON: {{"is_correct": true/false}}"""
+
+            payload_72 = {
+                "contents": [{"parts": [{"text": prompt_72}]}],
+                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+            }
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload_72).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    res_data = json.loads(response.read().decode('utf-8'))
+                    results[str(q_72.id)] = json.loads(res_data['candidates'][0]['content']['parts'][0]['text']).get('is_correct', False)
+            except:
+                results[str(q_72.id)] = word_count >= 200
+
+    return results
+
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -478,6 +559,12 @@ def take_exam(request, exam_id):
             
             # Gọi hàm chấm siêu cấp vừa viết
             writing_results = grade_hsk4_advanced_ai(q_65_69, q_70, user_answers_dict)
+            user_answers_dict['ai_graded'] = writing_results
+
+        elif exam.hsk_level == 5:
+            q_71 = questions.filter(question_number=71).first()
+            q_72 = questions.filter(question_number=72).first()
+            writing_results = grade_hsk5_advanced_ai(q_71, q_72, user_answers_dict)
             user_answers_dict['ai_graded'] = writing_results
 
         # Chấm điểm chi tiết từng câu

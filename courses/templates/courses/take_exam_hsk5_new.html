@@ -203,7 +203,8 @@
                                                         {% endif %}
                                                     </label>
                                                 </div>
-                                                {% if q.option_d and q.option_d != 'nan' %}
+                                                
+                                                <!-- ĐÃ GỠ BỎ LỆNH {% if q.option_d %} Ở ĐÂY ĐỂ LUÔN HIỂN THỊ NÚT D -->
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})">
                                                     <label class="opt-label {% if not q.option_d or q.option_d == 'nan' or q.option_d == 'D' or q.option_d == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_D_txt">
@@ -213,7 +214,6 @@
                                                         {% endif %}
                                                     </label>
                                                 </div>
-                                                {% endif %}
                                             </div>
                                         {% endif %}
                                     </div>

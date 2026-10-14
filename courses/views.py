@@ -5,7 +5,8 @@ import pandas as pd
 import zipfile
 import re
 import random
-import urllib.request 
+import urllib.request
+import base64 
 from io import BytesIO
 from PIL import Image
 from django.core.files.base import ContentFile
@@ -340,6 +341,114 @@ def grade_hsk3_writing_ai(questions_66_70, user_answers_dict):
     return results
 
 
+def get_image_base64(image_field):
+    """Hàm phụ trợ: Chuyển đổi file ảnh trong Database thành chuỗi Base64 để gửi cho AI"""
+    if not image_field: 
+        return None
+    try:
+        with image_field.open("rb") as f:
+            return base64.b64encode(f.read()).decode('utf-8')
+    except Exception as e:
+        print("Lỗi mã hóa ảnh:", e)
+        return None
+
+def grade_hsk4_advanced_ai(questions_65_69, q_70, user_answers_dict):
+    """Hàm chấm thi HSK 4 bằng Gemini 1.5 Flash (Có thị giác máy tính)"""
+    results = {}
+    api_key = open(KEY_FILE_PATH).read().strip() if os.path.exists(KEY_FILE_PATH) else ""
+    if not api_key:
+        return results
+
+    # Sử dụng gemini-1.5-flash để hỗ trợ đọc ảnh
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+
+    # ==========================================
+    # 1. CHẤM CÂU 65-69 (KẾT HỢP XEM ẢNH + TEXT)
+    # ==========================================
+    for q in questions_65_69:
+        ans = user_answers_dict.get(str(q.id), '').strip()
+        kw = str(q.content).strip()
+        
+        if not ans:
+            results[str(q.id)] = False
+            continue
+
+        img_b64 = get_image_base64(q.image)
+        if not img_b64:
+            # Nếu câu hỏi bị mất ảnh, fallback về bộ lọc ngữ pháp cơ bản cũ
+            results[str(q.id)] = check_chinese_sentence_rules(ans, kw)
+            continue
+
+        prompt = f"""Bạn là giám khảo chấm thi HSK 4 chuyên nghiệp. Hãy quan sát bức ảnh đính kèm và đánh giá câu tiếng Trung học viên vừa viết.
+- Từ khóa bắt buộc phải dùng: "{kw}"
+- Câu học viên viết: "{ans}"
+
+Tiêu chí ĐẠT (trả về true) bắt buộc thỏa mãn 3 điều kiện:
+1. Có chứa chính xác từ khóa được giao.
+2. Ngữ pháp tiếng Trung cơ bản chính xác (không sắp xếp từ lộn xộn).
+3. ĐẶC BIỆT QUAN TRỌNG: Ý nghĩa của câu phải miêu tả ĐÚNG nội dung bức ảnh (Ví dụ ảnh đang cười mà viết đang khóc thì đánh trượt).
+
+Chỉ trả về định dạng JSON thuần túy: {{"is_correct": true/false}}"""
+
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": prompt},
+                    {"inlineData": {"mimeType": "image/jpeg", "data": img_b64}}
+                ]
+            }],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+        }
+        
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=12) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                ai_text = res_data['candidates'][0]['content']['parts'][0]['text']
+                results[str(q.id)] = json.loads(ai_text).get('is_correct', False)
+        except Exception as e:
+            print(f"Lỗi AI Câu {q.question_number}:", e)
+            results[str(q.id)] = check_chinese_sentence_rules(ans, kw) # Dự phòng nếu mạng lỗi
+
+    # ==========================================
+    # 2. CHẤM CÂU 70 (BÀI LUẬN SÂU KẾT CẤU)
+    # ==========================================
+    if q_70:
+        ans_70 = user_answers_dict.get(str(q_70.id), '').strip()
+        req_70 = str(q_70.content).strip()
+        word_count = len(re.sub(r'\s', '', ans_70))
+
+        if word_count < 60: 
+            # Viết quá ngắn sẽ bị đánh trượt ngay không cần gọi AI để tiết kiệm tài nguyên
+            results[str(q_70.id)] = False
+        else:
+            prompt_70 = f"""Bạn là giám khảo chấm thi HSK 4. Đánh giá bài luận sau đây của học viên:
+- Yêu cầu đề bài: "{req_70}"
+- Bài làm của học viên (Dài {word_count} chữ): "{ans_70}"
+
+Tiêu chí ĐẠT (trả về true):
+1. Không lạc đề: Phải trả lời đúng trọng tâm câu hỏi của đề bài.
+2. Độ dài: Lượng chữ Hán thực tế (bỏ khoảng trắng) phải từ 75 chữ trở lên.
+3. Ngữ pháp & Mạch lạc: Không sai quá nhiều lỗi từ vựng cơ bản, các câu liên kết có logic.
+
+Chỉ trả về định dạng JSON thuần túy: {{"is_correct": true/false}}"""
+
+            payload_70 = {
+                "contents": [{"parts": [{"text": prompt_70}]}],
+                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}
+            }
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload_70).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    res_data = json.loads(response.read().decode('utf-8'))
+                    ai_text = res_data['candidates'][0]['content']['parts'][0]['text']
+                    results[str(q_70.id)] = json.loads(ai_text).get('is_correct', False)
+            except Exception as e:
+                print("Lỗi AI Câu 70:", e)
+                results[str(q_70.id)] = word_count >= 80
+
+    return results
+
 @login_required(login_url='login')
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -363,18 +472,12 @@ def take_exam(request, exam_id):
             user_answers_dict['ai_graded'] = writing_results
             
         elif exam.hsk_level == 4:
-            # Chấm câu 65-69 (đặt câu với từ) bằng logic tương tự HSK 3
+            # KÍCH HOẠT CHẤM AI ĐA PHƯƠNG THỨC MỚI CHO HSK 4
             q_65_69 = [q for q in questions if 65 <= q.question_number <= 69]
-            writing_results = grade_hsk3_writing_ai(q_65_69, user_answers_dict)
-            
-            # Chấm câu 70 (Viết bài luận >= 80 chữ)
             q_70 = questions.filter(question_number=70).first()
-            if q_70:
-                ans_70 = user_answers_dict.get(str(q_70.id), '')
-                word_count = len(re.sub(r'\s', '', ans_70))
-                # Tạm thời chấm đỗ nếu đạt đủ 80 chữ (bạn có thể viết thêm prompt AI riêng cho câu này sau)
-                writing_results[str(q_70.id)] = word_count >= 80 
-                
+            
+            # Gọi hàm chấm siêu cấp vừa viết
+            writing_results = grade_hsk4_advanced_ai(q_65_69, q_70, user_answers_dict)
             user_answers_dict['ai_graded'] = writing_results
 
         # Chấm điểm chi tiết từng câu

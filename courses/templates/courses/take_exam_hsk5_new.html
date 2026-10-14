@@ -3,8 +3,8 @@
 {% block title %}Thi thử - {{ exam.title }}{% endblock %}
 
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap)" rel="stylesheet">
+<link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
 <style>
     :root { --primary-color: #9F1239; --primary-light: #FFE4E6; --success-color: #059669; --success-light: #D1FAE5; --bg-color: #F4F4F5; --card-bg: #FFFFFF; --border-color: #E4E4E7; --text-main: #27272A; --text-muted: #52525B; --shadow-sm: 0 1px 3px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.05); --shadow-hover: 0 8px 25px rgba(5, 150, 105, 0.15); }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -32,39 +32,39 @@
     .q-options-area { margin-top: 10px; } .q-options-area.ms-5 { margin-left: 40px !important; }
     
     /* Options styling */
-    .opt-circle { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; flex-shrink: 0; }
-    .opt-circle-e { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; flex-shrink: 0; }
+    .opt-circle, .opt-circle-e { display: inline-flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D4D4D8; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; background: #fff; flex-shrink: 0; }
     .opt-radio, .circle-radio { display: none; }
     .opt-label { display: flex; align-items: center; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; cursor: pointer; background: #fff; height: 100%; transition: all 0.2s ease; }
     .opt-label:hover { border-color: #A1A1AA; background: #FAFAFA; }
     .opt-radio:checked + .opt-label { border-color: var(--success-color); background: var(--success-light); box-shadow: var(--shadow-hover); }
-    .opt-radio:checked + .opt-label .opt-circle { background: var(--success-color); border-color: var(--success-color); color: white; }
-    .opt-radio:checked + .opt-label .opt-circle-e { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .opt-radio:checked + .opt-label .opt-circle, .opt-radio:checked + .opt-label .opt-circle-e { background: var(--success-color); border-color: var(--success-color); color: white; }
     
-    /* Essay Textarea (Q71-72) */
+    /* Essay Textarea */
     .input-essay { font-size: 1.1rem; border: 2px solid #BAE6FD; border-radius: 10px; color: #0F172A; font-family: 'Noto Sans SC', sans-serif; padding: 12px 16px; width: 100%; resize: vertical; min-height: 150px; }
     .input-essay:focus { border-color: #0284C7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.2); outline: none; }
     .word-counter-badge { display: inline-block; margin-top: 8px; font-size: 0.9rem; font-weight: bold; background: #F1F5F9; padding: 4px 10px; border-radius: 6px; border: 1px solid #E2E8F0; }
 
-    /* Reading Passages */
+    /* Shared Reading Passages */
     .single-passage-box { background: #F8FAFC; border-left: 3.5px solid #0284C7; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; text-indent: 2em; }
-    
+    .shared-passage-header { background: linear-gradient(to bottom, #F0F9FF, #F8FAFC); border-top: 2px solid #BAE6FD; border-bottom: 1px solid #E2E8F0; padding: 20px 24px 16px 24px; }
+    .shared-passage-badge { display: inline-flex; align-items: center; gap: 6px; background: #0284C7; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 4px 12px; border-radius: 6px; margin-bottom: 10px; letter-spacing: 0.5px; }
+    .shared-passage-content { background: #fff; border: 1px solid #BAE6FD; border-left: 4px solid #0284C7; padding: 14px 18px; border-radius: 8px; text-indent: 2em; box-shadow: 0 1px 3px rgba(2, 132, 199, 0.06); }
+    .question-row.grouped-first { border-top: none !important; padding-top: 16px; background: #FCFDFE; }
+    .question-row.grouped-next { border-top: 1.5px dashed #CBD5E1 !important; padding-top: 16px; background: #FCFDFE; }
+
     /* Sidebar & Progress Grid */
     .sticky-sidebar { position: sticky; top: 20px; z-index: 100;}
     .panel-box { background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; }
     .timer-circle { width: 90px; height: 90px; border: 3px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.5rem; font-weight: 800; color: var(--primary-color); font-family: monospace; background: var(--primary-light); }
-    
     .grid-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 6px; }
     .grid-progress::-webkit-scrollbar { width: 6px; }
     .grid-progress::-webkit-scrollbar-track { background: #F4F4F5; border-radius: 4px; }
     .grid-progress::-webkit-scrollbar-thumb { background: #A1A1AA; border-radius: 4px; }
     .grid-progress::-webkit-scrollbar-thumb:hover { background: #71717A; }
-    
     .grid-item { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; background: #FAFAFA; }
     .grid-item.done { background: var(--success-color); border-color: var(--success-color); color: white; }
     .btn-submit { background: var(--primary-color); color: white; font-weight: 700; border-radius: 8px; padding: 12px; font-size: 1.05rem; border: none; }
-    .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
-
+    
     #back-to-top { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; border-radius: 50%; background-color: #27272A; color: #FFFFFF; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1050; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease; }
     #back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
 </style>
@@ -104,7 +104,6 @@
                 {% for group in grouped_questions %}
                     <div class="q-group-wrapper">
                         {% with first_q_obj=group.list.0 %}
-                            <!-- TIÊU ĐỀ LỚN 3 PHẦN -->
                             {% if first_q_obj.question_number == 1 %}
                                 <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div></div>
                             {% elif first_q_obj.question_number == 36 %}
@@ -115,7 +114,6 @@
                         {% endwith %}
 
                         <div class="q-card-group">
-                            <!-- DANH SÁCH CÂU HỎI -->
                             {% for q in group.list %}
                                 <div class="question-row" id="q{{ q.question_number }}">
                                     <div class="q-header-inline">
@@ -278,6 +276,52 @@
                 .then(res => res.blob())
                 .then(blob => { audioEl.src = URL.createObjectURL(blob); })
                 .catch(err => console.error("Lỗi nạp audio blob:", err));
+        }
+
+        // Tự động gom nhóm các câu Đọc hiểu chung đoạn văn (Câu 36-45 và 56-70)
+        const rowsPassage = Array.from(document.querySelectorAll('.question-row')).filter(row => {
+            const idNum = parseInt((row.id || '').replace('q', ''), 10);
+            return (idNum >= 36 && idNum <= 45) || (idNum >= 56 && idNum <= 70);
+        });
+
+        let i = 0;
+        while (i < rowsPassage.length) {
+            let currRow = rowsPassage[i];
+            let currNum = parseInt(currRow.id.replace('q', ''), 10);
+            let currPassageEl = currRow.querySelector('.q-passage-box');
+            let currText = currPassageEl ? currPassageEl.innerHTML : '';
+
+            if (currText.trim()) {
+                let groupRows = [currRow];
+                let j = i + 1;
+                while (j < rowsPassage.length) {
+                    let nextRow = rowsPassage[j];
+                    let nextPassageEl = nextRow.querySelector('.q-passage-box');
+                    let nextText = nextPassageEl ? nextPassageEl.innerHTML : '';
+                    if (nextText.trim() === currText.trim()) { groupRows.push(nextRow); j++; } 
+                    else { break; }
+                }
+
+                if (groupRows.length > 1) {
+                    let firstNum = currNum;
+                    let lastNum = parseInt(groupRows[groupRows.length - 1].id.replace('q', ''), 10);
+                    
+                    let sharedHeader = document.createElement('div');
+                    sharedHeader.className = 'shared-passage-header';
+                    sharedHeader.innerHTML = `<div class="shared-passage-badge"><i class="fas fa-book-open"></i> 第 ${firstNum}–${lastNum} 题</div><div class="chinese-text shared-passage-content">${currText}</div>`;
+                    
+                    currRow.parentNode.insertBefore(sharedHeader, currRow);
+
+                    groupRows.forEach((r, idx) => {
+                        let pBox = r.querySelector('.q-passage-box');
+                        if (pBox) pBox.remove();
+                        r.classList.add(idx === 0 ? 'grouped-first' : 'grouped-next');
+                    });
+                    i = j;
+                    continue;
+                }
+            }
+            i++;
         }
     });
 

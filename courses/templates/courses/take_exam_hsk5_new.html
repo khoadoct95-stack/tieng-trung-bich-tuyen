@@ -106,11 +106,11 @@
                         {% with first_q_obj=group.list.0 %}
                             <!-- TIÊU ĐỀ LỚN 3 PHẦN -->
                             {% if first_q_obj.question_number == 1 %}
-                                <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力</div></div>
+                                <div class="text-center mt-2 mb-3"><div class="hsk-major-title">一、听 力 <span style="font-size: 1.15rem; font-weight: 800;">(NGHE HIỂU)</span></div></div>
                             {% elif first_q_obj.question_number == 36 %}
-                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">二、阅 读</div></div>
+                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">二、阅 读 <span style="font-size: 1.15rem; font-weight: 800;">(ĐỌC HIỂU)</span></div></div>
                             {% elif first_q_obj.question_number == 71 %}
-                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">三、书 写</div></div>
+                                <div class="text-center mt-5 mb-3"><div class="hsk-major-title">三、书 写 <span style="font-size: 1.15rem; font-weight: 800;">(VIẾT)</span></div></div>
                             {% endif %}
                         {% endwith %}
 
@@ -122,19 +122,19 @@
                                         <div class="q-number-text">{{ q.question_number }}.</div>
                                         <div class="q-content-area w-100">
                                             
-                                            <!-- ĐOẠN VĂN RIÊNG (Ví dụ đọc đoạn văn dài) -->
+                                            <!-- ĐOẠN VĂN RIÊNG -->
                                             {% if q.passage_text and q.passage_text != 'nan' %}
                                                 <div class="chinese-text q-passage-box single-passage-box">{{ q.passage_text|safe }}</div>
                                             {% endif %}
 
-                                            <!-- NỘI DUNG CÂU 71 (NHÌN TRANH VIẾT TRUYỆN) -->
+                                            <!-- NỘI DUNG CÂU 71 -->
                                             {% if q.question_number == 71 %}
                                                 <div class="chinese-text fw-bold mb-3">{{ q.content|safe }}</div>
                                                 {% if q.image %}
                                                     <div class="text-center mb-3"><img src="{{ q.image.url }}" alt="Câu 71" style="max-width: 100%; border-radius: 8px; border: 1px solid #ccc;"></div>
                                                 {% endif %}
                                             
-                                            <!-- NỘI DUNG CÂU 72 (VIẾT BÀI LUẬN) -->
+                                            <!-- NỘI DUNG CÂU 72 -->
                                             {% elif q.question_number == 72 %}
                                                 <div class="chinese-text fw-bold">{{ q.content|safe }}</div>
                                             
@@ -173,7 +173,7 @@
                                                 {% endfor %}
                                             </div>
 
-                                        <!-- PHẦN TRẮC NGHIỆM 4 ĐÁP ÁN A, B, C, D BÌNH THƯỜNG -->
+                                        <!-- PHẦN TRẮC NGHIỆM 4 ĐÁP ÁN A, B, C, D -->
                                         {% else %}
                                             <div class="row g-2 mt-1">
                                                 <div class="col-md-6 col-lg-3">
@@ -203,8 +203,6 @@
                                                         {% endif %}
                                                     </label>
                                                 </div>
-                                                
-                                                <!-- ĐÃ GỠ BỎ LỆNH {% if q.option_d %} Ở ĐÂY ĐỂ LUÔN HIỂN THỊ NÚT D -->
                                                 <div class="col-md-6 col-lg-3">
                                                     <input type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_D_txt" value="D" class="opt-radio" onchange="markDone({{ q.question_number }})">
                                                     <label class="opt-label {% if not q.option_d or q.option_d == 'nan' or q.option_d == 'D' or q.option_d == '&nbsp;' %}justify-content-center{% endif %}" for="q{{ q.id }}_D_txt">
@@ -283,7 +281,6 @@
         }
     });
 
-    // CHÚ Ý: HSK 5 CÓ 72 CÂU NÊN ĐỔI SỐ 70 THÀNH 72
     function updateProgressCount() {
         let totalDone = document.querySelectorAll('.grid-item.done').length;
         document.querySelectorAll('.progress-count-text').forEach(el => {
@@ -305,7 +302,6 @@
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Logic đếm chữ riêng biệt cho HSK 5
     function updateWordCount(textareaEl, qNumber, minWords) {
         let textVal = textareaEl.value.replace(/\s/g, ''); 
         let wordCount = textVal.length;

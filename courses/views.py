@@ -619,6 +619,8 @@ def take_exam(request, exam_id):
         return render(request, 'courses/take_exam_hsk3_new.html', context)
     elif exam.hsk_level == 4:
         return render(request, 'courses/take_exam_hsk4_new.html', context)
+    elif exam.hsk_level == 5:
+        return render(request, 'courses/take_exam_hsk5_new.html', context)
             
     return render(request, 'courses/take_exam_hsk1_new.html', context)
 
